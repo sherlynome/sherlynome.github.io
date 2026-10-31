@@ -1,0 +1,284 @@
+/* ============================================================
+   开场动画 · 循此苦旅，以达天际
+   只在首页播放一次（sessionStorage 记账），播完淡出露出首页。
+
+   整个场景挂在 #splash 下、自带 z-index 层叠上下文，
+   所以内部所有选择器都加 #splash 前缀，避免和 site.css 打架。
+   ============================================================ */
+
+/* 两个字体都是 SIL Open Font License 1.1，可商用、可子集化、可自托管。
+   字体文件由 make_splash_fonts.py 生成，不依赖 Google Fonts（国内 gstatic 拉不动）。 */
+@font-face{
+  font-family:"MaShanZheng";
+  src:url("../fonts/mashanzheng-subset.woff2") format("woff2");
+  font-display:swap;
+}
+@font-face{
+  font-family:"GreatVibes";
+  src:url("../fonts/greatvibes.woff2") format("woff2");
+  font-display:swap;
+}
+
+/* 播放期间锁住背景滚动 */
+body.splash-lock{overflow:hidden;}
+
+#splash{
+  --s-bg:#0a0014;--s-pink:#ff5fa2;--s-pink-light:#ff8fb8;--s-gold:#d4af37;
+  --s-serif:"Noto Serif SC","Source Han Serif SC","Songti SC",STSong,serif;
+
+  position:fixed;inset:0;z-index:9999;
+  background:#000;overflow:hidden;
+  font-family:var(--s-serif);
+  -webkit-tap-highlight-color:transparent;
+  transition:opacity .9s ease;
+}
+#splash.out{opacity:0;pointer-events:none;}
+#splash *{margin:0;padding:0;box-sizing:border-box;}
+
+/* ── 启动页 ─────────────────────────────────────────────── */
+#splash .audio-prompt{
+  position:absolute;inset:0;z-index:9999;background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:opacity 1.2s ease;
+}
+#splash .audio-prompt.fade{opacity:0;pointer-events:none;}
+#splash .prompt-ghost{width:clamp(80px,20vw,120px);margin-bottom:24px;animation:sPromptFloat 2.5s ease-in-out infinite;}
+@keyframes sPromptFloat{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-12px) rotate(3deg);}}
+#splash .prompt-text{
+  font-family:"MaShanZheng",var(--s-serif);
+  font-size:clamp(1.3rem,5vw,1.8rem);color:var(--s-pink-light);letter-spacing:.3em;
+  text-shadow:0 0 20px rgba(255,95,162,.6);margin-bottom:10px;
+  animation:sPromptBlink 2s ease-in-out infinite;
+}
+@keyframes sPromptBlink{0%,100%{opacity:.7;}50%{opacity:1;}}
+#splash .prompt-sub{
+  font-family:"GreatVibes",cursive;
+  font-size:clamp(.9rem,3.5vw,1.1rem);color:rgba(255,143,184,.6);
+}
+
+/* ── 舞台 ───────────────────────────────────────────────── */
+#splash .stage{
+  position:absolute;inset:0;overflow:hidden;background:var(--s-bg);
+  transition:transform 2s cubic-bezier(.5,0,.3,1);transform-origin:50% 60%;
+}
+#splash .stage.zoom-in{transform:scale(1.3);}
+#splash .blackout{
+  position:absolute;inset:0;background:#000;z-index:1000;
+  transition:opacity 1.8s ease;
+}
+#splash .blackout.fade{opacity:0;pointer-events:none;}
+
+#splash .sky{
+  position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse at 50% 100%,rgba(139,10,58,.35) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 20%,rgba(255,95,162,.12) 0%,transparent 40%),
+    linear-gradient(180deg,#0a0014 0%,#1a0a20 50%,#2a0a20 80%,#1a000a 100%);
+}
+#splash .stars{
+  position:absolute;inset:0;z-index:1;opacity:.6;
+  animation:sTwinkle 5s ease-in-out infinite;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%,#fff,transparent),
+    radial-gradient(1px 1px at 40% 70%,#fff,transparent),
+    radial-gradient(2px 2px at 50% 50%,#ff8fb8,transparent),
+    radial-gradient(1px 1px at 70% 20%,#fff,transparent),
+    radial-gradient(2px 2px at 80% 80%,#ff8fb8,transparent),
+    radial-gradient(1px 1px at 90% 40%,#fff,transparent),
+    radial-gradient(1px 1px at 15% 80%,#fff,transparent),
+    radial-gradient(2px 2px at 60% 10%,#fff,transparent),
+    radial-gradient(1px 1px at 25% 50%,#ff5fa2,transparent),
+    radial-gradient(1px 1px at 85% 90%,#fff,transparent);
+}
+@keyframes sTwinkle{0%,100%{opacity:.4;}50%{opacity:.85;}}
+
+#splash .moon{
+  position:absolute;top:9%;right:10%;z-index:1;
+  width:clamp(60px,12vw,100px);height:clamp(60px,12vw,100px);border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#ffd9e8 0%,#ff8fb8 45%,#d4af37 80%,#8b6914 100%);
+  animation:sMoonGlow 6s ease-in-out infinite;
+}
+@keyframes sMoonGlow{
+  0%,100%{box-shadow:0 0 40px rgba(255,143,184,.4),0 0 80px rgba(255,95,162,.2);}
+  50%{box-shadow:0 0 60px rgba(255,143,184,.6),0 0 120px rgba(255,95,162,.35);}
+}
+
+/* ── 小幽灵 ─────────────────────────────────────────────── */
+#splash .ghost{
+  position:absolute;z-index:5;cursor:pointer;will-change:transform;
+  user-select:none;-webkit-user-select:none;
+  transition:transform .6s cubic-bezier(.34,1.56,.64,1);
+}
+#splash .ghost svg{
+  display:block;filter:drop-shadow(0 0 10px rgba(255,143,184,.35));
+  animation:sGhostBob 2.5s ease-in-out infinite;
+}
+@keyframes sGhostBob{0%,100%{transform:translateY(0) scaleY(1);}50%{transform:translateY(-8px) scaleY(.97);}}
+#splash .ghost.dodge{transform:translate(var(--dx),var(--dy)) scale(1.1) rotate(var(--rot));}
+#splash .ghost .excited{
+  position:absolute;top:-18px;left:50%;transform:translateX(-50%);
+  font-size:20px;opacity:0;transition:opacity .3s;pointer-events:none;
+}
+#splash .ghost.dodge .excited{opacity:1;}
+
+/* ── 城堡 ───────────────────────────────────────────────── */
+#splash .castle-wrap{position:absolute;bottom:0;left:0;width:100%;height:55%;z-index:2;}
+#splash .castle{width:100%;height:100%;}
+#splash .castle-window{animation:sWindowFlicker 5s ease-in-out infinite;}
+@keyframes sWindowFlicker{0%,100%{opacity:.85;}50%{opacity:.55;}}
+#splash .fog{
+  position:absolute;bottom:0;left:0;width:100%;height:30%;z-index:3;pointer-events:none;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,95,162,.05) 40%,rgba(0,0,0,.35) 100%);
+}
+#splash canvas.rain{position:absolute;inset:0;z-index:10;pointer-events:none;opacity:.4;}
+
+/* ── 柔光 / 光圈 ────────────────────────────────────────── */
+#splash .glow-pulse{
+  position:absolute;inset:0;opacity:0;z-index:50;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(ellipse at 50% 40%,rgba(255,200,230,.4) 0%,rgba(255,95,162,.15) 30%,transparent 70%);
+}
+#splash .glow-pulse.soft-1{animation:sGlowSoft1 3s ease-out;}
+#splash .glow-pulse.soft-2{animation:sGlowSoft2 4s ease-out;}
+#splash .glow-pulse.bloom{animation:sGlowBloom 3.5s ease-out;}
+@keyframes sGlowSoft1{0%{opacity:0;}30%{opacity:.55;}100%{opacity:0;}}
+@keyframes sGlowSoft2{0%{opacity:0;}20%{opacity:.4;}60%{opacity:.2;}100%{opacity:0;}}
+@keyframes sGlowBloom{0%{opacity:0;}25%{opacity:.75;}50%{opacity:.35;}75%{opacity:.55;}100%{opacity:0;}}
+
+#splash .speak-effect{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:0;height:0;border-radius:50%;z-index:150;pointer-events:none;opacity:0;
+  background:radial-gradient(circle,rgba(255,230,245,.85) 0%,rgba(255,95,162,.5) 30%,transparent 70%);
+}
+#splash .speak-effect.burst{animation:sSpeakBurst 2.2s ease-out;}
+@keyframes sSpeakBurst{0%{width:0;height:0;opacity:1;}100%{width:200vmax;height:200vmax;opacity:0;}}
+
+/* ── 字幕 ───────────────────────────────────────────────── */
+#splash .caption{
+  position:absolute;bottom:8%;left:50%;transform:translateX(-50%);
+  width:92%;text-align:center;z-index:200;opacity:0;
+  transition:opacity 2.5s ease;pointer-events:none;
+}
+#splash .caption.show{opacity:1;}
+#splash .caption-cn{
+  font-family:"MaShanZheng",var(--s-serif);
+  font-size:clamp(1.8rem,8vw,5rem);font-weight:900;color:#fff;
+  letter-spacing:.12em;line-height:1.3;margin-bottom:.8rem;
+  text-shadow:0 0 20px rgba(255,95,162,.9),0 0 40px rgba(255,95,162,.6),2px 2px 4px rgba(0,0,0,.9);
+  animation:sTextGlow 4s ease-in-out infinite;
+}
+#splash .caption-en{
+  font-family:"GreatVibes",cursive;
+  font-size:clamp(1.2rem,4.5vw,2.8rem);color:var(--s-pink-light);
+  text-shadow:0 0 15px rgba(255,95,162,.7);line-height:1.2;
+}
+#splash .caption-divider{
+  width:min(200px,50vw);height:1px;margin:1rem auto;
+  background:linear-gradient(90deg,transparent,var(--s-pink),transparent);
+  box-shadow:0 0 10px var(--s-pink);
+}
+@keyframes sTextGlow{
+  0%,100%{text-shadow:0 0 20px rgba(255,95,162,.9),0 0 40px rgba(255,95,162,.6),2px 2px 4px rgba(0,0,0,.9);}
+  50%{text-shadow:0 0 30px rgba(255,95,162,1),0 0 60px rgba(255,95,162,.8),2px 2px 4px rgba(0,0,0,.9);}
+}
+
+/* ── 帷幕 ───────────────────────────────────────────────── */
+#splash .curtain{
+  position:absolute;top:0;width:50.5%;height:100%;z-index:100;overflow:hidden;
+  transition:transform 4s cubic-bezier(.6,0,.3,1);
+}
+#splash .curtain.left{left:0;}
+#splash .curtain.right{right:0;}
+#splash .curtain.left.open{transform:translateX(-100%);}
+#splash .curtain.right.open{transform:translateX(100%);}
+#splash .curtain-bg{position:absolute;inset:0;}
+#splash .curtain.left .curtain-bg{
+  background:linear-gradient(90deg,#2a0008 0%,#5c0011 8%,#8b0a1a 25%,#6b0815 50%,#8b0a1a 75%,#5c0011 92%,#3a0010 100%);
+}
+#splash .curtain.right .curtain-bg{
+  background:linear-gradient(270deg,#2a0008 0%,#5c0011 8%,#8b0a1a 25%,#6b0815 50%,#8b0a1a 75%,#5c0011 92%,#3a0010 100%);
+}
+#splash .curtain-texture{
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0,rgba(0,0,0,.35) 20px,transparent 40px,rgba(255,100,150,.06) 60px,transparent 80px,rgba(0,0,0,.45) 100px,transparent 120px);
+}
+#splash .curtain-tassels{
+  position:absolute;bottom:0;left:0;width:100%;height:40px;
+  background:repeating-linear-gradient(90deg,#d4af37 0,#d4af37 8px,transparent 8px,transparent 28px,#b8860b 28px,#b8860b 36px,transparent 36px,transparent 56px);
+}
+#splash .top-valance{
+  position:absolute;top:0;left:0;width:100%;height:clamp(60px,12vw,100px);
+  z-index:101;box-shadow:0 5px 30px rgba(0,0,0,.6);
+  background:linear-gradient(180deg,#8b0a1a 0%,#5c0011 70%,#3a0010 100%);
+  transition:transform 4s cubic-bezier(.6,0,.3,1);
+}
+#splash .top-valance::after{
+  content:'';position:absolute;bottom:-1px;left:0;width:100%;height:25px;
+  background:radial-gradient(circle at 12.5px -8px,transparent 15px,#5c0011 16px);
+  background-size:25px 25px;background-repeat:repeat-x;
+}
+#splash .top-valance.open{transform:translateY(-105%);}
+
+/* ── 花瓣 ───────────────────────────────────────────────── */
+#splash .petals{position:absolute;inset:0;z-index:80;pointer-events:none;}
+#splash .petal{
+  position:absolute;opacity:0;
+  background:radial-gradient(circle at 30% 30%,#ffd9e8 0%,#ff5fa2 70%,#ff3d8a 100%);
+  border-radius:50% 0 50% 0;
+  animation:sPetalFall linear infinite;
+}
+@keyframes sPetalFall{
+  0%{opacity:0;transform:translate(0,-20px) rotate(0deg);}
+  10%{opacity:.8;}
+  90%{opacity:.6;}
+  100%{opacity:0;transform:translate(var(--drift),105vh) rotate(720deg);}
+}
+
+/* ── UI ─────────────────────────────────────────────────── */
+#splash .skip-btn{
+  position:absolute;right:15px;bottom:max(15px,env(safe-area-inset-bottom));
+  z-index:999;padding:10px 18px;border-radius:20px;cursor:pointer;
+  background:rgba(255,95,162,.1);border:1px solid rgba(255,95,162,.4);
+  color:var(--s-pink-light);font-family:var(--s-serif);font-size:.85rem;letter-spacing:.15em;
+  opacity:0;transition:opacity .4s ease,background .25s,border-color .25s,color .25s;
+  backdrop-filter:blur(10px);
+}
+#splash .skip-btn.show{opacity:1;}
+#splash .skip-btn:hover{background:rgba(255,95,162,.25);border-color:var(--s-pink);color:#fff;}
+#splash .audio-indicator{
+  position:absolute;left:15px;top:max(15px,env(safe-area-inset-top));
+  z-index:999;display:flex;align-items:center;gap:8px;
+  opacity:0;transition:opacity 1s ease;
+  color:var(--s-pink-light);font-size:.75rem;letter-spacing:.2em;
+}
+#splash .audio-indicator.show{opacity:.7;}
+#splash .audio-bars{display:flex;gap:2px;align-items:flex-end;height:12px;}
+#splash .audio-bar{
+  width:3px;background:var(--s-pink);border-radius:2px;
+  animation:sAudioBar 1.2s ease-in-out infinite;
+}
+#splash .audio-bar:nth-child(1){height:50%;}
+#splash .audio-bar:nth-child(2){height:80%;animation-delay:.2s;}
+#splash .audio-bar:nth-child(3){height:60%;animation-delay:.4s;}
+#splash .audio-bar:nth-child(4){height:90%;animation-delay:.6s;}
+@keyframes sAudioBar{0%,100%{transform:scaleY(.4);}50%{transform:scaleY(1);}}
+/* 提示原本在右上，会和月亮撞在一起；挪到左上「音景中」下面 */
+#splash .catch-hint{
+  position:absolute;left:15px;top:calc(max(15px,env(safe-area-inset-top)) + 26px);
+  z-index:999;opacity:0;transition:opacity 1s ease;text-align:left;
+  color:var(--s-pink-light);font-size:.75rem;letter-spacing:.1em;
+}
+#splash .catch-hint.show{opacity:.8;}
+
+/* 横屏矮屏 */
+@media (max-height:420px) and (orientation:landscape){
+  #splash .caption{bottom:3%;}
+  #splash .caption-cn{font-size:clamp(1.5rem,5vh,3rem);}
+  #splash .castle-wrap{height:45%;}
+}
+
+/* 系统开了「减少动态效果」→ 只留静态画面，不做缩放和花瓣 */
+@media (prefers-reduced-motion:reduce){
+  #splash .stage.zoom-in{transform:none;}
+  #splash .petals{display:none;}
+  #splash .stars,#splash .moon,#splash .ghost svg,#splash .caption-cn{animation:none;}
+}
