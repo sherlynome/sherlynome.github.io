@@ -442,6 +442,9 @@ GISCUS_REPO_ID = "R_kgDOVeTqPg"
 GISCUS_CATEGORY = "留言板"
 GISCUS_CATEGORY_ID = "DIC_kwDOVeTqPs4DKGUD"
 
+# giscus 只认公开可访问的 CSS URL，所以主题必须走线上地址（改完要等 Pages 部署）
+GISCUS_THEME = "https://sherlynome.github.io/assets/giscus.css"
+
 GISCUS_PLACEHOLDER = """
         <div class="empty-state" style="border:none;background:none;">
           <div class="big">♡</div>
@@ -461,12 +464,12 @@ GISCUS_SCRIPT = """
                 data-reactions-enabled="1"
                 data-emit-metadata="0"
                 data-input-position="bottom"
-                data-theme="transparent_dark"
+                data-theme="%s"
                 data-lang="zh-CN"
                 data-loading="lazy"
                 crossorigin="anonymous"
                 async>
-        </script>""" % (GISCUS_REPO, GISCUS_REPO_ID, GISCUS_CATEGORY, GISCUS_CATEGORY_ID)
+        </script>""" % (GISCUS_REPO, GISCUS_REPO_ID, GISCUS_CATEGORY, GISCUS_CATEGORY_ID, GISCUS_THEME)
 
 # 没填 category-id 就保持占位，不会把半个 giscus 吐到页面上
 GISCUS_INNER = GISCUS_SCRIPT if GISCUS_CATEGORY_ID else GISCUS_PLACEHOLDER
