@@ -172,7 +172,7 @@
     </g>
 
     <!-- 石灯笼 -->
-    <g transform="translate(470,486)">
+    <g transform="translate(404,468)">
       <ellipse cx="0" cy="92" rx="36" ry="8" fill="#000" opacity=".32"/>
       <rect x="-34" y="76" width="68" height="14" rx="4" fill="#2A3554"/>
       <rect x="-10" y="34" width="20" height="46" fill="#2A3554"/>
@@ -182,56 +182,58 @@
       <circle cx="0" cy="-28" r="5" fill="#33425F"/>
     </g>
 
-    <!-- 月饼 -->
-    <g transform="translate(752,462)">
-      <ellipse cx="0" cy="28" rx="44" ry="9" fill="#000" opacity=".3"/>
-      <circle cx="0" cy="0" r="42" fill="#C9984E"/>
-      <circle cx="0" cy="0" r="36" fill="#EFC078"/>
-      <g fill="#B9873F">
-        <circle cx="0" cy="-36" r="4.6"/><circle cx="25" cy="-25" r="4.6"/>
-        <circle cx="36" cy="0" r="4.6"/><circle cx="25" cy="25" r="4.6"/>
-        <circle cx="0" cy="36" r="4.6"/><circle cx="-25" cy="25" r="4.6"/>
-        <circle cx="-36" cy="0" r="4.6"/><circle cx="-25" cy="-25" r="4.6"/>
+    <!-- 月饼：回字纹，别画成曲奇 -->
+    <g transform="translate(766,432)">
+      <ellipse cx="0" cy="30" rx="46" ry="10" fill="#000" opacity=".32"/>
+      <circle cx="0" cy="0" r="44" fill="#C9984E"/>
+      <circle cx="0" cy="0" r="37" fill="#EFC078"/>
+      <g fill="#C9984E">
+        <circle cx="0" cy="-39" r="4.4"/><circle cx="27.6" cy="-27.6" r="4.4"/>
+        <circle cx="39" cy="0" r="4.4"/><circle cx="27.6" cy="27.6" r="4.4"/>
+        <circle cx="0" cy="39" r="4.4"/><circle cx="-27.6" cy="27.6" r="4.4"/>
+        <circle cx="-39" cy="0" r="4.4"/><circle cx="-27.6" cy="-27.6" r="4.4"/>
       </g>
-      <circle cx="0" cy="0" r="19" fill="none" stroke="#B9873F" stroke-width="2.6"/>
-      <path d="M0,-19 L5.6,-5.6 L19,0 L5.6,5.6 L0,19 L-5.6,5.6 L-19,0 L-5.6,-5.6 Z" fill="#B9873F" opacity=".75"/>
+      <path d="M-13,-13 L13,-13 L13,13 L-13,13 Z" fill="none" stroke="#A9743A" stroke-width="3.2" stroke-linejoin="round"/>
+      <path d="M-5,-5 L5,-5 L5,5 L-5,5 Z" fill="none" stroke="#A9743A" stroke-width="2.6" stroke-linejoin="round"/>
     </g>
 
-    <!-- 玉兔 · 坐着仰头看月 -->
-    <g transform="translate(566,424) scale(1.04)">
-      <ellipse cx="0" cy="106" rx="50" ry="11" fill="#000" opacity=".32"/>
-      <path d="M-46,100 C-52,40 -20,10 8,10 C40,10 60,44 56,100 Z" fill="#F2ECDD"/>
-      <path d="M-10,100 C-16,56 4,34 26,40 C44,46 50,74 46,100 Z" fill="#FBF7EE"/>
-      <circle cx="6" cy="-6" r="34" fill="#F2ECDD"/>
-      <ellipse cx="-16" cy="-58" rx="11" ry="33" fill="#F2ECDD" transform="rotate(-14 -16 -58)"/>
-      <ellipse cx="-16" cy="-58" rx="5.5" ry="22" fill="#F7C7D8" transform="rotate(-14 -16 -58)"/>
-      <ellipse cx="24" cy="-56" rx="11" ry="33" fill="#F2ECDD" transform="rotate(12 24 -56)"/>
-      <ellipse cx="24" cy="-56" rx="5.5" ry="22" fill="#F7C7D8" transform="rotate(12 24 -56)"/>
-      <ellipse cx="-6" cy="-12" rx="4.6" ry="5.4" fill="#2C241C"/>
-      <ellipse cx="18" cy="-12" rx="4.6" ry="5.4" fill="#2C241C"/>
-      <circle cx="-4.4" cy="-14" r="1.6" fill="#fff"/>
-      <circle cx="19.6" cy="-14" r="1.6" fill="#fff"/>
-      <path d="M6,0 l4,3 -4,3 -4,-3 z" fill="#F2879E"/>
-      <ellipse cx="-18" cy="2" rx="8" ry="5" fill="#F7C7D8" opacity=".75"/>
-      <ellipse cx="30" cy="2" rx="8" ry="5" fill="#F7C7D8" opacity=".75"/>
-      <circle cx="-44" cy="86" r="13" fill="#FBF7EE"/>
+    <!-- 玉兔 · 坐着仰头看月：头要大、身体要圆，不然像白蛋顶个球 -->
+    <g transform="translate(556,362)">
+      <ellipse cx="6" cy="136" rx="66" ry="12" fill="#000" opacity=".3"/>
+      <ellipse cx="8" cy="74" rx="60" ry="62" fill="#F2ECDD"/>
+      <ellipse cx="4" cy="2" rx="52" ry="46" fill="#F2ECDD"/>
+      <ellipse cx="-24" cy="-74" rx="14" ry="42" fill="#F2ECDD" transform="rotate(-13 -24 -74)"/>
+      <ellipse cx="-24" cy="-74" rx="7" ry="28" fill="#F7C7D8" transform="rotate(-13 -24 -74)"/>
+      <ellipse cx="28" cy="-72" rx="14" ry="42" fill="#F2ECDD" transform="rotate(11 28 -72)"/>
+      <ellipse cx="28" cy="-72" rx="7" ry="28" fill="#F7C7D8" transform="rotate(11 28 -72)"/>
+      <ellipse cx="-14" cy="-14" rx="6.8" ry="7.8" fill="#2C241C"/>
+      <ellipse cx="21" cy="-14" rx="6.8" ry="7.8" fill="#2C241C"/>
+      <circle cx="-11.6" cy="-16.8" r="2.5" fill="#fff"/>
+      <circle cx="23.4" cy="-16.8" r="2.5" fill="#fff"/>
+      <path d="M7,-1 l5,4.2 -5,4.2 -5,-4.2 z" fill="#F2879E"/>
+      <path d="M2,8 q5,4 10,0" stroke="#D9899C" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="-31" cy="4" rx="11.5" ry="7" fill="#F7C7D8" opacity=".8"/>
+      <ellipse cx="39" cy="4" rx="11.5" ry="7" fill="#F7C7D8" opacity=".8"/>
+      <ellipse cx="-16" cy="92" rx="15" ry="11" fill="#FBF7EE"/>
+      <ellipse cx="40" cy="92" rx="15" ry="11" fill="#FBF7EE"/>
     </g>
 
     <!-- 玉兔 · 趴着打盹 -->
-    <g transform="translate(866,492) scale(.86)">
-      <ellipse cx="0" cy="70" rx="60" ry="11" fill="#000" opacity=".28"/>
-      <ellipse cx="0" cy="26" rx="62" ry="40" fill="#F2ECDD"/>
-      <circle cx="-46" cy="-4" r="30" fill="#F2ECDD"/>
-      <ellipse cx="-64" cy="-46" rx="10" ry="30" fill="#F2ECDD" transform="rotate(-24 -64 -46)"/>
-      <ellipse cx="-64" cy="-46" rx="5" ry="20" fill="#F7C7D8" transform="rotate(-24 -64 -46)"/>
-      <ellipse cx="-34" cy="-52" rx="10" ry="30" fill="#F2ECDD" transform="rotate(-6 -34 -52)"/>
-      <ellipse cx="-34" cy="-52" rx="5" ry="20" fill="#F7C7D8" transform="rotate(-6 -34 -52)"/>
-      <path d="M-58,-8 q7,7 14,0" stroke="#2C241C" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-      <path d="M-38,-8 q7,7 14,0" stroke="#2C241C" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-      <path d="M-46,4 l3.5,3 -3.5,3 -3.5,-3 z" fill="#F2879E"/>
-      <ellipse cx="-68" cy="4" rx="7" ry="4.4" fill="#F7C7D8" opacity=".75"/>
-      <circle cx="58" cy="40" r="12" fill="#FBF7EE"/>
+    <g transform="translate(920,458) scale(.95)">
+      <ellipse cx="0" cy="56" rx="70" ry="12" fill="#000" opacity=".28"/>
+      <ellipse cx="4" cy="10" rx="72" ry="48" fill="#F2ECDD"/>
+      <ellipse cx="-50" cy="-16" rx="45" ry="41" fill="#F2ECDD"/>
+      <ellipse cx="-84" cy="-56" rx="13" ry="37" fill="#F2ECDD" transform="rotate(-42 -84 -56)"/>
+      <ellipse cx="-84" cy="-56" rx="6.5" ry="24" fill="#F7C7D8" transform="rotate(-42 -84 -56)"/>
+      <ellipse cx="-48" cy="-64" rx="13" ry="37" fill="#F2ECDD" transform="rotate(-20 -48 -64)"/>
+      <ellipse cx="-48" cy="-64" rx="6.5" ry="24" fill="#F7C7D8" transform="rotate(-20 -48 -64)"/>
+      <path d="M-66,-18 q8,8 16,0" stroke="#2C241C" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+      <path d="M-40,-18 q8,8 16,0" stroke="#2C241C" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+      <path d="M-52,-2 l4.6,3.6 -4.6,3.6 -4.6,-3.6 z" fill="#F2879E"/>
+      <ellipse cx="-80" cy="0" rx="9.5" ry="5.6" fill="#F7C7D8" opacity=".8"/>
+      <circle cx="70" cy="30" r="15" fill="#FBF7EE"/>
     </g>
+
   </svg>
 </div>
 
