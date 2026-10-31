@@ -52,6 +52,9 @@ body.splash-lock{overflow:hidden;}
 }
 #splash .audio-prompt.fade{opacity:0;pointer-events:none;}
 #splash .prompt-ghost{width:clamp(80px,20vw,120px);margin-bottom:24px;animation:sPromptFloat 2.5s ease-in-out infinite;}
+/* 启幕页那只小幽灵是节日专属。
+   用 html:not([data-festival]) 判断而不是 JS——festivals.json 拉不到时也能兜住 */
+html:not([data-festival]) #splash .prompt-ghost{display:none;}
 @keyframes sPromptFloat{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-12px) rotate(3deg);}}
 #splash .prompt-text{
   font-family:"MaShanZheng",var(--s-serif);
