@@ -47,11 +47,11 @@ NOTES = [
 BLOGS = []   # dict(date, title, text, read, link)
 
 # ── 友链 ───────────────────────────────────────────────────
+# 照 dict(href=..., icon=..., title=..., desc=...) 的格式往里写，加几条都行，
+# 页面和导航页的「常去的地方」会自动跟着变；清空则显示空状态。
 LINKS = [
-    dict(href="https://blog.yurucamp.vip", icon="🌙", title="夕凪の小站",
-         desc="普通人的爱好分享地 · 排版干净得要命"),
-    dict(href="https://xnmoe.com", icon="✦", title="NNNullptr",
-         desc="南的个人站 · 卡片墙堆得又满又好看"),
+    dict(href="https://lolitalibrary.com/", icon="📖", title="Lo研社 · Lolita图书馆",
+         desc="Lolita 服饰与文化研习社 · 查裙子查资料"),
 ]
 
 FOOTER = """
@@ -424,7 +424,7 @@ SCRIPT_REPO = """
 </script>
 """ % GH
 
-BODY_LINKS = page_head("LINKS", "友链", "常逛的几个站，都是自己一块一块搭出来的。") + """
+BODY_LINKS = page_head("LINKS", "友链", "常逛的站，都是自己一块一块搭出来的。") + """
 <section class="sec" style="padding-top:0">
   <div class="wrap">
     <div class="linkgrid">%s</div>

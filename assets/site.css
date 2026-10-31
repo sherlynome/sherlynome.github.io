@@ -490,7 +490,7 @@
   .lk{
     display:flex;align-items:center;gap:13px;padding:15px 17px;border-radius:16px;
     background:linear-gradient(180deg,var(--panel),#110C15);
-    border:1px solid var(--line-2);text-decoration:none;color:inherit;
+    border:1px solid var(--line-2);text-decoration:none;color:inherit;height:100%;
     transition:transform .24s,border-color .24s,box-shadow .24s;
   }
   .lk:hover{transform:translateY(-3px);border-color:rgba(255,61,127,.5);
