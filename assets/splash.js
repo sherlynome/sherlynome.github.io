@@ -94,19 +94,59 @@
   }
 
   /* ── 小幽灵 ─────────────────────────────────────────────── */
+  /* 身体 / 眼睛 / 嘴 / 腮红拆成零件，品种只拼装饰上去，
+     不用每个都重抄一遍路径。 */
+  var G_BODY = '<path d="M 40 135 Q 48 150 58 136 Q 68 150 78 136 Q 88 150 98 136 Q 108 150 118 136 Q 128 150 138 136 Q 148 150 158 135 L 158 92 Q 158 34 100 34 Q 42 34 42 92 Z" fill="#fff"/>';
+  var G_EYES = '<ellipse cx="80" cy="92" rx="8" ry="10" fill="#1a1a1a"/><ellipse cx="120" cy="92" rx="8" ry="10" fill="#1a1a1a"/>';
+  var G_MOUTH = '<ellipse cx="100" cy="110" rx="6" ry="7" fill="#1a1a1a"/>';
+  var G_BLUSH = '<ellipse cx="64" cy="108" rx="11" ry="7" fill="#ffb6c8"/><ellipse cx="136" cy="108" rx="11" ry="7" fill="#ffb6c8"/>';
+
+  function gsvg(inner) {
+    return '<svg width="70" height="65" viewBox="0 0 200 180">' + inner + '</svg>';
+  }
+
   var GHOST_SVGS = [
-    '<svg width="70" height="65" viewBox="0 0 200 180"><path d="M 40 135 Q 48 150 58 136 Q 68 150 78 136 Q 88 150 98 136 Q 108 150 118 136 Q 128 150 138 136 Q 148 150 158 135 L 158 92 Q 158 34 100 34 Q 42 34 42 92 Z" fill="#fff"/><ellipse cx="80" cy="92" rx="8" ry="10" fill="#1a1a1a"/><ellipse cx="120" cy="92" rx="8" ry="10" fill="#1a1a1a"/><ellipse cx="100" cy="110" rx="6" ry="7" fill="#1a1a1a"/><ellipse cx="64" cy="108" rx="11" ry="7" fill="#ffb6c8"/><ellipse cx="136" cy="108" rx="11" ry="7" fill="#ffb6c8"/></svg>',
-    '<svg width="70" height="65" viewBox="0 0 200 180"><ellipse cx="100" cy="95" rx="58" ry="56" fill="#fff"/><path d="M 44 132 Q 52 146 62 134 Q 72 146 82 134 Q 92 146 102 134 Q 112 146 122 134 Q 132 146 142 134 Q 152 146 156 132 L 156 95 Q 156 40 100 40 Q 44 40 44 95 Z" fill="#fff"/><ellipse cx="80" cy="95" rx="8" ry="10" fill="#1a1a1a"/><ellipse cx="120" cy="95" rx="8" ry="10" fill="#1a1a1a"/><ellipse cx="100" cy="115" rx="7" ry="8" fill="#1a1a1a"/><ellipse cx="64" cy="112" rx="11" ry="7" fill="#ffb6c8"/><ellipse cx="136" cy="112" rx="11" ry="7" fill="#ffb6c8"/></svg>',
-    '<svg width="70" height="65" viewBox="0 0 200 180"><g transform="rotate(-6 100 100)"><path d="M 42 138 Q 50 152 60 138 Q 70 152 80 138 Q 90 152 100 138 Q 110 152 120 138 Q 130 152 140 138 Q 150 152 158 138 L 158 92 Q 158 32 100 32 Q 42 32 42 92 Z" fill="#fff"/><path d="M 72 88 Q 78 82 84 88" stroke="#1a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M 116 88 Q 122 82 128 88" stroke="#1a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M 88 110 Q 100 120 112 110" stroke="#1a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="106" rx="11" ry="7" fill="#ffb6c8"/><ellipse cx="140" cy="106" rx="11" ry="7" fill="#ffb6c8"/></g><path d="M 150 30 l 4 8 9 1 -6.5 6 2 9 -8.5 -4.5 -8.5 4.5 2 -9 -6.5 -6 9 -1 Z" fill="#ff5fa2"/></svg>'
+    /* 1 标准 */
+    gsvg(G_BODY + G_EYES + G_MOUTH + G_BLUSH),
+
+    /* 2 圆头（底边单独一层，显得更软） */
+    gsvg('<ellipse cx="100" cy="95" rx="58" ry="56" fill="#fff"/><path d="M 44 132 Q 52 146 62 134 Q 72 146 82 134 Q 92 146 102 134 Q 112 146 122 134 Q 132 146 142 134 Q 152 146 156 132 L 156 95 Q 156 40 100 40 Q 44 40 44 95 Z" fill="#fff"/><ellipse cx="80" cy="95" rx="8" ry="10" fill="#1a1a1a"/><ellipse cx="120" cy="95" rx="8" ry="10" fill="#1a1a1a"/><ellipse cx="100" cy="115" rx="7" ry="8" fill="#1a1a1a"/><ellipse cx="64" cy="112" rx="11" ry="7" fill="#ffb6c8"/><ellipse cx="136" cy="112" rx="11" ry="7" fill="#ffb6c8"/>'),
+
+    /* 3 眨眼 + 小星星 */
+    gsvg('<g transform="rotate(-6 100 100)">' + G_BODY + '<path d="M 72 88 Q 78 82 84 88" stroke="#1a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M 116 88 Q 122 82 128 88" stroke="#1a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M 88 110 Q 100 120 112 110" stroke="#1a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="106" rx="11" ry="7" fill="#ffb6c8"/><ellipse cx="140" cy="106" rx="11" ry="7" fill="#ffb6c8"/></g><path d="M 150 30 l 4 8 9 1 -6.5 6 2 9 -8.5 -4.5 -8.5 4.5 2 -9 -6.5 -6 9 -1 Z" fill="#ff5fa2"/>'),
+
+    /* 4 戴蝴蝶结（呼应站点的 🎀） */
+    gsvg('<path d="M 100 26 C 76 6, 58 16, 68 34 C 75 46, 92 38, 100 30 C 108 38, 125 46, 132 34 C 142 16, 124 6, 100 26 Z" fill="#ff5fa2" stroke="#ff8fb8" stroke-width="2"/><circle cx="100" cy="30" r="7" fill="#ff8fb8"/>' + G_BODY + G_EYES + G_MOUTH + G_BLUSH),
+
+    /* 5 独眼 */
+    gsvg(G_BODY + '<ellipse cx="100" cy="96" rx="16" ry="19" fill="#1a1a1a"/><circle cx="107" cy="89" r="5.5" fill="#fff"/><path d="M 91 122 Q 100 129 109 122" stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="62" cy="112" rx="11" ry="7" fill="#ffb6c8"/><ellipse cx="138" cy="112" rx="11" ry="7" fill="#ffb6c8"/>'),
+
+    /* 6 睡着 + Zz */
+    gsvg(G_BODY + '<path d="M 70 92 Q 80 101 90 92" stroke="#1a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M 110 92 Q 120 101 130 92" stroke="#1a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="100" cy="112" rx="5" ry="6" fill="#1a1a1a"/>' + G_BLUSH + '<path d="M 145 34 h 13 l -13 13 h 13" stroke="#ff8fb8" stroke-width="4" fill="none" stroke-linejoin="round"/><path d="M 166 16 h 9 l -9 9 h 9" stroke="#ff8fb8" stroke-width="3" fill="none" stroke-linejoin="round"/>'),
+
+    /* 7 猫耳：粗描边 + round join 磨圆尖角；内耳要够深，浅粉压在白底上会糊成一片白 */
+    gsvg('<path d="M 58 70 L 60 18 L 94 54 Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><path d="M 66 62 L 68 30 L 85 53 Z" fill="#ff8fb8" stroke="#ff8fb8" stroke-width="2" stroke-linejoin="round"/><path d="M 142 70 L 140 18 L 106 54 Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><path d="M 134 62 L 132 30 L 115 53 Z" fill="#ff8fb8" stroke="#ff8fb8" stroke-width="2" stroke-linejoin="round"/>' + G_BODY + G_EYES + G_MOUTH + G_BLUSH),
+
+    /* 8 星星眼 */
+    gsvg(G_BODY + '<path d="M 80 76 L 85 88 L 97 93 L 85 98 L 80 110 L 75 98 L 63 93 L 75 88 Z" fill="#1a1a1a"/><path d="M 120 76 L 125 88 L 137 93 L 125 98 L 120 110 L 115 98 L 103 93 L 115 88 Z" fill="#1a1a1a"/><path d="M 90 112 Q 100 119 110 112" stroke="#1a1a1a" stroke-width="4.5" fill="none" stroke-linecap="round"/>' + G_BLUSH)
   ];
 
   var ghosts = [], GHOST_COUNT = isMobile ? 4 : 6;
 
+  function shuffled(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
   function createGhosts() {
+    var pool = shuffled(GHOST_SVGS.slice());
     for (var i = 0; i < GHOST_COUNT; i++) {
       var g = document.createElement('div');
       g.className = 'ghost';
-      g.innerHTML = GHOST_SVGS[i % GHOST_SVGS.length] + '<span class="excited">👻</span>';
+      g.innerHTML = pool[i % pool.length] + '<span class="excited">👻</span>';
       g.style.transform = 'scale(' + (.7 + Math.random() * .6) + ')';
 
       var x, y;

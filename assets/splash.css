@@ -153,8 +153,11 @@ body.splash-lock{overflow:hidden;}
 @keyframes sSpeakBurst{0%{width:0;height:0;opacity:1;}100%{width:200vmax;height:200vmax;opacity:0;}}
 
 /* ── 字幕 ───────────────────────────────────────────────── */
+/* 字幕摆画面正中。挂在 50%/50% 再用 translate 对半回拉，
+   这样中英两行 + 分隔线整体是以视觉中心对齐的，不管字号怎么变都居中 */
 #splash .caption{
-  position:absolute;bottom:8%;left:50%;transform:translateX(-50%);
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
   width:92%;text-align:center;z-index:200;opacity:0;
   transition:opacity 2.5s ease;pointer-events:none;
 }
@@ -271,7 +274,6 @@ body.splash-lock{overflow:hidden;}
 
 /* 横屏矮屏 */
 @media (max-height:420px) and (orientation:landscape){
-  #splash .caption{bottom:3%;}
   #splash .caption-cn{font-size:clamp(1.5rem,5vh,3rem);}
   #splash .castle-wrap{height:45%;}
 }
