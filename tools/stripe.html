@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>条纹生成器 · Stripe Studio</title>
+<style>
+  :root {
+    --pink-50:  #F8FCFE;
+    --pink-100: #EAF6FC;
+    --pink-200: #D6ECF6;
+    --pink-300: #c0dde7;
+    --pink-400: #8FD0E6;
+    --pink-500: #5BADCB;
+    --pink-600: #3E8FAC;
+    --ink: #2C4A5C;
+    --ink-soft: #6E90A3;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(160deg, var(--pink-50) 0%, var(--pink-100) 100%);
+    color: var(--ink);
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 28px 20px 44px;
+  }
+  h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--pink-500), var(--pink-400));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { font-size: 13px; color: var(--ink-soft); margin: 6px 0 24px; letter-spacing: 1px; }
+
+  .layout {
+    display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+    align-items: flex-start; width: 100%; max-width: 1020px;
+  }
+
+  .preview-card {
+    background: #fff; border: 2px solid var(--pink-200);
+    border-radius: 18px; padding: 16px;
+    box-shadow: 0 8px 28px rgba(123, 183, 205, 0.12);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  canvas {
+    width: min(460px, 88vw); height: auto; border-radius: 10px;
+    box-shadow: 0 3px 14px rgba(51, 81, 92, 0.12);
+  }
+  .size-tip { font-size: 12px; color: var(--ink-soft); }
+
+  .controls {
+    width: min(400px, 92vw);
+    background: #fff; border: 2px solid var(--pink-200); border-radius: 18px;
+    padding: 20px; box-shadow: 0 8px 28px rgba(123, 183, 205, 0.12);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .sec-title {
+    font-size: 13px; font-weight: 700; color: var(--pink-600);
+    letter-spacing: 1px; display: flex; align-items: center; gap: 8px;
+  }
+  .sec-title::after { content: ''; flex: 1; height: 1px; background: var(--pink-100); }
+
+  .row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .row label { width: 72px; color: var(--ink); flex-shrink: 0; }
+  .row input[type=range] { flex: 1; accent-color: var(--pink-500); }
+  .row .val { width: 44px; text-align: right; color: var(--pink-600); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px; padding: 6px 14px; border-radius: 999px;
+    border: 1.5px solid var(--pink-200); background: #fff; color: var(--ink);
+    cursor: pointer; transition: .2s; font-family: inherit;
+  }
+  .chip:hover { border-color: var(--pink-400); }
+  .chip.on {
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-500));
+    color: #fff; border-color: transparent;
+    box-shadow: 0 3px 10px rgba(123, 183, 205, 0.3);
+  }
+  .deg-chip { min-width: 48px; text-align: center; }
+
+  .color-row { display: flex; align-items: center; gap: 12px; }
+  .color-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  input[type=color] {
+    width: 40px; height: 32px; border: 2px solid var(--pink-200);
+    border-radius: 8px; cursor: pointer; background: #fff; padding: 2px;
+  }
+
+  .opt-row { font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+
+  .btns { display: flex; gap: 12px; margin-top: 4px; }
+  button.act {
+    font-family: inherit; font-size: 14px; letter-spacing: 1px;
+    padding: 11px 22px; border-radius: 999px; cursor: pointer;
+    border: 1.5px solid var(--pink-300); background: #fff; color: var(--pink-600);
+    transition: .25s;
+  }
+  button.act:hover { background: var(--pink-50); transform: translateY(-1px); }
+  button.act.primary {
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-500));
+    color: #fff; border: none; font-weight: 600;
+    box-shadow: 0 5px 16px rgba(123, 183, 205, 0.35);
+  }
+  button.act.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(123, 183, 205, 0.45); }
+
+  footer { margin-top: 30px; font-size: 13px; color: var(--ink-soft); letter-spacing: 1.5px; font-style: italic; }
+  footer b { color: var(--pink-500); font-style: normal; }
+</style>
+<link rel="stylesheet" href="_ui.css" data-sherly-ui="1">
+</head>
+<body>
+
+<h1>🩷 条纹生成器</h1>
+<p class="sub">Stripe Studio · 谷子形状 / 数量 / 角度 / 配色，一键导出</p>
+
+<div class="layout">
+
+  <!-- 预览 -->
+  <div class="preview-card">
+    <canvas id="canvas" width="1200" height="1200"></canvas>
+    <div class="size-tip" id="sizeTip">1200 × 1200 px</div>
+  </div>
+
+  <!-- 控制面板 -->
+  <div class="controls">
+
+    <div class="sec-title">谷子形状</div>
+    <div class="chip-row" id="shapeRow">
+      <button class="chip on" data-s="none">▢ 自由画布</button>
+      <button class="chip" data-s="square">⬛ 方形</button>
+      <button class="chip" data-s="circle">⚪ 圆形</button>
+      <button class="chip" data-s="star">⭐ 星星</button>
+      <button class="chip" data-s="heart">💗 爱心</button>
+      <button class="chip" data-s="rect">▭ 长方形</button>
+      <button class="chip" data-s="diamond">◆ 斜方形</button>
+    </div>
+    <div class="opt-row" id="shapeHint">
+      选中形状后，条纹裁切进形状内；形状外为透明底，导出 PNG 可直接做谷子底图（预览中的灰白格 = 透明区域）
+    </div>
+
+    <div id="dispSec">
+      <div class="sec-title">显示方式</div>
+      <div class="chip-row" id="dispRow">
+        <button class="chip on" data-disp="tile">▦ 平铺填满</button>
+        <button class="chip" data-disp="fit">🔳 完整居中</button>
+      </div>
+      <div class="opt-row">
+        平铺填满：条纹延伸铺满画面（做壁纸/背景）<br>
+        完整居中：整组条纹完整显示在画面中央，任意角度不裁切
+      </div>
+    </div>
+
+    <div class="sec-title">导出比例</div>
+    <div class="chip-row" id="ratioRow">
+      <button class="chip on" data-r="1">1:1</button>
+      <button class="chip" data-r="0.8">4:5</button>
+      <button class="chip" data-r="0.75">3:4</button>
+      <button class="chip" data-r="1.5">3:2</button>
+      <button class="chip" data-r="1.7778">16:9</button>
+      <button class="chip" data-r="0.5625">9:16</button>
+    </div>
+
+    <div class="sec-title">条纹设置</div>
+    <div class="row"><label>条纹数量</label><input type="range" id="count" min="2" max="40" value="10"><span class="val" id="countV">10</span></div>
+    <div class="row"><label>A 色宽度</label><input type="range" id="aRatio" min="10" max="90" value="50"><span class="val" id="aRatioV">50%</span></div>
+    <div class="chip-row" id="widthRow">
+      <button class="chip" data-w="25">1:3</button>
+      <button class="chip" data-w="33.3">1:2</button>
+      <button class="chip on" data-w="50">1:1</button>
+      <button class="chip" data-w="66.7">2:1</button>
+      <button class="chip" data-w="75">3:1</button>
+    </div>
+
+    <div class="sec-title">角度</div>
+    <div class="row"><label>旋转</label><input type="range" id="angle" min="0" max="360" value="0"><span class="val" id="angleV">0°</span></div>
+    <div class="chip-row" id="degRow">
+      <button class="chip deg-chip" data-deg="0">竖 0°</button>
+      <button class="chip deg-chip" data-deg="15">15°</button>
+      <button class="chip deg-chip" data-deg="45">45°</button>
+      <button class="chip deg-chip" data-deg="90">横 90°</button>
+      <button class="chip deg-chip" data-deg="135">135°</button>
+    </div>
+
+    <div class="sec-title">配色</div>
+    <div class="color-row">
+      <div class="color-item"><input type="color" id="colorA" value="#f25697"><span>颜色 A（条纹）</span></div>
+      <div class="color-item"><input type="color" id="colorB" value="#ffe4ee"><span>颜色 B（底色）</span></div>
+    </div>
+    <div class="chip-row" id="paletteRow">
+      <button class="chip" data-a="#ff8fab" data-b="#ffd6e0">🍓 草莓牛奶</button>
+      <button class="chip" data-a="#ffb7c5" data-b="#fff0f5">🌸 樱花</button>
+      <button class="chip" data-a="#ba68c8" data-b="#f3e5f5">💜 香芋</button>
+      <button class="chip" data-a="#81c784" data-b="#e8f5e9">🌿 抹茶</button>
+      <button class="chip" data-a="#64b5f6" data-b="#e3f2fd">🌊 海盐</button>
+      <button class="chip" data-a="#ffd54f" data-b="#fffde7">🍋 柠檬</button>
+      <button class="chip" data-a="#1a1a1a" data-b="#ffffff">🖤 经典黑白</button>
+    </div>
+
+    <div class="btns">
+      <button class="act" id="btn-random">🎲 随机配色</button>
+      <button class="act primary" id="btn-download">⬇ 导出 PNG</button>
+    </div>
+  </div>
+</div>
+
+<footer>Design by <b>sherly</b> 💗</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d');
+
+let disp = 'tile';       // tile 平铺填满 | fit 完整居中（仅自由画布时生效）
+let shape = 'none';      // none | square | circle | star | heart | rect | diamond
+let ratio = 1;           // 宽/高
+let longEdge = 1200;     // 输出长边
+
+/* ================= 尺寸与比例 ================= */
+function applyRatio() {
+  if (ratio >= 1) {
+    canvas.width  = longEdge;
+    canvas.height = Math.round(longEdge / ratio);
+  } else {
+    canvas.height = longEdge;
+    canvas.width  = Math.round(longEdge * ratio);
+  }
+  $('sizeTip').textContent = `${canvas.width} × ${canvas.height} px`;
+}
+
+/* ================= 工具 ================= */
+function hslToHex(h, s, l) {
+  const a = s / 100 * Math.min(l / 100, 1 - l / 100);
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const c = l / 100 - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(255 * c).toString(16).padStart(2, '0');
+  };
+  return '#' + f(0) + f(8) + f(4);
+}
+
+/* 谷子形状路径 */
+function shapePath(c, sh, cx, cy, s) {
+  c.beginPath();
+  switch (sh) {
+    case 'square':                                   // 方形
+      c.rect(cx - s/2, cy - s/2, s, s);
+      break;
+    case 'circle':                                   // 圆形
+      c.arc(cx, cy, s/2, 0, Math.PI * 2);
+      break;
+    case 'rect': {                                   // 长方形（3:2 横版）
+      const w = s, h = s / 1.5;
+      c.rect(cx - w/2, cy - h/2, w, h);
+      break;
+    }
+    case 'diamond': {                                // 斜着的方形（45° 菱形）
+      const r = s / 2;
+      c.moveTo(cx, cy - r);
+      c.lineTo(cx + r, cy);
+      c.lineTo(cx, cy + r);
+      c.lineTo(cx - r, cy);
+      c.closePath();
+      break;
+    }
+    case 'star': {                                   // 五角星
+      const R = s / 2, r = R * 0.5;
+      for (let i = 0; i < 10; i++) {
+        const rad = (i % 2 === 0) ? R : r;
+        const a = -Math.PI / 2 + i * Math.PI / 5;
+        const x = cx + rad * Math.cos(a), y = cy + rad * Math.sin(a);
+        i === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
+      }
+      c.closePath();
+      break;
+    }
+    case 'heart': {                                  // 爱心
+      c.moveTo(cx, cy + s * 0.38);
+      c.bezierCurveTo(cx - s * 0.62, cy + s * 0.02, cx - s * 0.40, cy - s * 0.42, cx, cy - s * 0.16);
+      c.bezierCurveTo(cx + s * 0.40, cy - s * 0.42, cx + s * 0.62, cy + s * 0.02, cx, cy + s * 0.38);
+      c.closePath();
+      break;
+    }
+  }
+}
+
+/* 预览用透明底指示格（灰白棋盘格） */
+function drawCheckerPreview(W, H) {
+  const c = 40;
+  for (let y = 0; y < H; y += c)
+    for (let x = 0; x < W; x += c) {
+      ctx.fillStyle = ((x / c + y / c) % 2 === 0) ? '#f4f4f4' : '#e9e9e9';
+      ctx.fillRect(x, y, c, c);
+    }
+}
+
+/* ================= 核心渲染 ================= */
+function render(exporting = false) {
+  const W = canvas.width, H = canvas.height;
+  const N = +$('count').value;               // 条纹数量
+  const aR = +$('aRatio').value / 100;       // A 色占周期比例
+  const angle = +$('angle').value;
+  const rad = angle * Math.PI / 180;
+  const cs = Math.abs(Math.cos(rad)), sn = Math.abs(Math.sin(rad));
+  const colorA = $('colorA').value;          // 条纹色
+  const colorB = $('colorB').value;          // 底色
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, W, H);                 // 清为透明
+
+  /* ---- 谷子形状模式：条纹裁切进形状，形状外透明 ---- */
+  if (shape !== 'none') {
+    if (!exporting) drawCheckerPreview(W, H);
+
+    const s = Math.min(W, H) * 0.88;         // 形状基准尺寸
+    let bw = s, bh = s;                      // 形状未旋转时的外接框
+    if (shape === 'rect') bh = s / 1.5;
+
+    // 条纹数量按形状在垂直条纹方向上的跨度精确计算
+    const span = bw * cs + bh * sn;
+    const P = span / N;
+    const aw = P * aR;
+    const cover = Math.sqrt(bw * bw + bh * bh) / 2 + P * 0.5;
+
+    ctx.save();
+    shapePath(ctx, shape, W / 2, H / 2, s);
+    ctx.clip();
+    ctx.translate(W / 2, H / 2);
+    ctx.rotate(rad);
+
+    ctx.fillStyle = colorB;
+    ctx.fillRect(-cover, -cover, cover * 2, cover * 2);
+    ctx.fillStyle = colorA;
+    const n = Math.ceil(cover / P) + 1;
+    for (let i = -n; i <= n; i++)
+      ctx.fillRect(i * P, -cover, Math.min(aw + 0.5, P), cover * 2);
+
+    ctx.restore();
+    return;
+  }
+
+  if (disp === 'tile') {
+    /* ---- 自由画布 · 平铺填满 ---- */
+    const span = W * cs + H * sn;
+    const P = span / N;
+    const aw = P * aR;
+
+    const half = Math.sqrt(W * W + H * H) / 2 + P;
+    const n = Math.ceil(half / P);
+
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.rotate(rad);
+
+    ctx.fillStyle = colorB;
+    ctx.fillRect(-half, -half, half * 2, half * 2);
+    ctx.fillStyle = colorA;
+    for (let i = -n; i <= n; i++)
+      ctx.fillRect(i * P, -half, aw + 0.5, half * 2);
+
+    ctx.restore();
+  } else {
+    /* ---- 自由画布 · 完整居中 ---- */
+    const P = Math.min(W, H) / N;
+    const aw = P * aR;
+    const pw = Math.min(W, H);
+
+    const bw = pw * cs + pw * sn;
+    const scale = Math.min(W / bw, H / bw) * 0.9;
+
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.rotate(rad);
+    ctx.scale(scale, scale);
+
+    const h = pw / 2;
+    ctx.fillStyle = colorB;
+    ctx.fillRect(-h, -h, pw, pw);
+    ctx.fillStyle = colorA;
+    const n = Math.ceil(N / 2) + 1;
+    for (let i = -n; i <= n; i++)
+      ctx.fillRect(i * P, -h, Math.min(aw + 0.5, P), pw);
+
+    ctx.restore();
+  }
+}
+
+/* ================= 交互绑定 ================= */
+// 滑杆
+[['count', 'countV', ''], ['aRatio', 'aRatioV', '%'], ['angle', 'angleV', '°']].forEach(([id, vid, unit]) => {
+  $(id).addEventListener('input', () => {
+    $(vid).textContent = $(id).value + unit;
+    render();
+  });
+});
+
+// 颜色
+['colorA', 'colorB'].forEach(id => $(id).addEventListener('input', render));
+
+// 谷子形状
+$('shapeRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#shapeRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  shape = btn.dataset.s;
+  // 选了形状后「显示方式」不再适用，自动隐藏
+  $('dispSec').style.display = shape === 'none' ? '' : 'none';
+  render();
+});
+
+// 显示方式（仅自由画布）
+$('dispRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#dispRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  disp = btn.dataset.disp;
+  render();
+});
+
+// 导出比例
+$('ratioRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#ratioRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  ratio = +btn.dataset.r;
+  applyRatio();
+  render();
+});
+
+// 宽窄比快捷
+$('widthRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#widthRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  $('aRatio').value = Math.round(+btn.dataset.w);
+  $('aRatioV').textContent = Math.round(+btn.dataset.w) + '%';
+  render();
+});
+
+// 角度快捷
+$('degRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  $('angle').value = btn.dataset.deg;
+  $('angleV').textContent = btn.dataset.deg + '°';
+  render();
+});
+
+// 预设色板
+$('paletteRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  $('colorA').value = btn.dataset.a;
+  $('colorB').value = btn.dataset.b;
+  render();
+});
+
+// 随机配色
+$('btn-random').addEventListener('click', () => {
+  const h = Math.floor(Math.random() * 360);
+  const s = 55 + Math.random() * 30;
+  $('colorA').value = hslToHex(h, s, 50 + Math.random() * 15);
+  $('colorB').value = hslToHex(h, s * 0.5, 90);
+  render();
+});
+
+// 导出（先渲染透明底版本，导出后恢复预览）
+$('btn-download').addEventListener('click', () => {
+  render(true);
+  const a = document.createElement('a');
+  a.download = `stripes-sherly-${canvas.width}x${canvas.height}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  render();   // 恢复带透明指示格的预览
+});
+
+/* ================= 初始化 ================= */
+applyRatio();
+render();
+</script>
+</body>
+</html>

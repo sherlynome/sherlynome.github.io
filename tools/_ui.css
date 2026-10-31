@@ -1,0 +1,151 @@
+/* ============================================================
+   sherly 工具皮肤 · _ui.css
+   在同步到网站时自动注入到每个工具页（sync_tools.py 负责插入 <link>）。
+   源文件不动；皮肤只在发布层生效。
+
+   分三层：
+   1. 调色板重映射 —— 工具都用 CSS 变量取色，换值即可整页换肤，零布局风险
+   2. 字体 —— 站酷快乐体（子集）+ 系统回退
+   3. 控件统一 —— 按钮、胶囊、卡片、输入框、滑杆的圆角与描边语言
+   ============================================================ */
+
+@font-face{
+  font-family:"KuaiLe";
+  src:url("../fonts/kuaile-subset.woff2") format("woff2");
+  font-weight:400; font-style:normal; font-display:swap;
+}
+
+/* ---------- 1. 调色板 ---------------------------------------- */
+/* 图案生成器系列（badge / candy / checker / stripe）*/
+:root{
+  --pink-50:#F8FCFE;
+  --pink-100:#EAF6FC;
+  --pink-200:#D6ECF6;
+  --pink-300:#B9E0EF;
+  --pink-400:#8FD0E6;
+  --pink-500:#5BADCB;
+  --pink-600:#3E8FAC;
+  --ink:#2C4A5C;
+  --ink-soft:#6E90A3;
+
+  /* 水印机系列 */
+  --bg:#F2FAFE;
+  --card:#FFFFFF;
+  --ink2:#6E90A3;
+  --line:#D6ECF6;
+  --pink:#A9DCEC;
+  --pink-d:#4E9FBC;
+  --pink-soft:#E4F3FB;
+
+  /* 皮肤自身用的 */
+  --s-ink:#2C4A5C;
+  --s-soft:#6E90A3;
+  --s-line:#D6ECF6;
+  --s-aqua:#A9DCEC;
+  --s-aqua-deep:#4E9FBC;
+  --s-shadow:0 10px 30px rgba(120,180,210,.12);
+  --s-radius:18px;
+}
+
+/* ---------- 2. 字体 ------------------------------------------ */
+body{
+  font-family:"KuaiLe","PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif !important;
+  color:var(--ink,#2C4A5C);
+  background:linear-gradient(168deg,#FBFDFF 0%,#F2FAFE 52%,#EAF5FB 100%) !important;
+  -webkit-font-smoothing:antialiased;
+}
+/* 数字保持系统字形，快乐体的数字太随性 */
+@font-face{
+  font-family:"NumFix";
+  src:local("Microsoft YaHei UI"),local("Microsoft YaHei"),local("PingFang SC"),local("Segoe UI");
+  unicode-range:U+0030-0039;
+}
+h1,h2,h3,.sec-title,.sub,.lab,label,button,.chip,.act,.btn,.tag,.val{
+  font-family:"NumFix","KuaiLe","PingFang SC","Microsoft YaHei",system-ui,sans-serif !important;
+  letter-spacing:.4px;
+}
+
+/* ---------- 3. 控件统一 -------------------------------------- */
+/* 卡片 / 面板：细描边 + 柔投影 + 大圆角 */
+.preview-card,.controls,.panel,.panel-body,.modal-box,.art-frame{
+  background:#fff !important;
+  border:1.5px solid var(--s-line) !important;
+  border-radius:var(--s-radius) !important;
+  box-shadow:var(--s-shadow) !important;
+}
+
+/* 胶囊按钮 */
+.chip{
+  border:1.5px solid var(--s-line) !important;
+  border-radius:999px !important;
+  background:#fff !important;
+  color:var(--s-ink) !important;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease !important;
+}
+.chip:hover{border-color:var(--s-aqua) !important;transform:translateY(-1px);}
+.chip.on{
+  background:linear-gradient(135deg,#BCE4F2,#8FD0E6) !important;
+  border-color:#8FD0E6 !important;
+  color:#fff !important;
+  box-shadow:0 4px 12px rgba(120,180,210,.28) !important;
+}
+
+/* 主按钮 / 次按钮 */
+button.act,button.btn,.btn,.start-btn{
+  border-radius:999px !important;
+  border:1.5px solid var(--s-aqua) !important;
+  transition:transform .2s ease,box-shadow .2s ease,background .2s ease !important;
+}
+button.act:hover,button.btn:hover,.btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(120,180,210,.22);}
+button.act.primary,.btn.primary,.start-btn{
+  background:linear-gradient(135deg,#A9DCEC,#6FBEDA) !important;
+  border-color:transparent !important;
+  color:#fff !important;
+  box-shadow:0 6px 16px rgba(110,190,218,.32) !important;
+}
+
+/* 小节标题：配一条渐隐细线 */
+.sec-title{color:var(--s-aqua-deep) !important;}
+.sec-title::after{background:linear-gradient(90deg,var(--s-line),transparent) !important;}
+
+/* 输入框 / 选择器 */
+input[type=text],input[type=number],input[type=search],select,textarea,.inp{
+  border:1.5px solid var(--s-line) !important;
+  border-radius:10px !important;
+  background:#fff !important;
+  color:var(--s-ink) !important;
+  font-family:inherit !important;
+}
+input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus,.inp:focus{
+  outline:none !important;
+  border-color:var(--s-aqua) !important;
+  box-shadow:0 0 0 3px rgba(169,220,236,.35) !important;
+}
+input[type=color]{
+  border:1.5px solid var(--s-line) !important;
+  border-radius:10px !important;
+  background:#fff !important;
+  padding:2px !important;
+}
+
+/* 滑杆 */
+input[type=range]{accent-color:var(--s-aqua-deep) !important;}
+input[type=range]::-webkit-slider-runnable-track{
+  height:5px;border-radius:99px;background:var(--s-line);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;margin-top:-6px;
+  border-radius:50%;background:#fff;border:2.5px solid var(--s-aqua-deep);
+  box-shadow:0 2px 6px rgba(110,150,175,.35);cursor:pointer;
+}
+
+/* 色块 / 标签 */
+.swatches .sw,.sw{border-radius:10px !important;border:1.5px solid var(--s-line) !important;}
+.tag{border-radius:999px !important;background:var(--pink-soft,#E4F3FB) !important;color:var(--s-aqua-deep) !important;}
+
+/* 文字色阶统一 */
+.sub,.size-tip,.hint,.hint-sub,.opt-row,.g-tip{color:var(--s-soft) !important;}
+.val{color:var(--s-aqua-deep) !important;font-variant-numeric:tabular-nums;}
+
+/* 画布投影别太重 */
+canvas{box-shadow:0 6px 20px rgba(120,180,210,.16) !important;}

@@ -1,0 +1,6 @@
+node_modules/
+.DS_Store
+Thumbs.db
+
+# 源字体 1.5MB，用 make_font_subset.py 可重新生成子集
+fonts/_src/

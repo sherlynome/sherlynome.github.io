@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EVA 海岸 · 俯视潮汐</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0e0e12;color:#eee;font-family:"Noto Serif SC","SimSun",serif;
+ display:flex;flex-direction:column;align-items:center;padding:18px 12px;gap:11px}
+h1{font-size:16px;letter-spacing:10px;font-weight:normal}
+.bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+button,select,label.btn{font-family:inherit;background:#1c1c24;color:#eee;border:1px solid #3a3a48;
+ padding:8px 15px;font-size:13px;letter-spacing:3px;cursor:pointer;transition:.15s}
+button:hover,label.btn:hover{border-color:#7de8ff;color:#7de8ff}
+button.on{background:#eee;color:#111;border-color:#eee}
+button.exp{background:#7de8ff;color:#111;border-color:#7de8ff;font-weight:bold}
+input[type=color]{width:44px;height:34px;border:1px solid #3a3a48;background:#0e0e12;cursor:pointer;padding:2px}
+canvas{display:block;max-width:760px;width:100%;height:auto;border-radius:4px}
+#pv{max-width:400px;width:88%}
+.hint{font-size:10px;letter-spacing:3px;opacity:.45}
+#aud{display:none}
+</style>
+</head>
+<body>
+<h1>E V A 海 岸</h1>
+<div class="bar" id="times"></div>
+<div class="bar">
+ <input type="color" id="c" value="#c02030">
+ <button id="ap">自定义</button>
+ <select id="q">
+  <option>さようなら、すべてのエヴァンゲリオン</option>
+  <option>生きる事は楽しい事と辛い事の繰り返し</option>
+  <option>あん時の弁当、美味しかったから</option>
+  <option>どうしてみんな優しいの！</option>
+  <option>教えてくれてありがとう。仲良くなるためのおまじないだよ</option>
+  <option>罪は自分の意思で償わないと、贖罪の意味がないの</option>
+  <option>逃げちゃダメだ、逃げちゃダメだ、逃げちゃダメだ！</option>
+  <option>笑えばいいと思うよ</option>
+ </select>
+</div>
+<canvas id="ocean" width="760" height="1000"></canvas>
+<div class="bar">
+ <button class="exp" data-r="3:4">3:4 封面</button>
+ <button class="exp" data-r="1:1">方形</button>
+ <button class="exp" data-r="circle">圆形徽章</button>
+</div>
+<canvas id="pv" width="570" height="760"></canvas>
+<div class="bar">
+ <button id="bgm">♪ 8bit BGM</button>
+ <label class="btn" for="aud">导入音频</label>
+ <input type="file" id="aud" accept="audio/*">
+</div>
+<div class="hint">移动鼠标推开海浪 · TOP-DOWN TIDAL SHORE</div>
+
+<script>
+/* ============ 噪声 ============ */
+function hash(x,y){const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s)}
+function noise2(x,y){
+ const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+ const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+ const a=hash(xi,yi),b=hash(xi+1,yi),c=hash(xi,yi+1),d=hash(xi+1,yi+1);
+ return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;
+}
+/* ============ 配色 ============ */
+const PAL={
+ red:   {water:['#e84050','#c82030','#8a0e22'],sand:'#f4ecdc',wet:'#d8c4a8',foam:'#fff8f2'},
+ blue:  {water:['#5ab4e8','#2a78c8','#123e80'],sand:'#f4ecdc',wet:'#d8ccb0',foam:'#ffffff'},
+ sunset:{water:['#f2a35c','#dd7a38','#93441e'],sand:'#f6e2c2',wet:'#dcb890',foam:'#fff2da'},
+ night: {water:['#2a3a9c','#161e58','#080c28'],sand:'#c8c4d8',wet:'#9c98b4',foam:'#9adfff'}
+};
+/* ============ 台词（日语原文） ============ */
+const QUOTES=[
+ 'さようなら、すべてのエヴァンゲリオン',
+ '生きる事は楽しい事と辛い事の繰り返し',
+ 'あん時の弁当、美味しかったから',
+ 'どうしてみんな優しいの！',
+ '教えてくれてありがとう。仲良くなるためのおまじないだよ',
+ '罪は自分の意思で償わないと、贖罪の意味がないの',
+ '逃げちゃダメだ、逃げちゃダメだ、逃げちゃダメだ！',
+ '笑えばいいと思うよ'
+];
+const W=760,H=1000,TAU=Math.PI*2;
+const cv=document.getElementById('ocean'),X=cv.getContext('2d');
+const pvC=document.getElementById('pv'),P2=pvC.getContext('2d');
+let palKey='red',custom=null,quoteIdx=0,frame=0;
+const mouse={x:-999,y:-999};
+
+const hex2rgb=h=>{h=h.replace('#','');return[0,2,4].map(i=>parseInt(h.slice(i,i+2),16))};
+const mix=(a,b,t)=>{t=Math.max(0,Math.min(1,t));const A=hex2rgb(a),B=hex2rgb(b);
+ return'#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
+function getPal(){
+ if(!custom)return PAL[palKey];
+ const c=custom;
+ return{water:[mix(c,'#ffffff',.15),c,mix(c,'#000000',.4)],
+  sand:mix(c,'#ffffff',.75),wet:mix(c,'#000000',.18),foam:mix(c,'#ffffff',.92)};
+}
+
+/* ============ LCL 龟裂网纹 ============ */
+const MARGIN=120;
+let seaCells=null,cellsKey='';
+function clipPoly(poly,a,n){
+ const out=[];
+ for(let i=0;i<poly.length;i++){
+  const A=poly[i],B=poly[(i+1)%poly.length];
+  const fa=(A[0]-a[0])*n[0]+(A[1]-a[1])*n[1];
+  const fb=(B[0]-a[0])*n[0]+(B[1]-a[1])*n[1];
+  if(fa>=0)out.push(A);
+  if((fa>=0)!==(fb>=0)){const t=fa/(fa-fb);
+   out.push([A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t]);}
+ }
+ return out;
+}
+function buildSeaCells(){
+ const r=(s=>()=> (s=(s*16807)%2147483647)/2147483647)(99);
+ const pts=[],n=86;
+ for(let i=0;i<n;i++)pts.push([r()*(W+MARGIN*2)-MARGIN,r()*(H+MARGIN*2)-MARGIN]);
+ seaCells=[];
+ pts.forEach((pt,i)=>{
+  let poly=[[-MARGIN,-MARGIN],[W+MARGIN,-MARGIN],[W+MARGIN,H+MARGIN],[-MARGIN,H+MARGIN]];
+  pts.forEach((q,j)=>{
+   if(j===i||!poly.length)return;
+   const dx=q[0]-pt[0],dy=q[1]-pt[1];
+   if(dx*dx+dy*dy>400000)return;
+   poly=clipPoly(poly,[(pt[0]+q[0])/2,(pt[1]+q[1])/2],[pt[0]-q[0],pt[1]-q[1]]);
+  });
+  if(poly.length>=3)seaCells.push({poly,dep:(r()-.5)*.22,seed:r()*100});
+ });
+ cellsKey=palKey+(custom||'');
+}
+function drawSea(t,p){
+ if(cellsKey!==palKey+(custom||''))buildSeaCells();
+ const bg=X.createLinearGradient(0,0,0,H);
+ bg.addColorStop(0,p.water[2]);bg.addColorStop(.5,p.water[1]);bg.addColorStop(1,p.water[0]);
+ X.fillStyle=bg;X.fillRect(0,0,W,H);
+
+ const tide=Math.sin(t*1.4)*46;
+ const drift=Math.sin(t*.5)*14;
+ for(const c of seaCells){
+  X.beginPath();
+  let sumY=0;
+  c.poly.forEach((v,i)=>{
+   const wx=noise2(v[0]*.012+c.seed,v[1]*.012+t*.18)-.5;
+   const wy=noise2(v[0]*.012+c.seed+50,v[1]*.012-t*.14)-.5;
+   const x=v[0]+wx*16+drift;
+   const y=v[1]+wy*16+tide;
+   sumY+=y;
+   i?X.lineTo(x,y):X.moveTo(x,y);
+  });
+  X.closePath();
+  const dep=Math.max(0,Math.min(1,(sumY/c.poly.length+tide)/H*.9+c.dep));
+  X.fillStyle=mix(p.water[1],p.water[2],dep);
+  X.fill();
+  X.strokeStyle=p.foam;X.lineWidth=3.2;X.lineJoin='round';
+  X.globalAlpha=.85;X.stroke();X.globalAlpha=1;
+ }
+ X.fillStyle='#ffffff';
+ const r=(s=>()=> (s=(s*16807)%2147483647)/2147483647)(5);
+ for(let i=0;i<130;i++){
+  const sx=r()*W,sy=r()*H;
+  X.globalAlpha=(.1+.2*r())*(.6+.4*Math.sin(t*4+i));
+  X.fillRect(sx+drift,sy+tide*.6,2+r()*2,1+r());
+ }
+ X.globalAlpha=1;
+}
+
+/* ============ 泡沫碎点 ============ */
+const specks=[];
+(function(){const r=(s=>()=> (s=(s*16807)%2147483647)/2147483647)(7);
+ for(let i=0;i<110;i++)specks.push({x:r()*W,y:r()*H,s:1+r()*4,v:.5+r()*1.4,a:.25+r()*.6});})();
+
+/* ============ 海岸线 ============ */
+function shoreY(x,t){
+ let y=H*.56
+  +Math.sin(t*1.4)*46
+  +(noise2(x*.004,t*.25)-.5)*90
+  +(noise2(x*.016,t*.4)-.5)*26;
+ if(mouse.x>0){const g=Math.exp(-Math.pow(x-mouse.x,2)/(2*110*110));y-=g*44;}
+ return y;
+}
+
+/* ============ 沙滩日文台词：按圆形安全区自适应 ============ */
+/* 圆形导出时画布中心的内切圆半径（画布坐标）：1200/1.579/2 ≈ 380，留边距 */
+const CIRCLE_R=348;
+/* 在高度 y 处，圆内可见的最大宽度 */
+function safeW(y){
+ const d=y-H/2;
+ return 2*Math.sqrt(Math.max(0,CIRCLE_R*CIRCLE_R-d*d));
+}
+/* 日文按字符折行（贪婪填充） */
+function wrapJa(text,maxW){
+ const lines=[];let cur='';
+ for(const ch of text){
+  if(cur&&X.measureText(cur+ch).width>maxW){lines.push(cur);cur=ch;}
+  else cur+=ch;
+ }
+ if(cur)lines.push(cur);
+ return lines;
+}
+function drawQuoteOnSand(t,p){
+ const q=QUOTES[quoteIdx];
+ const font=fs=>fs+'px "Noto Serif SC","Yu Mincho","SimSun",serif';
+ /* 文字锚点：海浪下方、圆内下部的沙面（同时避开最坏的涨潮水位） */
+ const cy=H*.77;
+ let fs=36,lines=null,gap=0;
+ for(;fs>=15;fs--){
+  X.font=font(fs);
+  gap=fs*1.4;
+  const y1=cy-gap/2,y2=cy+gap/2;
+  /* 单行放得下且字号够大 → 单行 */
+  if(fs>=24&&X.measureText(q).width<=safeW(cy)){lines=[q];break;}
+  /* 两行折行，每行都在自己高度的圆内宽度里 */
+  const maxW=Math.min(safeW(y1),safeW(y2));
+  const ls=wrapJa(q,maxW);
+  if(ls.length<=2&&ls.every(l=>X.measureText(l).width<=maxW)&&(y2+fs)<H*.885){
+   lines=ls;break;
+  }
+ }
+ if(!lines){fs=15;X.font=font(fs);lines=wrapJa(q,safeW(cy));gap=fs*1.4;}
+ const startY=lines.length===1?cy:cy-gap/2;
+ X.textAlign='center';X.textBaseline='middle';
+ lines.forEach((l,i)=>{
+  const y=startY+i*gap;
+  X.save();
+  X.translate(W/2,y);X.rotate(-.012);X.scale(1,.94);
+  X.font=font(fs);
+  X.shadowColor='rgba(50,26,8,.55)';
+  X.shadowBlur=12;X.shadowOffsetY=7;
+  X.fillStyle='rgba(255,255,255,.96)';
+  X.fillText(l,0,0);
+  X.shadowColor='rgba(50,26,8,.35)';
+  X.shadowBlur=4;X.shadowOffsetY=3;
+  X.fillText(l,0,0);
+  X.restore();
+ });
+}
+
+function draw(){
+ const p=getPal(),t=frame*.032;
+ drawSea(t,p);
+
+ const sg=X.createLinearGradient(0,H*.5,0,H);
+ sg.addColorStop(0,p.sand);sg.addColorStop(1,mix(p.sand,'#c8a878',.35));
+ X.fillStyle=sg;
+ X.beginPath();X.moveTo(0,shoreY(0,t));
+ for(let x=0;x<=W;x+=8)X.lineTo(x,shoreY(x,t));
+ X.lineTo(W,H);X.lineTo(0,H);X.closePath();X.fill();
+
+ X.strokeStyle=p.wet;X.globalAlpha=.5;X.lineCap='round';
+ X.lineWidth=34+Math.sin(t*1.4+2)*14;
+ X.beginPath();X.moveTo(0,shoreY(0,t)+30);
+ for(let x=0;x<=W;x+=8)X.lineTo(x,shoreY(x,t)+30);
+ X.stroke();
+ X.lineWidth=16;
+ X.beginPath();X.moveTo(0,shoreY(0,t)+64);
+ for(let x=0;x<=W;x+=8)X.lineTo(x,shoreY(x,t)+64);
+ X.stroke();
+ X.globalAlpha=1;
+
+ X.strokeStyle=p.foam;X.lineCap='round';
+ const surge=Math.cos(t*1.4);
+ X.globalAlpha=.5;X.lineWidth=26+Math.max(0,surge)*16;
+ X.beginPath();X.moveTo(0,shoreY(0,t)-6);
+ for(let x=0;x<=W;x+=8)X.lineTo(x,shoreY(x,t)-6);
+ X.stroke();
+ X.globalAlpha=.95;X.lineWidth=10+Math.max(0,surge)*8;
+ X.beginPath();X.moveTo(0,shoreY(0,t)+4);
+ for(let x=0;x<=W;x+=8)X.lineTo(x,shoreY(x,t)+4);
+ X.stroke();
+ X.fillStyle=p.sand;
+ for(let x=0;x<=W;x+=22){
+  const yy=shoreY(x,t)+4+Math.sin(x*.3+t)*6;
+  X.globalAlpha=.5;
+  X.beginPath();X.ellipse(x,yy,4+noise2(x*.1,t)*5,2.5,0,0,TAU);X.fill();
+ }
+ X.globalAlpha=1;
+
+ X.fillStyle=p.foam;
+ for(const s of specks){
+  s.y+=s.v;s.x+=Math.sin(t*2+s.s*9)*.4;
+  if(s.y>H){s.y=-6;s.x=Math.random()*W;}
+  X.globalAlpha=s.a*(.6+.4*Math.sin(t*4+s.s*7));
+  X.beginPath();X.ellipse(s.x,s.y,s.s,s.s*.7,0,0,TAU);X.fill();
+ }
+ X.globalAlpha=1;
+
+ drawQuoteOnSand(t,p);
+}
+
+/* ============ 预览 & 导出 ============ */
+function cover(c2,w,h){
+ const s=Math.max(w/W,h/H),dw=W*s,dh=H*s;
+ c2.drawImage(cv,(w-dw)/2,(h-dh)/2,dw,dh);
+}
+function drawPreview(){
+ P2.clearRect(0,0,570,760);
+ cover(P2,570,760);
+}
+function exportImg(r){
+ let w,h,clip=false;
+ if(r==='circle'){w=h=1200;clip=true}
+ else if(r==='1:1'){w=h=1200}else{w=1080;h=1440}
+ const o=document.createElement('canvas');o.width=w;o.height=h;
+ const c=o.getContext('2d');
+ cover(c,w,h);
+ if(clip){c.globalCompositeOperation='destination-in';
+  c.beginPath();c.arc(w/2,h/2,w/2,0,TAU);c.fill();}
+ const a=document.createElement('a');
+ a.download='eva-shore-'+r.replace(':','x')+'.png';
+ a.href=o.toDataURL('image/png');a.click();
+}
+
+/* ============ 8bit 芯片音乐（原创小调 BGM） ============ */
+let AC=null,bgmOn=false,loopTimer=null,masterGain=null;
+const m2f=m=>440*Math.pow(2,(m-69)/12);
+const BPM=84,BEAT=60/BPM;
+const LEAD=[
+ [76,1],[72,1],[74,2],[71,1],[67,1],[69,2],[72,1],[74,1],[76,2],[72,4],
+ [76,1],[72,1],[74,2],[71,1],[67,1],[69,2],[74,1],[72,1],[71,2],[69,4],
+ [72,2],[74,2],[71,2],[69,2],[67,1],[69,1],[71,2],[69,4],
+ [76,2],[74,2],[72,2],[71,2],[69,1],[71,1],[69,2],[64,4]
+];
+const BASS=[45,45,41,41,48,48,43,43,45,45,41,41,48,48,43,43];
+const ARPS=[[57,60,64,60],[57,60,64,60],[53,57,60,57],[53,57,60,57],
+           [48,52,55,52],[48,52,55,52],[55,59,62,59],[55,59,62,59],
+           [57,60,64,60],[57,60,64,60],[53,57,60,57],[53,57,60,57],
+           [48,52,55,52],[48,52,55,52],[55,59,62,59],[55,59,62,59]];
+function pulse(freq,t,dur,vol,type){
+ const o=AC.createOscillator(),g=AC.createGain();
+ o.type=type||'square';o.frequency.value=freq;
+ g.gain.setValueAtTime(0,t);
+ g.gain.linearRampToValueAtTime(vol,t+.01);
+ g.gain.setValueAtTime(vol,t+dur*.6);
+ g.gain.linearRampToValueAtTime(0,t+dur);
+ o.connect(g);g.connect(masterGain);
+ o.start(t);o.stop(t+dur+.05);
+}
+function hat(t,vol){
+ const len=AC.sampleRate*.05,buf=AC.createBuffer(1,len,AC.sampleRate);
+ const d=buf.getChannelData(0);
+ for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+ const s=AC.createBufferSource(),g=AC.createGain();
+ s.buffer=buf;g.gain.value=vol;
+ s.connect(g);g.connect(masterGain);
+ s.start(t);
+}
+function scheduleLoop(){
+ const t0=AC.currentTime+.1;
+ let t=t0;
+ for(const[m,b]of LEAD){pulse(m2f(m),t,b*BEAT*.92,.10,'square');t+=b*BEAT;}
+ const loopDur=t-t0;
+ t=t0;
+ for(let bar=0;bar<16;bar++){
+  pulse(m2f(BASS[bar]),t,BEAT*3.6,.13,'triangle');
+  const arp=ARPS[bar];
+  for(let i=0;i<8;i++)pulse(m2f(arp[i%4]+12),t+i*BEAT*.5,BEAT*.35,.035,'square');
+  hat(t,.05);hat(t+BEAT*2,.035);
+  t+=BEAT*4;
+ }
+ loopTimer=setTimeout(scheduleLoop,(loopDur-.1)*1000);
+}
+function startBgm(){
+ AC=new(window.AudioContext||window.webkitAudioContext)();
+ masterGain=AC.createGain();masterGain.gain.value=.5;
+ masterGain.connect(AC.destination);
+ scheduleLoop();
+}
+function stopBgm(){clearTimeout(loopTimer);if(AC){AC.close();AC=null;}}
+const bgmBtn=document.getElementById('bgm');
+bgmBtn.onclick=()=>{
+ bgmOn=!bgmOn;
+ if(bgmOn){
+  if(userAudio){userAudio.pause();userAudio=null;}
+  startBgm();bgmBtn.classList.add('on');bgmBtn.textContent='♪ 8bit BGM ON';
+ }else{
+  stopBgm();bgmBtn.classList.remove('on');bgmBtn.textContent='♪ 8bit BGM';
+ }
+};
+let userAudio=null;
+document.getElementById('aud').onchange=e=>{
+ const f=e.target.files[0];if(!f)return;
+ if(userAudio)userAudio.pause();
+ if(bgmOn){bgmBtn.onclick();}
+ const url=URL.createObjectURL(f);
+ userAudio=new Audio(url);
+ userAudio.loop=true;userAudio.volume=.6;
+ userAudio.play().catch(()=>{});
+ bgmBtn.classList.add('on');bgmBtn.textContent='♪ 播放中：'+f.name.slice(0,14);
+};
+
+/* ============ 主循环 ============ */
+function loop(){frame++;draw();drawPreview();requestAnimationFrame(loop)}
+loop();
+
+/* ============ 交互 ============ */
+function setMouse(e){
+ const r=cv.getBoundingClientRect();
+ const src=e.touches?e.touches[0]:e;
+ mouse.x=(src.clientX-r.left)*W/r.width;
+ mouse.y=(src.clientY-r.top)*H/r.height;
+}
+cv.addEventListener('mousemove',setMouse);
+cv.addEventListener('touchmove',e=>{e.preventDefault();setMouse(e)},{passive:false});
+cv.addEventListener('mouseleave',()=>{mouse.x=-999;mouse.y=-999});
+
+const tb=document.getElementById('times');
+[['red','红海'],['blue','蓝海'],['sunset','黄昏'],['night','深夜']].forEach(([k,l],i)=>{
+ const b=document.createElement('button');b.textContent=l;
+ if(k===palKey)b.classList.add('on');
+ b.onclick=()=>{palKey=k;custom=null;
+  tb.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');};
+ tb.appendChild(b);
+});
+document.getElementById('ap').onclick=()=>{
+ custom=document.getElementById('c').value;
+ tb.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+};
+document.getElementById('q').onchange=e=>quoteIdx=e.target.selectedIndex;
+document.querySelectorAll('.exp').forEach(b=>b.onclick=()=>exportImg(b.dataset.r));
+</script>
+</body>
+</html>

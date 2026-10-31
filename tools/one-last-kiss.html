@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Last Kiss 线稿封面生成器</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+  body {
+    min-height: 100vh; background: #fafafa; color: #222;
+    font-family: 'Noto Serif JP', serif;
+    display: flex; flex-direction: column; align-items: center; padding: 24px;
+  }
+  h1 { font-weight: 300; font-style: italic; letter-spacing: 4px; font-size: 26px; }
+  .sub { font-size: 13px; color: #999; margin: 6px 0 24px; letter-spacing: 2px; }
+
+  /* ---------- 上传区 ---------- */
+  .dropzone {
+    width: min(520px, 92vw); aspect-ratio: 1;
+    border: 1px dashed #bbb; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: .3s;
+  }
+  .dropzone:hover, .dropzone.drag { border-color: #555; }
+  .dropzone .hint { color: #aaa; font-size: 14px; line-height: 2; text-align: center; pointer-events: none; }
+  input[type=file] { display: none; }
+
+  /* ---------- 裁切编辑器 ---------- */
+  #cropStage { display: none; flex-direction: column; align-items: center; gap: 14px; }
+  #cropStage.active { display: flex; }
+  .crop-wrap {
+    position: relative; max-width: min(520px, 92vw); max-height: 60vh;
+    line-height: 0; box-shadow: 0 2px 20px rgba(0,0,0,.1);
+  }
+  .crop-wrap img { max-width: min(520px, 92vw); max-height: 60vh; display: block; }
+  .crop-box {
+    position: absolute; border: 1.5px solid #fff;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,.55);
+    cursor: move; touch-action: none;
+  }
+  .crop-box::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+    background-size: 33.4% 33.4%;
+    pointer-events: none;
+  }
+  .handle {
+    position: absolute; width: 16px; height: 16px;
+    background: #fff; border-radius: 50%;
+    box-shadow: 0 0 4px rgba(0,0,0,.4); touch-action: none;
+  }
+  .handle.nw { left: -8px; top: -8px; cursor: nwse-resize; }
+  .handle.ne { right: -8px; top: -8px; cursor: nesw-resize; }
+  .handle.sw { left: -8px; bottom: -8px; cursor: nesw-resize; }
+  .handle.se { right: -8px; bottom: -8px; cursor: nwse-resize; }
+
+  .ratio-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .ratio-btn {
+    font-family: inherit; font-size: 12px; padding: 6px 14px;
+    border: 1px solid #bbb; background: #fff; cursor: pointer; transition: .2s;
+  }
+  .ratio-btn.on, .ratio-btn:hover { background: #222; color: #fff; border-color: #222; }
+  .crop-size { font-size: 12px; color: #999; }
+
+  /* ---------- 结果区 ---------- */
+  #resultStage { display: none; flex-direction: column; align-items: center; }
+  #resultStage.active { display: flex; }
+  canvas { width: min(520px, 92vw); height: auto; box-shadow: 0 2px 20px rgba(0,0,0,.12); }
+
+  .panel { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; width: min(520px, 92vw); font-size: 13px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .row label { width: 90px; color: #666; flex-shrink: 0; }
+  .row input[type=range] { flex: 1; accent-color: #3E8FAC; }
+  .row .val { width: 48px; text-align: right; color: #999; font-variant-numeric: tabular-nums; }
+  .row input[type=text] {
+    flex: 1; padding: 8px 10px; border: 1px solid #ccc;
+    font-family: inherit; font-size: 14px; user-select: text;
+  }
+  .row input[type=checkbox] { width: 18px; height: 18px; accent-color: #3E8FAC; }
+  .divider { height: 1px; background: #eee; margin: 6px 0; }
+
+  .btns { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+  button.act {
+    font-family: inherit; font-size: 14px; letter-spacing: 2px;
+    padding: 10px 24px; background: #fff; color: #333;
+    border: 1px solid #999; cursor: pointer; transition: .25s;
+  }
+  button.act:hover:not(:disabled) { background: #222; color: #fff; border-color: #222; }
+  button.act:disabled { opacity: .3; cursor: not-allowed; }
+</style>
+<link rel="stylesheet" href="_ui.css" data-sherly-ui="1">
+</head>
+<body>
+
+<h1>One Last Kiss</h1>
+<p class="sub">— 任意图片 → 裁切 → 彩色线稿封面 —</p>
+
+<!-- ① 上传 -->
+<div class="dropzone" id="dropzone">
+  <div class="hint">点击选择图片，或拖拽到此处</div>
+</div>
+
+<!-- ② 裁切 -->
+<div id="cropStage">
+  <div class="crop-wrap" id="cropWrap">
+    <img id="cropImg" alt="">
+    <div class="crop-box" id="cropBox">
+      <div class="handle nw" data-h="nw"></div>
+      <div class="handle ne" data-h="ne"></div>
+      <div class="handle sw" data-h="sw"></div>
+      <div class="handle se" data-h="se"></div>
+    </div>
+  </div>
+  <div class="ratio-row" id="ratioRow">
+    <button class="ratio-btn" data-r="free">自由</button>
+    <button class="ratio-btn on" data-r="1">1:1</button>
+    <button class="ratio-btn" data-r="0.8">4:5</button>
+    <button class="ratio-btn" data-r="0.75">3:4</button>
+    <button class="ratio-btn" data-r="1.7778">16:9</button>
+    <button class="ratio-btn" data-r="0.5625">9:16</button>
+  </div>
+  <div class="crop-size" id="cropSize"></div>
+  <div class="btns">
+    <button class="act" id="btn-crop-ok">✓ 确认裁切，生成封面</button>
+    <button class="act" id="btn-change-img">↺ 换一张图</button>
+  </div>
+</div>
+
+<!-- ③ 结果 -->
+<div id="resultStage">
+  <canvas id="canvas"></canvas>
+  <div class="panel">
+    <div class="row"><label>线条强度</label><input type="range" id="edge" min="5" max="60" value="22"><span class="val" id="edgeV">22</span></div>
+    <div class="row"><label>线稿浓度</label><input type="range" id="ink" min="20" max="100" value="75"><span class="val" id="inkV">75</span></div>
+    <div class="row"><label>渐变角度</label><input type="range" id="angle" min="0" max="180" value="125"><span class="val" id="angleV">125°</span></div>
+    <div class="row"><label>色彩偏移</label><input type="range" id="shift" min="0" max="100" value="0"><span class="val" id="shiftV">0</span></div>
+    <div class="row"><label>流动速度</label><input type="range" id="speed" min="0" max="100" value="0"><span class="val" id="speedV">静止</span></div>
+
+    <div class="divider"></div>
+    <div class="row"><label>主标题</label><input type="text" id="txtTitle" value="One Last Kiss"></div>
+    <div class="row"><label>艺术家</label><input type="text" id="txtArtist" value="Utada Hikaru  宇多田ヒカル"></div>
+    <div class="row"><label>副标题</label><input type="text" id="txtSub" value="映画『シン・エヴァンゲリオン劇場版』主題歌"></div>
+    <div class="row"><label>文字大小</label><input type="range" id="txtScale" min="50" max="180" value="100"><span class="val" id="txtScaleV">100%</span></div>
+    <div class="row"><label>显示文字</label><input type="checkbox" id="txtVisible" checked></div>
+  </div>
+  <div class="btns">
+    <button class="act" id="btn-back-crop">✂ 重新裁切</button>
+    <button class="act" id="btn-new-img">🖼 换一张图</button>
+    <button class="act" id="btn-random">🎨 随机配色</button>
+    <button class="act" id="btn-download">⬇ 保存封面</button>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="image/*">
+
+<script>
+const $ = id => document.getElementById(id);
+const dropzone = $('dropzone'), cropStage = $('cropStage'), resultStage = $('resultStage');
+const cropWrap = $('cropWrap'), cropImg = $('cropImg'), cropBox = $('cropBox');
+const fileInput = $('fileInput'), canvas = $('canvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+let sourceImg = null;                 // 原始 Image
+let crop = { x: 0, y: 0, w: 0, h: 0 };// 裁切框（相对 cropImg 显示尺寸）
+let ratio = 1;                        // 宽高比 w/h
+let ratioLocked = true;
+let currentCropRect = null;           // 原图坐标系裁切区域
+let phase = 0, lastT = 0, animId = null;
+
+/* ================= 视图切换 ================= */
+function show(stage) {
+  dropzone.style.display = stage === 'drop' ? 'flex' : 'none';
+  cropStage.classList.toggle('active', stage === 'crop');
+  resultStage.classList.toggle('active', stage === 'result');
+}
+
+/* ================= 上传 ================= */
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => e.target.files[0] && loadFile(e.target.files[0]));
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('drag');
+  e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]);
+});
+
+function loadFile(file) {
+  const img = new Image();
+  img.onload = () => {
+    sourceImg = img;
+    cropImg.src = img.src;
+    show('crop');
+    requestAnimationFrame(() => initCrop());
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+$('btn-change-img').addEventListener('click', () => { fileInput.value = ''; show('drop'); });
+$('btn-new-img').addEventListener('click', () => { fileInput.value = ''; show('drop'); });
+$('btn-back-crop').addEventListener('click', () => show('crop'));
+
+/* ================= 裁切框逻辑 ================= */
+function initCrop() {
+  const W = cropImg.clientWidth, H = cropImg.clientHeight;
+  if (ratioLocked) {
+    let w = W * 0.9, h = w / ratio;
+    if (h > H * 0.9) { h = H * 0.9; w = h * ratio; }
+    crop = { x: (W - w) / 2, y: (H - h) / 2, w, h };
+  } else {
+    crop = { x: W * 0.05, y: H * 0.05, w: W * 0.9, h: H * 0.9 };
+  }
+  applyCrop();
+}
+
+function applyCrop() {
+  cropBox.style.left   = crop.x + 'px';
+  cropBox.style.top    = crop.y + 'px';
+  cropBox.style.width  = crop.w + 'px';
+  cropBox.style.height = crop.h + 'px';
+  const rw = crop.w / cropImg.clientWidth  * sourceImg.naturalWidth;
+  const rh = crop.h / cropImg.clientHeight * sourceImg.naturalHeight;
+  const k = 1200 / Math.max(rw, rh);
+  $('cropSize').textContent = `输出尺寸：约 ${Math.round(rw * k)} × ${Math.round(rh * k)} px`;
+}
+
+/* 拖动 / 角部缩放（Pointer 事件，支持触屏） */
+let drag = null;
+cropBox.addEventListener('pointerdown', e => {
+  const h = e.target.dataset.h || 'move';
+  drag = { h, sx: e.clientX, sy: e.clientY, c: { ...crop } };
+  cropBox.setPointerCapture(e.pointerId);
+});
+cropBox.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+  const W = cropImg.clientWidth, H = cropImg.clientHeight;
+  const minS = 40;
+  let { x, y, w, h } = drag.c;
+
+  if (drag.h === 'move') {
+    x = Math.max(0, Math.min(W - w, x + dx));
+    y = Math.max(0, Math.min(H - h, y + dy));
+  } else {
+    let nx = x, ny = y, nw = w, nh = h;
+    if (drag.h.includes('w')) { nx = x + dx; nw = w - dx; }
+    if (drag.h.includes('e')) { nw = w + dx; }
+    if (drag.h.includes('n')) { ny = y + dy; nh = h - dy; }
+    if (drag.h.includes('s')) { nh = h + dy; }
+    if (ratioLocked) nh = nw / ratio;
+    if (nw < minS) { if (drag.h.includes('w')) nx -= (minS - nw); nw = minS; if (ratioLocked) nh = nw / ratio; }
+    if (nh < minS) { nh = minS; if (ratioLocked) nw = nh * ratio; }
+    if (nx < 0)      { nw += nx; if (ratioLocked) nh = nw / ratio; nx = 0; }
+    if (ny < 0)      { nh += ny; if (ratioLocked) nw = nh * ratio; ny = 0; }
+    if (nx + nw > W) { nw = W - nx; if (ratioLocked) nh = nw / ratio; }
+    if (ny + nh > H) { nh = H - ny; if (ratioLocked) nw = nh * ratio; }
+    x = nx; y = ny; w = nw; h = nh;
+  }
+  crop = { x, y, w, h };
+  applyCrop();
+});
+['pointerup', 'pointercancel'].forEach(ev => cropBox.addEventListener(ev, () => drag = null));
+
+/* 比例预设 */
+$('ratioRow').addEventListener('click', e => {
+  const btn = e.target.closest('.ratio-btn');
+  if (!btn) return;
+  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  ratioLocked = btn.dataset.r !== 'free';
+  ratio = ratioLocked ? +btn.dataset.r : 1;
+  initCrop();
+});
+
+/* ================= 确认裁切 ================= */
+$('btn-crop-ok').addEventListener('click', () => {
+  const kx = sourceImg.naturalWidth  / cropImg.clientWidth;
+  const ky = sourceImg.naturalHeight / cropImg.clientHeight;
+  currentCropRect = {
+    sx: crop.x * kx, sy: crop.y * ky,
+    sw: crop.w * kx, sh: crop.h * ky
+  };
+  const k = 1200 / Math.max(currentCropRect.sw, currentCropRect.sh);
+  canvas.width  = Math.round(currentCropRect.sw * k);
+  canvas.height = Math.round(currentCropRect.sh * k);
+  show('result');
+  render();
+});
+
+/* ================= 核心渲染：边缘提取 + 彩色渐变 ================= */
+let palette = ['#ff7a00', '#ff2d2d', '#ff00a8', '#8b2fd6', '#0a7aff'];
+function buildPalette() {
+  return palette.map(hex => {
+    const n = parseInt(hex.slice(1), 16);
+    return [n >> 16 & 255, n >> 8 & 255, n & 255];
+  });
+}
+
+function render() {
+  if (!sourceImg || !currentCropRect) return;
+  const W = canvas.width, H = canvas.height;
+  const cr = currentCropRect;
+
+  // 1. 裁切区域灰度绘制
+  ctx.filter = 'grayscale(1)';
+  ctx.drawImage(sourceImg, cr.sx, cr.sy, cr.sw, cr.sh, 0, 0, W, H);
+  ctx.filter = 'none';
+
+  // 2. Sobel 边缘检测
+  const src = ctx.getImageData(0, 0, W, H);
+  const px = src.data;
+  const lum = new Float32Array(W * H);
+  for (let i = 0, j = 0; i < px.length; i += 4, j++)
+    lum[j] = px[i] * 0.299 + px[i+1] * 0.587 + px[i+2] * 0.114;
+
+  const edgeK = +$('edge').value / 100;
+  const inkK  = +$('ink').value / 100;
+  const pal = buildPalette();
+  const ang = +$('angle').value * Math.PI / 180;
+  const cosA = Math.cos(ang), sinA = Math.sin(ang);
+  const hueShift = +$('shift').value / 100;
+
+  const out = ctx.createImageData(W, H);
+  const d = out.data;
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = y * W + x;
+      let gx = 0, gy = 0;
+      if (x > 0 && x < W-1 && y > 0 && y < H-1) {
+        const tl = lum[idx-W-1], t = lum[idx-W], tr = lum[idx-W+1];
+        const l  = lum[idx-1],                r  = lum[idx+1];
+        const bl = lum[idx+W-1], b = lum[idx+W], br = lum[idx+W+1];
+        gx = (tr + 2*r + br) - (tl + 2*l + bl);
+        gy = (bl + 2*b + br) - (tl + 2*t + tr);
+      }
+      let line = Math.min(1, Math.sqrt(gx*gx + gy*gy) / 1130 * (edgeK * 8));
+      line = Math.pow(line, 0.85) * inkK;
+
+      // 按位置计算渐变色 t
+      let t = ((x / W - 0.5) * cosA + (y / H - 0.5) * sinA) + 0.5;
+      t = t + hueShift + phase;
+      t -= Math.floor(t);
+
+      const seg = t * (pal.length - 1);
+      const i0 = Math.min(pal.length - 2, Math.floor(seg));
+      const f = seg - i0;
+      const c0 = pal[i0], c1 = pal[i0 + 1];
+      const crC = c0[0] + (c1[0] - c0[0]) * f;
+      const cgC = c0[1] + (c1[1] - c0[1]) * f;
+      const cbC = c0[2] + (c1[2] - c0[2]) * f;
+
+      // 白纸 + 彩色线合成
+      const o = idx * 4, inv = 1 - line, m = 0.55 + 0.45 * inv;
+      d[o]   = 255 * inv + crC * line * m;
+      d[o+1] = 255 * inv + cgC * line * m;
+      d[o+2] = 255 * inv + cbC * line * m;
+      d[o+3] = 255;
+    }
+  }
+  ctx.putImageData(out, 0, 0);
+
+  // 3. 纸纹颗粒
+  ctx.save();
+  ctx.globalAlpha = 0.03;
+  for (let i = 0; i < 3000; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? '#000' : '#fff';
+    ctx.fillRect(Math.random() * W, Math.random() * H, 1.5, 1.5);
+  }
+  ctx.restore();
+
+  // 4. 自定义文字
+  drawText(W, H);
+}
+
+/* 文字绘制（可自定义内容 / 大小 / 开关） */
+function drawText(W, H) {
+  if (!$('txtVisible').checked) return;
+  const base = Math.min(W, H);
+  const scale = +$('txtScale').value / 100;
+  const left = base * 0.05;
+
+  const title  = $('txtTitle').value.trim();
+  const artist = $('txtArtist').value.trim();
+  const sub    = $('txtSub').value.trim();
+
+  ctx.save();
+  ctx.textBaseline = 'alphabetic';
+  let y = H - base * 0.04;
+
+  if (sub) {
+    ctx.font = `300 ${base * 0.024 * scale}px "Noto Serif JP", serif`;
+    ctx.fillStyle = 'rgba(60,60,60,0.4)';
+    ctx.fillText(sub, left, y);
+    y -= base * 0.045 * scale;
+  }
+  if (artist) {
+    ctx.font = `300 ${base * 0.03 * scale}px "Noto Serif JP", serif`;
+    ctx.fillStyle = 'rgba(60,60,60,0.5)';
+    ctx.fillText(artist, left, y);
+    y -= base * 0.07 * scale;
+  }
+  if (title) {
+    ctx.font = `italic 300 ${base * 0.055 * scale}px "Noto Serif JP", serif`;
+    ctx.fillStyle = 'rgba(60,60,60,0.55)';
+    ctx.fillText(title, left, y);
+  }
+  ctx.restore();
+}
+
+/* ================= 参数实时预览 ================= */
+['edge', 'ink', 'angle', 'shift'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    if (id === 'angle') $('angleV').textContent = $(id).value + '°';
+    else $(id + 'V').textContent = $(id).value;
+    scheduleRender();
+  });
+});
+$('speed').addEventListener('input', () => {
+  $('speedV').textContent = +$('speed').value === 0 ? '静止' : $('speed').value;
+});
+
+function scheduleRender() {
+  clearTimeout(window._rt);
+  window._rt = setTimeout(() => render(), 60);
+}
+
+/* 文字实时预览 */
+['txtTitle', 'txtArtist', 'txtSub'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    clearTimeout(window._tt);
+    window._tt = setTimeout(() => {
+      if (currentCropRect) render();
+    }, 200);
+  });
+});
+$('txtScale').addEventListener('input', () => {
+  $('txtScaleV').textContent = $('txtScale').value + '%';
+  if (currentCropRect) render();
+});
+$('txtVisible').addEventListener('change', () => {
+  if (currentCropRect) render();
+});
+
+/* ================= 流动动画 ================= */
+function tick(now) {
+  const speed = +$('speed').value;
+  if (speed > 0 && currentCropRect && resultStage.classList.contains('active')) {
+    phase += (now - lastT) / 1000 * speed * 0.0004;
+    phase -= Math.floor(phase);
+    render();
+  }
+  lastT = now;
+  animId = requestAnimationFrame(tick);
+}
+animId = requestAnimationFrame(tick);
+
+/* ================= 随机配色 ================= */
+$('btn-random').addEventListener('click', () => {
+  const base = Math.random() * 360;
+  palette = [0, 60, 120, 180, 240].map(off => `hsl(${(base + off) % 360}, 90%, 55%)`)
+    .map(hslStr => {
+      const c = document.createElement('canvas'); c.width = c.height = 1;
+      const cc = c.getContext('2d'); cc.fillStyle = hslStr; cc.fillRect(0, 0, 1, 1);
+      const [r, g, b] = cc.getImageData(0, 0, 1, 1).data;
+      return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+    });
+  if (currentCropRect) render();
+});
+
+/* ================= 下载 ================= */
+$('btn-download').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.download = 'one-last-kiss-cover.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>棋盘格生成器 · Checker Studio</title>
+<style>
+  :root {
+    --pink-50:  #F8FCFE;
+    --pink-100: #EAF6FC;
+    --pink-200: #D6ECF6;
+    --pink-300: #c0dde7;
+    --pink-400: #8FD0E6;
+    --pink-500: #5BADCB;
+    --pink-600: #3E8FAC;
+    --ink: #2C4A5C;
+    --ink-soft: #6E90A3;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(160deg, var(--pink-50) 0%, var(--pink-100) 100%);
+    color: var(--ink);
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 28px 20px 44px;
+  }
+  h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--pink-500), var(--pink-400));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { font-size: 13px; color: var(--ink-soft); margin: 6px 0 24px; letter-spacing: 1px; }
+
+  .layout {
+    display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+    align-items: flex-start; width: 100%; max-width: 1020px;
+  }
+
+  .preview-card {
+    background: #fff; border: 2px solid var(--pink-200);
+    border-radius: 18px; padding: 16px;
+    box-shadow: 0 8px 28px rgba(123, 183, 205, 0.12);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  canvas {
+    width: min(460px, 88vw); height: auto; border-radius: 10px;
+    box-shadow: 0 3px 14px rgba(51, 81, 92, 0.12);
+  }
+  .size-tip { font-size: 12px; color: var(--ink-soft); }
+
+  .controls {
+    width: min(400px, 92vw);
+    background: #fff; border: 2px solid var(--pink-200); border-radius: 18px;
+    padding: 20px; box-shadow: 0 8px 28px rgba(123, 183, 205, 0.12);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .sec-title {
+    font-size: 13px; font-weight: 700; color: var(--pink-600);
+    letter-spacing: 1px; display: flex; align-items: center; gap: 8px;
+  }
+  .sec-title::after { content: ''; flex: 1; height: 1px; background: var(--pink-100); }
+
+  .row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .row label { width: 72px; color: var(--ink); flex-shrink: 0; }
+  .row input[type=range] { flex: 1; accent-color: var(--pink-500); }
+  .row .val { width: 40px; text-align: right; color: var(--pink-600); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px; padding: 6px 14px; border-radius: 999px;
+    border: 1.5px solid var(--pink-200); background: #fff; color: var(--ink);
+    cursor: pointer; transition: .2s; font-family: inherit;
+  }
+  .chip:hover { border-color: var(--pink-400); }
+  .chip.on {
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-500));
+    color: #fff; border-color: transparent;
+    box-shadow: 0 3px 10px rgba(123, 183, 205, 0.3);
+  }
+
+  .color-row { display: flex; align-items: center; gap: 12px; }
+  .color-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  input[type=color] {
+    width: 40px; height: 32px; border: 2px solid var(--pink-200);
+    border-radius: 8px; cursor: pointer; background: #fff; padding: 2px;
+  }
+  .deg-chip { min-width: 48px; text-align: center; }
+
+  .opt-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); flex-wrap: wrap; }
+  .opt-row input { width: 17px; height: 17px; accent-color: var(--pink-500); }
+
+  .btns { display: flex; gap: 12px; margin-top: 4px; }
+  button.act {
+    font-family: inherit; font-size: 14px; letter-spacing: 1px;
+    padding: 11px 22px; border-radius: 999px; cursor: pointer;
+    border: 1.5px solid var(--pink-300); background: #fff; color: var(--pink-600);
+    transition: .25s;
+  }
+  button.act:hover { background: var(--pink-50); transform: translateY(-1px); }
+  button.act.primary {
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-500));
+    color: #fff; border: none; font-weight: 600;
+    box-shadow: 0 5px 16px rgba(123, 183, 205, 0.35);
+  }
+  button.act.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(123, 183, 205, 0.45); }
+
+  footer { margin-top: 30px; font-size: 13px; color: var(--ink-soft); letter-spacing: 1.5px; font-style: italic; }
+  footer b { color: var(--pink-500); font-style: normal; }
+</style>
+<link rel="stylesheet" href="_ui.css" data-sherly-ui="1">
+</head>
+<body>
+
+<h1>🩷 棋盘格生成器</h1>
+<p class="sub">Checker Studio · 自定义行列 / 角度 / 配色，一键导出</p>
+
+<div class="layout">
+
+  <!-- 预览 -->
+  <div class="preview-card">
+    <canvas id="canvas" width="1200" height="1200"></canvas>
+    <div class="size-tip" id="sizeTip">1200 × 1200 px</div>
+  </div>
+
+  <!-- 控制面板 -->
+  <div class="controls">
+
+    <div class="sec-title">图案类型</div>
+    <div class="chip-row" id="modeRow">
+      <button class="chip on" data-mode="checker">♟ 棋盘格</button>
+      <button class="chip" data-mode="gingham">🧺 格子布</button>
+    </div>
+
+    <div class="sec-title">显示方式</div>
+    <div class="chip-row" id="dispRow">
+      <button class="chip on" data-disp="tile">▦ 平铺填满</button>
+      <button class="chip" data-disp="fit">🔳 完整居中</button>
+    </div>
+    <div class="opt-row" style="font-size:12px;color:var(--ink-soft);">
+      平铺填满：铺满画面（旋转时边缘格子会被裁切）<br>
+      完整居中：整个图案完整显示，任意角度都不切
+    </div>
+
+    <div class="sec-title">导出比例</div>
+    <div class="chip-row" id="ratioRow">
+      <button class="chip on" data-r="1">1:1</button>
+      <button class="chip" data-r="0.8">4:5</button>
+      <button class="chip" data-r="0.75">3:4</button>
+      <button class="chip" data-r="1.5">3:2</button>
+      <button class="chip" data-r="1.7778">16:9</button>
+      <button class="chip" data-r="0.5625">9:16</button>
+    </div>
+
+    <div class="sec-title">网格数量</div>
+    <div class="row"><label>一行格数</label><input type="range" id="cols" min="2" max="30" value="8"><span class="val" id="colsV">8</span></div>
+    <div class="row"><label>一列格数</label><input type="range" id="rows" min="2" max="30" value="8"><span class="val" id="rowsV">8</span></div>
+    <div class="opt-row"><input type="checkbox" id="sqCell" checked><span>正方形格子</span></div>
+
+    <div class="sec-title">角度</div>
+    <div class="row"><label>旋转</label><input type="range" id="angle" min="0" max="360" value="0"><span class="val" id="angleV">0°</span></div>
+    <div class="chip-row" id="degRow">
+      <button class="chip deg-chip" data-deg="0">0°</button>
+      <button class="chip deg-chip" data-deg="15">15°</button>
+      <button class="chip deg-chip" data-deg="45">45°</button>
+      <button class="chip deg-chip" data-deg="90">90°</button>
+      <button class="chip deg-chip" data-deg="135">135°</button>
+    </div>
+
+    <div class="sec-title">配色</div>
+    <div class="color-row">
+      <div class="color-item"><input type="color" id="colorA" value="#ffd6e0"><span>颜色 A</span></div>
+      <div class="color-item"><input type="color" id="colorB" value="#f25697"><span>颜色 B</span></div>
+    </div>
+    <div class="chip-row" id="paletteRow">
+      <button class="chip" data-a="#ffd6e0" data-b="#ff8fab">🍓 草莓牛奶</button>
+      <button class="chip" data-a="#fff0f5" data-b="#ffb7c5">🌸 樱花</button>
+      <button class="chip" data-a="#f3e5f5" data-b="#ba68c8">💜 香芋</button>
+      <button class="chip" data-a="#e8f5e9" data-b="#81c784">🌿 抹茶</button>
+      <button class="chip" data-a="#e3f2fd" data-b="#64b5f6">🌊 海盐</button>
+      <button class="chip" data-a="#fffde7" data-b="#ffd54f">🍋 柠檬</button>
+      <button class="chip" data-a="#ffffff" data-b="#1a1a1a">🖤 经典黑白</button>
+    </div>
+
+    <div class="sec-title">署名</div>
+    <div class="opt-row">
+      <input type="checkbox" id="sig" checked>
+      <span>导出图片右下角包含 <i>Design by sherly</i></span>
+    </div>
+
+    <div class="btns">
+      <button class="act" id="btn-random">🎲 随机配色</button>
+      <button class="act primary" id="btn-download">⬇ 导出 PNG</button>
+    </div>
+  </div>
+</div>
+
+<footer>Design by <b>sherly</b> 💗</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d');
+
+let mode = 'checker';        // checker | gingham
+let disp = 'tile';           // tile 平铺填满 | fit 完整居中
+let ratio = 1;
+let longEdge = 1200;
+
+/* ================= 尺寸与比例 ================= */
+function applyRatio() {
+  if (ratio >= 1) {
+    canvas.width  = longEdge;
+    canvas.height = Math.round(longEdge / ratio);
+  } else {
+    canvas.height = longEdge;
+    canvas.width  = Math.round(longEdge * ratio);
+  }
+  $('sizeTip').textContent = `${canvas.width} × ${canvas.height} px`;
+}
+
+/* ================= 工具 ================= */
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [n >> 16 & 255, n >> 8 & 255, n & 255];
+}
+function luma(hex) {
+  const [r, g, b] = hexToRgb(hex);
+  return r * 0.299 + g * 0.587 + b * 0.114;
+}
+function rgba(hex, a) {
+  const [r, g, b] = hexToRgb(hex);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/* 在指定矩形区域内绘制 cols×rows 的完整图案（fit 模式用） */
+function drawWholePattern(x0, y0, cols, rows, cellW, cellH, colorA, colorB) {
+  const pw = cols * cellW, ph = rows * cellH;
+  if (mode === 'checker') {
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        ctx.fillStyle = (r + c) % 2 ? colorB : colorA;
+        ctx.fillRect(x0 + c * cellW, y0 + r * cellH, cellW + 0.6, cellH + 0.6);
+      }
+  } else {
+    ctx.fillStyle = colorA;
+    ctx.fillRect(x0, y0, pw, ph);
+    ctx.fillStyle = rgba(colorB, 0.5);
+    for (let c = 0; c < cols; c += 2) ctx.fillRect(x0 + c * cellW, y0, cellW, ph);
+    for (let r = 0; r < rows; r += 2) ctx.fillRect(x0, y0 + r * cellH, pw, cellH);
+  }
+}
+
+/* ================= 核心渲染 ================= */
+function render() {
+  const W = canvas.width, H = canvas.height;
+  const cols = +$('cols').value;
+  const rows = +$('rows').value;
+  const angle = +$('angle').value;
+  const colorA = $('colorA').value;
+  const colorB = $('colorB').value;
+  const square = $('sqCell').checked;
+
+  // 格子尺寸
+  let cellW = W / cols, cellH = H / rows;
+  if (square) { const s = Math.min(W / cols, H / rows); cellW = cellH = s; }
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  if (disp === 'fit') {
+    /* ---- 完整居中：整个图案旋转后完整放进画面 ---- */
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+
+    const pw = cols * cellW, ph = rows * cellH;
+    const rad = angle * Math.PI / 180;
+    const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+    const bw = pw * cos + ph * sin;          // 旋转后外接框
+    const bh = pw * sin + ph * cos;
+    const scale = Math.min(W / bw, H / bh) * 0.9;
+
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.rotate(rad);
+    ctx.scale(scale, scale);
+    drawWholePattern(-pw / 2, -ph / 2, cols, rows, cellW, cellH, colorA, colorB);
+    ctx.restore();
+  } else {
+    /* ---- 平铺填满：网格对齐画布边缘，边缘格子完整 ---- */
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.rotate(angle * Math.PI / 180);
+
+    // 把画布四个角换算到「旋转后的坐标系」，网格以格子线为起点对齐
+    const rad = -angle * Math.PI / 180;
+    const cs = Math.cos(rad), sn = Math.sin(rad);
+    let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+    for (const [x, y] of [[-W/2,-H/2],[W/2,-H/2],[W/2,H/2],[-W/2,H/2]]) {
+      const rx = x * cs - y * sn, ry = x * sn + y * cs;
+      minX = Math.min(minX, rx); maxX = Math.max(maxX, rx);
+      minY = Math.min(minY, ry); maxY = Math.max(maxY, ry);
+    }
+    // 起点对齐到格子边界（关键修复：0°/90° 时边缘格子一定完整）
+    const c0 = Math.floor(minX / cellW) - 1, c1 = Math.ceil(maxX / cellW) + 1;
+    const r0 = Math.floor(minY / cellH) - 1, r1 = Math.ceil(maxY / cellH) + 1;
+
+    if (mode === 'checker') {
+      for (let r = r0; r < r1; r++)
+        for (let c = c0; c < c1; c++) {
+          ctx.fillStyle = (((r + c) % 2) + 2) % 2 ? colorB : colorA;
+          ctx.fillRect(c * cellW, r * cellH, cellW + 0.6, cellH + 0.6);
+        }
+    } else {
+      // 格子布：底色 + 对齐边界的横竖半透明条纹
+      ctx.fillStyle = colorA;
+      ctx.fillRect(minX - cellW, minY - cellH, (maxX - minX) + 2 * cellW, (maxY - minY) + 2 * cellH);
+      ctx.fillStyle = rgba(colorB, 0.5);
+      for (let c = Math.floor(c0 / 2) * 2; c < c1; c += 2)
+        ctx.fillRect(c * cellW, minY - cellH, cellW, (maxY - minY) + 2 * cellH);
+      for (let r = Math.floor(r0 / 2) * 2; r < r1; r += 2)
+        ctx.fillRect(minX - cellW, r * cellH, (maxX - minX) + 2 * cellW, cellH);
+    }
+    ctx.restore();
+  }
+
+  drawSignature(W, H);
+}
+
+/* 署名 */
+function drawSignature(W, H) {
+  if (!$('sig').checked) return;
+  const base = Math.min(W, H);
+  ctx.save();
+  ctx.font = `italic ${Math.max(13, base * 0.022)}px Georgia, 'Times New Roman', serif`;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'alphabetic';
+  // 完整居中模式背景固定为白，平铺模式按颜色A亮度判断
+  ctx.fillStyle = (disp === 'fit' || luma($('colorA').value) > 150)
+    ? 'rgba(0,0,0,0.32)'
+    : 'rgba(255,255,255,0.55)';
+  ctx.fillText('Design by sherly', W - base * 0.03, H - base * 0.028);
+  ctx.restore();
+}
+
+/* ================= 交互绑定 ================= */
+[['cols', 'colsV', ''], ['rows', 'rowsV', ''], ['angle', 'angleV', '°']].forEach(([id, vid, unit]) => {
+  $(id).addEventListener('input', () => {
+    $(vid).textContent = $(id).value + unit;
+    render();
+  });
+});
+
+['colorA', 'colorB'].forEach(id => $(id).addEventListener('input', render));
+$('sqCell').addEventListener('change', render);
+$('sig').addEventListener('change', render);
+
+$('modeRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#modeRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  mode = btn.dataset.mode;
+  render();
+});
+
+$('dispRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#dispRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  disp = btn.dataset.disp;
+  render();
+});
+
+$('ratioRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#ratioRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  ratio = +btn.dataset.r;
+  applyRatio();
+  render();
+});
+
+$('degRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  $('angle').value = btn.dataset.deg;
+  $('angleV').textContent = btn.dataset.deg + '°';
+  render();
+});
+
+$('paletteRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  $('colorA').value = btn.dataset.a;
+  $('colorB').value = btn.dataset.b;
+  render();
+});
+
+$('btn-random').addEventListener('click', () => {
+  const h = Math.floor(Math.random() * 360);
+  const s = 55 + Math.random() * 30;
+  $('colorA').value = hslToHex(h, s * 0.5, 90);
+  $('colorB').value = hslToHex(h, s, 55 + Math.random() * 15);
+  render();
+});
+function hslToHex(h, s, l) {
+  const a = s / 100 * Math.min(l / 100, 1 - l / 100);
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const c = l / 100 - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(255 * c).toString(16).padStart(2, '0');
+  };
+  return '#' + f(0) + f(8) + f(4);
+}
+
+$('btn-download').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.download = `checkerboard-sherly-${canvas.width}x${canvas.height}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+});
+
+/* ================= 初始化 ================= */
+applyRatio();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>糖果喷绘形状底图生成器 · Candy Spray</title>
+<style>
+  :root {
+    --pink-50:  #F8FCFE; --pink-100: #EAF6FC; --pink-200: #D6ECF6;
+    --pink-300: #c0dde7; --pink-400: #8FD0E6; --pink-500: #5BADCB;
+    --pink-600: #3E8FAC; --ink: #2C4A5C; --ink-soft: #6E90A3;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(160deg, var(--pink-50) 0%, var(--pink-100) 100%);
+    color: var(--ink);
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 28px 20px 44px;
+  }
+  h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--pink-500), var(--pink-400));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { font-size: 13px; color: var(--ink-soft); margin: 6px 0 24px; letter-spacing: 1px; }
+  .layout {
+    display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+    align-items: flex-start; width: 100%; max-width: 1020px;
+  }
+  .preview-card {
+    background: #fff; border: 2px solid var(--pink-200);
+    border-radius: 18px; padding: 16px;
+    box-shadow: 0 8px 28px rgba(123, 183, 205, 0.12);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  canvas {
+    width: min(460px, 88vw); height: auto; border-radius: 10px;
+    box-shadow: 0 3px 14px rgba(51, 81, 92, 0.12);
+    background: repeating-conic-gradient(#f2ecf0 0% 25%, #ffffff 0% 50%);
+    background-size: 22px 22px;
+  }
+  .size-tip { font-size: 12px; color: var(--ink-soft); }
+
+  .controls {
+    width: min(400px, 92vw);
+    background: #fff; border: 2px solid var(--pink-200); border-radius: 18px;
+    padding: 20px; box-shadow: 0 8px 28px rgba(123, 183, 205, 0.12);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .sec-title {
+    font-size: 13px; font-weight: 700; color: var(--pink-600);
+    letter-spacing: 1px; display: flex; align-items: center; gap: 8px;
+  }
+  .sec-title::after { content: ''; flex: 1; height: 1px; background: var(--pink-100); }
+  .row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .row label { width: 78px; color: var(--ink); flex-shrink: 0; }
+  .row input[type=range] { flex: 1; accent-color: var(--pink-500); }
+  .row .val { width: 46px; text-align: right; color: var(--pink-600); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .row input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--pink-500); }
+
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px; padding: 6px 13px; border-radius: 999px;
+    border: 1.5px solid var(--pink-200); background: #fff; color: var(--ink);
+    cursor: pointer; transition: .2s; font-family: inherit;
+  }
+  .chip:hover { border-color: var(--pink-400); }
+  .chip.on {
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-500));
+    color: #fff; border-color: transparent;
+    box-shadow: 0 3px 10px rgba(123, 183, 205, 0.3);
+  }
+
+  .color-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .color-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  input[type=color] {
+    width: 38px; height: 30px; border: 2px solid var(--pink-200);
+    border-radius: 8px; cursor: pointer; background: #fff; padding: 2px;
+  }
+  .opt-row { font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+
+  .btns { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+  button.act {
+    font-family: inherit; font-size: 14px; letter-spacing: 1px;
+    padding: 11px 20px; border-radius: 999px; cursor: pointer;
+    border: 1.5px solid var(--pink-300); background: #fff; color: var(--pink-600);
+    transition: .25s;
+  }
+  button.act:hover { background: var(--pink-50); transform: translateY(-1px); }
+  button.act.primary {
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-500));
+    color: #fff; border: none; font-weight: 600;
+    box-shadow: 0 5px 16px rgba(123, 183, 205, 0.35);
+  }
+  button.act.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(123, 183, 205, 0.45); }
+
+  footer { margin-top: 30px; font-size: 13px; color: var(--ink-soft); letter-spacing: 1.5px; font-style: italic; }
+  footer b { color: var(--pink-500); font-style: normal; }
+</style>
+<link rel="stylesheet" href="_ui.css" data-sherly-ui="1">
+</head>
+<body>
+
+<h1>🍬 糖果喷绘形状底图</h1>
+<p class="sub">Candy Spray · 形状本体 + 透明背景 PNG</p>
+
+<div class="layout">
+
+  <div class="preview-card">
+    <canvas id="canvas" width="1200" height="1200"></canvas>
+    <div class="size-tip" id="sizeTip">1200 × 1200 px · 棋盘格 = 透明区域</div>
+  </div>
+
+  <div class="controls">
+
+    <div class="sec-title">底图形状（谷子常用底板）</div>
+    <div class="chip-row" id="shapeRow">
+      <button class="chip on" data-s="circle">🔵 圆形</button>
+      <button class="chip" data-s="scallop">🌸 花边圆</button>
+      <button class="chip" data-s="flower">🌼 花朵</button>
+      <button class="chip" data-s="star">⭐ 星形</button>
+      <button class="chip" data-s="heart">💗 心形</button>
+      <button class="chip" data-s="cloud">☁️ 云朵</button>
+      <button class="chip" data-s="egg">🥚 蛋形</button>
+      <button class="chip" data-s="squircle">⬜ 圆角方</button>
+      <button class="chip" data-s="capsule">💊 胶囊</button>
+      <button class="chip" data-s="arch">🏛️ 拱门</button>
+      <button class="chip" data-s="hexagon">⬡ 六边形</button>
+      <button class="chip" data-s="ellipse">🥯 椭圆</button>
+    </div>
+
+    <div class="sec-title">底板样式</div>
+    <div class="chip-row" id="modeRow">
+      <button class="chip on" data-m="color">🎨 彩色喷绘</button>
+      <button class="chip" data-m="white">⬜ 纯白底板</button>
+    </div>
+    <div class="row"><label>形状留白</label><input type="range" id="rim" min="0" max="40" value="0"><span class="val" id="rimV">0</span></div>
+    <div class="opt-row">沿形状内边缘留一圈白边（吧唧/贴纸裁切白边效果）</div>
+
+    <div class="sec-title">喷绘色块</div>
+    <div class="row"><label>色块大小</label><input type="range" id="blobSize" min="25" max="95" value="70"><span class="val" id="blobSizeV">70%</span></div>
+    <div class="row"><label>边缘柔和</label><input type="range" id="blobSoft" min="10" max="100" value="55"><span class="val" id="blobSoftV">55</span></div>
+    <div class="row"><label>颗粒强度</label><input type="range" id="grain" min="0" max="100" value="0"><span class="val" id="grainV">0</span></div>
+    <div class="opt-row">默认已关闭颗粒，只要干净的渐变；想要喷绘质感再往右拉</div>
+
+    <div class="sec-title">糖果配色（形状底 / 主色 / 辅色）</div>
+    <div class="color-row">
+      <div class="color-item"><input type="color" id="cA" value="#fff3f6"><span>A 形状底色</span></div>
+      <div class="color-item"><input type="color" id="cB" value="#ff8fb5"><span>B 主色</span></div>
+      <div class="color-item"><input type="color" id="cC" value="#ffc9da"><span>C 辅色</span></div>
+    </div>
+    <div class="chip-row" id="paletteRow">
+      <button class="chip" data-c="#fff3f6,#ff8fb5,#ffc9da">🍓 草莓糖果</button>
+      <button class="chip" data-c="#f7f2fb,#c9a0f0,#e3c8f7">🍬 葡萄软糖</button>
+      <button class="chip" data-c="#fffaea,#ffd166,#ffe9a8">🍋 柠檬软糖</button>
+      <button class="chip" data-c="#f0f8fe,#7cc4f0,#bee3f8">🫐 苏打冰蓝</button>
+      <button class="chip" data-c="#f3faf0,#a5de8c,#d3f0c0">🍈 哈密瓜</button>
+      <button class="chip" data-c="#fff7ec,#ffb264,#ffd9a8">🍊 橘子汽水</button>
+      <button class="chip" data-c="#fef4fb,#f7a8d8,#fbd0ea">🍬 泡泡糖</button>
+    </div>
+
+    <div class="sec-title">画布尺寸</div>
+    <div class="chip-row" id="sizeRow">
+      <button class="chip on" data-px="1200">1200</button>
+      <button class="chip" data-px="1800">1800</button>
+      <button class="chip" data-px="2400">2400</button>
+    </div>
+    <div class="opt-row">形状居中绘制，画布始终 1:1；导出时自动裁掉透明边（可关）</div>
+
+    <div class="btns">
+      <button class="act" id="btn-random">🎲 随机糖果色</button>
+      <button class="act" id="btn-reblob">🔀 换色块形态</button>
+      <button class="act primary" id="btn-download">⬇ 导出透明 PNG</button>
+    </div>
+    <div class="row"><input type="checkbox" id="cropChk" checked><span style="font-size:12px;color:var(--ink-soft);">导出时裁掉透明边（只留形状本体）</span></div>
+  </div>
+</div>
+
+<footer>Design by <b>sherly</b> 💗</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d');
+
+let edge = 1200;
+let blobSeed = 5;
+
+/* ================= 基础工具 ================= */
+function applySize() {
+  edge = Math.max(64, Math.round(edge));
+  canvas.width = canvas.height = edge;
+  $('sizeTip').textContent = `${edge} × ${edge} px · 棋盘格 = 透明区域`;
+}
+function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [n>>16&255, n>>8&255, n&255]; }
+function rgba(h, a) { const [r,g,b] = hexToRgb(h); return `rgba(${r},${g},${b},${a})`; }
+function hslToHex(h, s, l) {
+  const a = s/100 * Math.min(l/100, 1-l/100);
+  const f = n => { const k=(n+h/30)%12;
+    const c = l/100 - a*Math.max(-1, Math.min(k-3, 9-k, 1));
+    return Math.round(255*c).toString(16).padStart(2,'0'); };
+  return '#' + f(0) + f(8) + f(4);
+}
+function prandB(i) { const x = Math.sin(i * 127.1 + blobSeed) * 43758.5453; return x - Math.floor(x); }
+
+/* ================= 颗粒噪点（默认 0 不启用） ================= */
+let grainPat = null;
+function getGrain() {
+  if (grainPat) return grainPat;
+  const t = document.createElement('canvas');
+  t.width = t.height = 200;
+  const g = t.getContext('2d');
+  const img = g.createImageData(200, 200);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = Math.random() < 0.5 ? 255 : 40;
+    img.data[i] = img.data[i+1] = img.data[i+2] = v;
+    img.data[i+3] = Math.random() * 80;
+  }
+  g.putImageData(img, 0, 0);
+  grainPat = ctx.createPattern(t, 'repeat');
+  return grainPat;
+}
+
+/* ================= 形状库（12 种谷子底板） ================= */
+function smoothClosedPoly(g, pts) {
+  const n = pts.length;
+  g.beginPath();
+  g.moveTo((pts[0][0]+pts[n-1][0])/2, (pts[0][1]+pts[n-1][1])/2);
+  for (let i = 0; i < n; i++) {
+    const p = pts[i], q = pts[(i+1)%n];
+    g.quadraticCurveTo(p[0], p[1], (p[0]+q[0])/2, (p[1]+q[1])/2);
+  }
+  g.closePath();
+}
+function rrectPath(g, x, y, w, h, r) {
+  g.beginPath();
+  g.moveTo(x+r, y);
+  g.arcTo(x+w, y,   x+w, y+h, r);
+  g.arcTo(x+w, y+h, x,   y+h, r);
+  g.arcTo(x,   y+h, x,   y,   r);
+  g.arcTo(x,   y,   x+w, y,   r);
+  g.closePath();
+}
+function petalRing(g, n, r0, r1) {
+  g.beginPath();
+  const a0 = -Math.PI/2;
+  g.moveTo(Math.cos(a0)*r0, Math.sin(a0)*r0);
+  for (let i = 0; i < n; i++) {
+    const am = (i+0.5)/n * Math.PI*2 + a0;
+    const an = (i+1)/n   * Math.PI*2 + a0;
+    g.quadraticCurveTo(Math.cos(am)*r1, Math.sin(am)*r1, Math.cos(an)*r0, Math.sin(an)*r0);
+  }
+  g.closePath();
+}
+
+const SHAPES = {
+  circle(g, R)   { g.beginPath(); g.arc(0, 0, R, 0, Math.PI*2); g.closePath(); },
+  ellipse(g, R)  { g.beginPath(); g.ellipse(0, 0, R*1.14, R*0.82, 0, 0, Math.PI*2); g.closePath(); },
+  squircle(g, R) { rrectPath(g, -R*0.95, -R*0.95, R*1.9, R*1.9, R*0.62); },
+  capsule(g, R)  { rrectPath(g, -R*1.18, -R*0.66, R*2.36, R*1.32, R*0.66); },
+  scallop(g, R)  { petalRing(g, 14, R*0.95, R*1.16); },
+  flower(g, R)   { petalRing(g, 6,  R*0.78, R*1.24); },
+  star(g, R) {
+    const pts = [];
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI/2 + i * Math.PI/5;
+      const r = i % 2 === 0 ? R*1.04 : R*0.52;
+      pts.push([Math.cos(a)*r, Math.sin(a)*r]);
+    }
+    smoothClosedPoly(g, pts);
+  },
+  heart(g, R) {
+    g.beginPath();
+    g.moveTo(0, R*0.98);
+    g.bezierCurveTo(-R*1.30, R*0.15, -R*0.85, -R*0.95, 0, -R*0.32);
+    g.bezierCurveTo( R*0.85, -R*0.95,  R*1.30, R*0.15, 0,  R*0.98);
+    g.closePath();
+  },
+  cloud(g, R) {
+    g.beginPath();
+    g.moveTo(-R*0.95, R*0.45);
+    g.quadraticCurveTo(-R*1.15, -R*0.10, -R*0.60, -R*0.15);
+    g.quadraticCurveTo(-R*0.50, -R*0.80,  R*0.05, -R*0.60);
+    g.quadraticCurveTo( R*0.50, -R*0.95,  R*0.68, -R*0.35);
+    g.quadraticCurveTo( R*1.10, -R*0.25,  R*0.95,  R*0.20);
+    g.quadraticCurveTo( R*0.90,  R*0.50,  R*0.50,  R*0.50);
+    g.lineTo(-R*0.60, R*0.50);
+    g.quadraticCurveTo(-R*0.90, R*0.50, -R*0.95, R*0.45);
+    g.closePath();
+  },
+  egg(g, R) {
+    g.beginPath();
+    g.moveTo(0, -R);
+    g.bezierCurveTo( R*0.52, -R*0.98,  R*0.74, -R*0.10,  R*0.74, R*0.30);
+    g.bezierCurveTo( R*0.74,  R*0.88,  R*0.40,  R*1.08,  0,      R*1.08);
+    g.bezierCurveTo(-R*0.40,  R*1.08, -R*0.74,  R*0.88, -R*0.74, R*0.30);
+    g.bezierCurveTo(-R*0.74, -R*0.10, -R*0.52, -R*0.98,  0,     -R);
+    g.closePath();
+  },
+  arch(g, R) {
+    const w = R*0.78, r = R*0.16, bot = R*0.98;
+    g.beginPath();
+    g.moveTo(-w, bot - r);
+    g.lineTo(-w, -R*0.12);
+    g.arc(0, -R*0.12, w, Math.PI, 0, false);
+    g.lineTo(w, bot - r);
+    g.quadraticCurveTo(w, bot, w - r, bot);
+    g.lineTo(-w + r, bot);
+    g.quadraticCurveTo(-w, bot, -w, bot - r);
+    g.closePath();
+  },
+  hexagon(g, R) {
+    const pts = [];
+    for (let k = 0; k < 6; k++) {
+      const a = -Math.PI/2 + k * Math.PI/3;
+      pts.push([Math.cos(a)*R*1.04, Math.sin(a)*R*1.04]);
+    }
+    smoothClosedPoly(g, pts);
+  },
+};
+
+/* ================= 主渲染（背景全透明，仅基础渐变） ================= */
+function render() {
+  const W = canvas.width, H = canvas.height;
+  const C = { A: $('cA').value, B: $('cB').value, C: $('cC').value };
+  const mode = document.querySelector('#modeRow .chip.on').dataset.m;
+  const shapeKey = document.querySelector('#shapeRow .chip.on').dataset.s;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const R = Math.min(W, H) * (+$('blobSize').value)/100 * 0.55;
+  const t0 = 0.15 + (+$('blobSoft').value/100) * 0.5;
+  const D = R * 2.8;
+
+  ctx.save();
+  ctx.translate(W/2, H/2);
+  SHAPES[shapeKey](ctx, R);
+  ctx.save();
+  ctx.clip();
+
+  /* 形状底色 */
+  ctx.fillStyle = mode === 'color' ? C.A : '#ffffff';
+  ctx.fillRect(-D, -D, D*2, D*2);
+
+  if (mode === 'color') {
+    /* 辅色云纹（随机偏移，制造不规则边） */
+    const ox = (prandB(1)-0.5) * R * 0.9, oy = (prandB(2)-0.5) * R * 0.9;
+    const g2 = ctx.createRadialGradient(ox, oy, 0, ox, oy, R*0.95);
+    g2.addColorStop(0, rgba(C.C, 0.5));
+    g2.addColorStop(1, rgba(C.C, 0));
+    ctx.fillStyle = g2; ctx.fillRect(-D, -D, D*2, D*2);
+
+    /* 主色喷绘：中心浓、向外融入底色 */
+    const g1 = ctx.createRadialGradient(0, 0, 0, 0, 0, R*1.25);
+    g1.addColorStop(0, rgba(C.B, 1));
+    g1.addColorStop(Math.min(0.9, t0), rgba(C.B, 0.95));
+    g1.addColorStop(1, rgba(C.B, 0));
+    ctx.fillStyle = g1; ctx.fillRect(-D, -D, D*2, D*2);
+  }
+
+  /* 颗粒（默认 0，不画） */
+  const k = +$('grain').value/100;
+  if (k > 0) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, k*1.2);
+    ctx.fillStyle = getGrain();
+    ctx.fillRect(-D, -D, D*2, D*2);
+    ctx.restore();
+  }
+
+  /* 形状留白：白色内描边 */
+  const ow = +$('rim').value;
+  if (ow > 0) {
+    SHAPES[shapeKey](ctx, R);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.min(W, H) * ow/100 * 0.14;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+  ctx.restore();
+}
+
+/* ================= 导出（透明 PNG，可裁掉透明边） ================= */
+$('btn-download').addEventListener('click', () => {
+  render();
+  let out = canvas;
+  if ($('cropChk').checked) {
+    const W = canvas.width, H = canvas.height;
+    const data = ctx.getImageData(0, 0, W, H).data;
+    let minX = W, minY = H, maxX = -1, maxY = -1;
+    for (let y = 0; y < H; y++)
+      for (let x = 0; x < W; x++)
+        if (data[(y*W + x)*4 + 3] > 8) {
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+        }
+    if (maxX >= 0) {
+      const pad = 2;
+      minX = Math.max(0, minX - pad); minY = Math.max(0, minY - pad);
+      maxX = Math.min(W-1, maxX + pad); maxY = Math.min(H-1, maxY + pad);
+      const c = document.createElement('canvas');
+      c.width = maxX - minX + 1; c.height = maxY - minY + 1;
+      c.getContext('2d').drawImage(canvas, minX, minY, c.width, c.height, 0, 0, c.width, c.height);
+      out = c;
+    }
+  }
+  const a = document.createElement('a');
+  const shapeKey = document.querySelector('#shapeRow .chip.on').dataset.s;
+  a.download = `candy-${shapeKey}-${out.width}x${out.height}.png`;
+  a.href = out.toDataURL('image/png');
+  a.click();
+});
+
+/* ================= 交互绑定 ================= */
+[['blobSize','blobSizeV','%'], ['blobSoft','blobSoftV',''],
+ ['grain','grainV',''], ['rim','rimV','']].forEach(([id, vid, unit]) => {
+  $(id).addEventListener('input', () => { $(vid).textContent = $(id).value + unit; render(); });
+});
+
+$('modeRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#modeRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+});
+
+$('shapeRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#shapeRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+});
+
+['cA','cB','cC'].forEach(id => $(id).addEventListener('input', render));
+$('paletteRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  const [a,b,c] = btn.dataset.c.split(',');
+  $('cA').value = a; $('cB').value = b; $('cC').value = c;
+  render();
+});
+
+$('sizeRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#sizeRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  edge = parseInt(btn.dataset.px, 10);
+  applySize();
+  render();
+});
+
+$('btn-random').addEventListener('click', () => {
+  const h = Math.floor(Math.random() * 360);
+  $('cA').value = hslToHex(h, 65, 96);
+  $('cB').value = hslToHex(h, 80, 72);
+  $('cC').value = hslToHex((h+20)%360, 85, 86);
+  render();
+});
+
+$('btn-reblob').addEventListener('click', () => { blobSeed = Math.random() * 1000; render(); });
+
+/* ================= 初始化 ================= */
+applySize();
+render();
+</script>
+</body>
+</html>

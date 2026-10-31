@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>谷子图案工作室 · Pattern Studio</title>
+<style>
+  :root {
+    --pink-50:  #F8FCFE; --pink-100: #EAF6FC; --pink-200: #D6ECF6;
+    --pink-300: #c0dde7; --pink-400: #8FD0E6; --pink-500: #5BADCB;
+    --pink-600: #3E8FAC; --ink: #2C4A5C; --ink-soft: #6E90A3;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(160deg, var(--pink-50) 0%, var(--pink-100) 100%);
+    color: var(--ink);
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 28px 20px 44px;
+  }
+  h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--pink-500), var(--pink-400));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { font-size: 13px; color: var(--ink-soft); margin: 6px 0 24px; letter-spacing: 1px; }
+  .layout {
+    display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+    align-items: flex-start; width: 100%; max-width: 1020px;
+  }
+  .preview-card {
+    background: #fff; border: 2px solid var(--pink-200);
+    border-radius: 18px; padding: 16px;
+    box-shadow: 0 8px 28px rgba(123, 183, 205, 0.12);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  canvas { width: min(460px, 88vw); height: auto; border-radius: 10px;
+    box-shadow: 0 3px 14px rgba(51, 81, 92, 0.12); }
+  .size-tip { font-size: 12px; color: var(--ink-soft); }
+
+  .controls {
+    width: min(400px, 92vw);
+    background: #fff; border: 2px solid var(--pink-200); border-radius: 18px;
+    padding: 20px; box-shadow: 0 8px 28px rgba(123, 183, 205, 0.12);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .sec-title {
+    font-size: 13px; font-weight: 700; color: var(--pink-600);
+    letter-spacing: 1px; display: flex; align-items: center; gap: 8px;
+  }
+  .sec-title::after { content: ''; flex: 1; height: 1px; background: var(--pink-100); }
+  .row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .row label { width: 78px; color: var(--ink); flex-shrink: 0; }
+  .row input[type=range] { flex: 1; accent-color: var(--pink-500); }
+  .row .val { width: 42px; text-align: right; color: var(--pink-600); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .row input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--pink-500); }
+
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px; padding: 6px 13px; border-radius: 999px;
+    border: 1.5px solid var(--pink-200); background: #fff; color: var(--ink);
+    cursor: pointer; transition: .2s; font-family: inherit;
+  }
+  .chip:hover { border-color: var(--pink-400); }
+  .chip.on {
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-500));
+    color: #fff; border-color: transparent;
+    box-shadow: 0 3px 10px rgba(123, 183, 205, 0.3);
+  }
+  .deg-chip { min-width: 48px; text-align: center; }
+
+  .color-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .color-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  input[type=color] {
+    width: 38px; height: 30px; border: 2px solid var(--pink-200);
+    border-radius: 8px; cursor: pointer; background: #fff; padding: 2px;
+  }
+  .opt-row { font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+
+  .btns { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+  button.act {
+    font-family: inherit; font-size: 14px; letter-spacing: 1px;
+    padding: 11px 20px; border-radius: 999px; cursor: pointer;
+    border: 1.5px solid var(--pink-300); background: #fff; color: var(--pink-600);
+    transition: .25s;
+  }
+  button.act:hover { background: var(--pink-50); transform: translateY(-1px); }
+  button.act.primary {
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-500));
+    color: #fff; border: none; font-weight: 600;
+    box-shadow: 0 5px 16px rgba(123, 183, 205, 0.35);
+  }
+  button.act.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(123, 183, 205, 0.45); }
+
+  footer { margin-top: 30px; font-size: 13px; color: var(--ink-soft); letter-spacing: 1.5px; font-style: italic; }
+  footer b { color: var(--pink-500); font-style: normal; }
+</style>
+<link rel="stylesheet" href="_ui.css" data-sherly-ui="1">
+</head>
+<body>
+
+<h1>🩷 谷子图案工作室</h1>
+<p class="sub">Pattern Studio · 12 种图案 × 形状裁切 × 透明底导出</p>
+
+<div class="layout">
+
+  <div class="preview-card">
+    <canvas id="canvas" width="1200" height="1200"></canvas>
+    <div class="size-tip" id="sizeTip">1200 × 1200 px</div>
+  </div>
+
+  <div class="controls">
+
+    <div class="sec-title">图案类型</div>
+    <div class="chip-row" id="patRow">
+      <button class="chip" data-p="stripes">▎ 条纹</button>
+      <button class="chip" data-p="checker">♟ 棋盘格</button>
+      <button class="chip" data-p="gingham">🧺 格子布</button>
+      <button class="chip on" data-p="plaid">🧣 苏格兰格</button>
+      <button class="chip" data-p="dots">⚪ 波点</button>
+      <button class="chip" data-p="stars">⭐ 星星</button>
+      <button class="chip" data-p="burst">💥 爆炸星</button>
+      <button class="chip" data-p="swirl">🌀 漩涡</button>
+      <button class="chip" data-p="fish">🐟 小鱼</button>
+      <button class="chip" data-p="diamond">🔷 菱形格</button>
+      <button class="chip" data-p="mosaic">🧩 马赛克</button>
+      <button class="chip" data-p="speckle">💧 水彩斑点</button>
+    </div>
+
+    <div id="paramSec"></div>
+
+    <div class="sec-title">配色（底 / 主 / 辅 / 点缀）</div>
+    <div class="color-row">
+      <div class="color-item"><input type="color" id="cA" value="#fff6f8"><span>A 底色</span></div>
+      <div class="color-item"><input type="color" id="cB" value="#f25697"><span>B 主色</span></div>
+      <div class="color-item"><input type="color" id="cC" value="#ffb7c5"><span>C 辅色</span></div>
+      <div class="color-item"><input type="color" id="cD" value="#ffd54f"><span>D 点缀</span></div>
+    </div>
+    <div class="chip-row" id="paletteRow">
+      <button class="chip" data-c="#fff6f8,#f25697,#ffb7c5,#ffd54f">🍓 草莓牛奶</button>
+      <button class="chip" data-c="#f4f1e0,#6b8e4e,#a4c25a,#e8b04b">🫒 橄榄园</button>
+      <button class="chip" data-c="#eef6fc,#5aa7e0,#9fd0f0,#ffd54f">🌊 海盐苏打</button>
+      <button class="chip" data-c="#f8f2fa,#b06fc9,#e3c2ee,#ffb7c5">💜 香芋奶昔</button>
+      <button class="chip" data-c="#fffbe6,#f5c518,#ffe37a,#7fb069">🍋 柠檬汽水</button>
+      <button class="chip" data-c="#fafafa,#2a2a2a,#8a8a8a,#d8d8d8">🖤 复古黑白</button>
+    </div>
+
+    <div class="sec-title">角度</div>
+    <div class="row"><label>旋转</label><input type="range" id="angle" min="0" max="360" value="0"><span class="val" id="angleV">0°</span></div>
+    <div class="chip-row" id="degRow">
+      <button class="chip deg-chip" data-deg="0">0°</button>
+      <button class="chip deg-chip" data-deg="15">15°</button>
+      <button class="chip deg-chip" data-deg="45">45°</button>
+      <button class="chip deg-chip" data-deg="90">90°</button>
+      <button class="chip deg-chip" data-deg="135">135°</button>
+    </div>
+
+    <div class="sec-title">谷子形状</div>
+    <div class="chip-row" id="shapeRow">
+      <button class="chip on" data-s="none">▢ 自由画布</button>
+      <button class="chip" data-s="square">⬛ 方形</button>
+      <button class="chip" data-s="circle">⚪ 圆形</button>
+      <button class="chip" data-s="star">⭐ 星星</button>
+      <button class="chip" data-s="heart">💗 爱心</button>
+      <button class="chip" data-s="rect">▭ 长方形</button>
+      <button class="chip" data-s="diamond">◆ 斜方形</button>
+    </div>
+    <div class="opt-row">选中形状后图案裁切进形状内，形状外透明底（预览灰白格 = 透明区域），可直接做谷子底图</div>
+
+    <div class="sec-title">导出比例</div>
+    <div class="chip-row" id="ratioRow">
+      <button class="chip on" data-r="1">1:1</button>
+      <button class="chip" data-r="0.8">4:5</button>
+      <button class="chip" data-r="0.75">3:4</button>
+      <button class="chip" data-r="1.5">3:2</button>
+      <button class="chip" data-r="1.7778">16:9</button>
+      <button class="chip" data-r="0.5625">9:16</button>
+    </div>
+
+    <div class="btns">
+      <button class="act" id="btn-random">🎲 随机配色</button>
+      <button class="act" id="btn-scatter">🔀 重散布</button>
+      <button class="act primary" id="btn-download">⬇ 导出 PNG</button>
+    </div>
+  </div>
+</div>
+
+<footer>Design by <b>sherly</b> 💗</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d');
+
+let pat = 'plaid';       // 当前图案
+let shape = 'none';
+let ratio = 1;
+let longEdge = 1200;
+let scatterSeed = 7;     // 散布类图案的确定性随机种子
+let pv = {};             // 当前图案的参数值
+
+/* ================= 每种图案的专属参数 ================= */
+const PARAMS = {
+  stripes: [
+    { id:'n',  l:'条纹数量', min:4, max:40, v:12 },
+    { id:'aw', l:'主色宽度', min:20, max:80, v:50, unit:'%' },
+  ],
+  checker: [ { id:'n', l:'行列格数', min:2, max:24, v:8 } ],
+  gingham: [ { id:'n', l:'行列格数', min:2, max:24, v:8 } ],
+  plaid:   [ { id:'n', l:'条纹组数', min:3, max:20, v:7 } ],
+  dots: [
+    { id:'n',   l:'横向点数', min:2, max:20, v:7 },
+    { id:'sz',  l:'点大小',   min:15, max:80, v:45, unit:'%' },
+    { id:'off', l:'错位排列', type:'check', v:1 },
+  ],
+  stars: [
+    { id:'n',   l:'横向密度', min:2, max:16, v:6 },
+    { id:'sz',  l:'星星大小', min:15, max:80, v:50, unit:'%' },
+    { id:'jt',  l:'散布程度', min:0, max:60, v:25, unit:'%' },
+    { id:'mix', l:'混合小星星', type:'check', v:1 },
+  ],
+  burst: [
+    { id:'n',  l:'横向密度', min:2, max:12, v:5 },
+    { id:'sz', l:'星星大小', min:20, max:90, v:55, unit:'%' },
+  ],
+  swirl: [
+    { id:'t', l:'圈数',     min:2, max:9, v:4 },
+    { id:'w', l:'线条粗细', min:8, max:40, v:20 },
+  ],
+  fish: [
+    { id:'cx', l:'横向条数', min:2, max:10, v:5 },
+    { id:'cy', l:'纵向条数', min:2, max:10, v:4 },
+  ],
+  diamond: [
+    { id:'n',   l:'横向菱形数', min:2, max:16, v:6 },
+    { id:'gap', l:'缝隙宽度',   min:0, max:25, v:8, unit:'%' },
+  ],
+  mosaic: [ { id:'n', l:'横向格数', min:4, max:24, v:10 } ],
+  speckle: [
+    { id:'n',  l:'斑点数量', min:100, max:1600, v:600, step:50 },
+    { id:'sz', l:'斑点大小', min:8, max:60, v:28 },
+  ],
+};
+
+/* ================= 基础工具 ================= */
+function applyRatio() {
+  if (ratio >= 1) { canvas.width = longEdge; canvas.height = Math.round(longEdge / ratio); }
+  else { canvas.height = longEdge; canvas.width = Math.round(longEdge * ratio); }
+  $('sizeTip').textContent = `${canvas.width} × ${canvas.height} px`;
+}
+function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [n>>16&255, n>>8&255, n&255]; }
+function rgba(h, a) { const [r,g,b] = hexToRgb(h); return `rgba(${r},${g},${b},${a})`; }
+function hslToHex(h, s, l) {
+  const a = s/100 * Math.min(l/100, 1-l/100);
+  const f = n => { const k=(n+h/30)%12;
+    const c = l/100 - a*Math.max(-1, Math.min(k-3, 9-k, 1));
+    return Math.round(255*c).toString(16).padStart(2,'0'); };
+  return '#' + f(0) + f(8) + f(4);
+}
+// 确定性伪随机（同一 seed 渲染结果稳定，拖滑杆不闪）
+function prand(i) { const x = Math.sin(i * 127.1 + scatterSeed) * 43758.5453; return x - Math.floor(x); }
+
+// 旋转后画布四角在图案坐标系中的范围
+function rotBBox(W, H, rad) {
+  const rc = Math.cos(-rad), rs = Math.sin(-rad);
+  let mnx=1e9, mny=1e9, mxx=-1e9, mxy=-1e9;
+  for (const [x,y] of [[-W/2,-H/2],[W/2,-H/2],[W/2,H/2],[-W/2,H/2]]) {
+    const rx = x*rc - y*rs, ry = x*rs + y*rc;
+    mnx=Math.min(mnx,rx); mxx=Math.max(mxx,rx);
+    mny=Math.min(mny,ry); mxy=Math.max(mxy,ry);
+  }
+  return [mnx, mny, mxx, mxy];
+}
+
+/* ================= 形状路径 ================= */
+function starPath(c, x, y, R, n, ir, rot) {
+  c.beginPath();
+  for (let i = 0; i < n*2; i++) {
+    const r = i%2 ? R*ir : R, a = (rot ?? -Math.PI/2) + i*Math.PI/n;
+    const px = x + r*Math.cos(a), py = y + r*Math.sin(a);
+    i ? c.lineTo(px,py) : c.moveTo(px,py);
+  }
+  c.closePath();
+}
+function fishPath(c, x, y, s, flip) {
+  const d = flip ? -1 : 1;
+  c.beginPath();
+  c.ellipse(x - d*s*0.08, y, s*0.42, s*0.24, 0, 0, Math.PI*2);   // 鱼身
+  c.moveTo(x + d*s*0.30, y);                                      // 鱼尾
+  c.lineTo(x + d*s*0.52, y - s*0.22);
+  c.lineTo(x + d*s*0.52, y + s*0.22);
+  c.closePath();
+}
+function shapePath(c, sh, cx, cy, s) {
+  c.beginPath();
+  switch (sh) {
+    case 'square': c.rect(cx-s/2, cy-s/2, s, s); break;
+    case 'circle': c.arc(cx, cy, s/2, 0, Math.PI*2); break;
+    case 'rect': { const h=s/1.5; c.rect(cx-s/2, cy-h/2, s, h); break; }
+    case 'diamond': { const r=s/2;
+      c.moveTo(cx,cy-r); c.lineTo(cx+r,cy); c.lineTo(cx,cy+r); c.lineTo(cx-r,cy); c.closePath(); break; }
+    case 'star': starPath(c, cx, cy, s/2, 5, 0.5); break;
+    case 'heart':
+      c.moveTo(cx, cy+s*0.38);
+      c.bezierCurveTo(cx-s*0.62, cy+s*0.02, cx-s*0.40, cy-s*0.42, cx, cy-s*0.16);
+      c.bezierCurveTo(cx+s*0.40, cy-s*0.42, cx+s*0.62, cy+s*0.02, cx, cy+s*0.38);
+      c.closePath(); break;
+  }
+}
+function drawCheckerPreview(W, H) {
+  const c = 40;
+  for (let y = 0; y < H; y += c)
+    for (let x = 0; x < W; x += c) {
+      ctx.fillStyle = ((x/c + y/c) % 2 === 0) ? '#f4f4f4' : '#e9e9e9';
+      ctx.fillRect(x, y, c, c);
+    }
+}
+
+/* ================= 12 种图案引擎 =================
+   全部在旋转后的坐标系里绘制，[mnx,mny,mxx,mxy] 为需覆盖范围 */
+const DRAW = {
+
+  stripes(mnx, mny, mxx, mxy, C) {
+    const spanX = mxx-mnx, spanY = mxy-mny;
+    const P = spanX / V('n'), aw = P * V('aw') / 100;
+    ctx.fillStyle = C.A; ctx.fillRect(mnx-P, mny-P, spanX+2*P, spanY+2*P);
+    ctx.fillStyle = C.B;
+    for (let i = 0; i < V('n'); i++)
+      ctx.fillRect(mnx + i*P, mny-P, aw+0.5, spanY+2*P);
+  },
+
+  checker(mnx, mny, mxx, mxy, C) {
+    const n = V('n');
+    const cw = (mxx-mnx)/n;
+    const rows = Math.max(1, Math.round((mxy-mny)/cw));
+    const ch = (mxy-mny)/rows;
+    for (let j = -1; j <= rows; j++)
+      for (let i = -1; i <= n; i++) {
+        ctx.fillStyle = ((i+j)%2+2)%2 ? C.B : C.A;
+        ctx.fillRect(mnx+i*cw, mny+j*ch, cw+0.6, ch+0.6);
+      }
+  },
+
+  gingham(mnx, mny, mxx, mxy, C) {
+    const n = V('n');
+    const cw = (mxx-mnx)/n;
+    const rows = Math.max(1, Math.round((mxy-mny)/cw));
+    const ch = (mxy-mny)/rows;
+    ctx.fillStyle = C.A; ctx.fillRect(mnx-P0, mny-P0, mxx-mnx+2*P0, mxy-mny+2*P0);
+    ctx.fillStyle = rgba(C.B, 0.55);
+    for (let i = 0; i <= n; i += 2) ctx.fillRect(mnx+i*cw, mny-P0, cw, mxy-mny+2*P0);
+    for (let j = 0; j <= rows; j += 2) ctx.fillRect(mnx-P0, mny+j*ch, mxx-mnx+2*P0, ch);
+  },
+  // gingham 里的 P0 只是边距
+  // (定义在函数外更干净，见底部 const P0)
+
+  plaid(mnx, mny, mxx, mxy, C) {
+    const n = V('n');
+    const spanX = mxx-mnx, spanY = mxy-mny, P = spanX/n;
+    ctx.fillStyle = C.A; ctx.fillRect(mnx-P, mny-P, spanX+2*P, spanY+2*P);
+    // 苏格兰格：粗细交替的三色条纹，横竖各一遍，半透明叠加
+    const seq = [[0.45, C.B], [0.20, C.C], [0.30, C.D]];
+    for (let pass = 0; pass < 2; pass++) {
+      for (let i = 0; i < n; i++) {
+        const [wf, col] = seq[i % 3];
+        const w = P * wf;
+        ctx.fillStyle = rgba(col, 0.6);
+        if (pass === 0) ctx.fillRect(mnx + i*P, mny-P, w, spanY+2*P);       // 竖
+        else            ctx.fillRect(mnx-P, mny + i*(spanY/n), spanX+2*P, w); // 横
+      }
+    }
+  },
+
+  dots(mnx, mny, mxx, mxy, C) {
+    const n = V('n');
+    const cw = (mxx-mnx)/n;
+    const rows = Math.max(1, Math.round((mxy-mny)/cw));
+    const ch = (mxy-mny)/rows;
+    const r = Math.min(cw, ch) * V('sz') / 200;
+    ctx.fillStyle = C.A; ctx.fillRect(mnx, mny, mxx-mnx, mxy-mny);
+    ctx.fillStyle = C.B;
+    for (let j = 0; j <= rows; j++)
+      for (let i = -1; i <= n; i++) {
+        const x = mnx + (i+0.5)*cw + (V('off') && j%2 ? cw/2 : 0);
+        const y = mny + (j+0.5)*ch;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+      }
+  },
+
+  stars(mnx, mny, mxx, mxy, C) {
+    const n = V('n');
+    const cw = (mxx-mnx)/n;
+    const rows = Math.max(1, Math.round((mxy-mny)/cw));
+    const ch = (mxy-mny)/rows;
+    ctx.fillStyle = C.A; ctx.fillRect(mnx, mny, mxx-mnx, mxy-mny);
+    for (let j = 0; j <= rows; j++)
+      for (let i = 0; i <= n; i++) {
+        const id = i*131 + j*17;
+        const jx = (prand(id)   - 0.5) * V('jt')/100 * cw;
+        const jy = (prand(id+7) - 0.5) * V('jt')/100 * ch;
+        const x = mnx + (i+0.5)*cw + jx, y = mny + (j+0.5)*ch + jy;
+        const small = V('mix') && prand(id+3) > 0.55;
+        const R = Math.min(cw,ch) * V('sz')/200 * (small ? 0.42 : 1);
+        ctx.fillStyle = small ? C.D : C.B;
+        starPath(ctx, x, y, R, 5, 0.5, -Math.PI/2 + prand(id+9)*0.8);
+        ctx.fill();
+      }
+  },
+
+  burst(mnx, mny, mxx, mxy, C) {
+    const n = V('n');
+    const cw = (mxx-mnx)/n;
+    const rows = Math.max(1, Math.round((mxy-mny)/cw));
+    const ch = (mxy-mny)/rows;
+    ctx.fillStyle = C.A; ctx.fillRect(mnx, mny, mxx-mnx, mxy-mny);
+    const cols3 = [C.B, C.D, C.C];
+    for (let j = 0; j <= rows; j++)
+      for (let i = 0; i <= n; i++) {
+        const id = i*97 + j*29;
+        const x = mnx + (i+0.5)*cw + (prand(id)-0.5)*cw*0.5;
+        const y = mny + (j+0.5)*ch + (prand(id+5)-0.5)*ch*0.5;
+        const R = Math.min(cw,ch) * V('sz')/200 * (0.7 + prand(id+2)*0.6);
+        ctx.fillStyle = cols3[id % 3];
+        starPath(ctx, x, y, R, 7, 0.42, prand(id+8)*Math.PI);  // 7 角不规则手绘感
+        ctx.fill();
+      }
+  },
+
+  swirl(mnx, mny, mxx, mxy, C) {
+    ctx.fillStyle = C.A;
+    ctx.fillRect(mnx, mny, mxx-mnx, mxy-mny);
+    const Rmax = Math.hypot(mxx-mnx, mxy-mny)/2;
+    const T = V('t') * Math.PI * 2;
+    const gap = Rmax / V('t');                 // 相邻螺线间距
+    const lw = gap * V('w') / 50;
+    // 阿基米德螺线
+    ctx.beginPath();
+    for (let th = 0; th <= T; th += 0.04) {
+      const r = (Rmax * th / T) + lw*0.5;
+      const x = r*Math.cos(th), y = r*Math.sin(th);
+      th === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = C.B; ctx.lineWidth = lw; ctx.lineCap = 'round';
+    ctx.stroke();
+    // 点缀小星星
+    for (let k = 0; k < 16; k++) {
+      const ang = prand(k)*Math.PI*2, rr = prand(k+5)*Rmax*0.8;
+      const R = Rmax * (0.025 + prand(k+9)*0.03);
+      ctx.fillStyle = prand(k+2) > 0.5 ? C.D : C.C;
+      starPath(ctx, rr*Math.cos(ang), rr*Math.sin(ang), R, 5, 0.5);
+      ctx.fill();
+    }
+  },
+
+  fish(mnx, mny, mxx, mxy, C) {
+    const cx = V('cx'), cy = V('cy');
+    const cw = (mxx-mnx)/cx, ch = (mxy-mny)/cy;
+    ctx.fillStyle = C.A; ctx.fillRect(mnx, mny, mxx-mnx, mxy-mny);
+    for (let j = 0; j <= cy; j++)
+      for (let i = 0; i <= cx; i++) {
+        const x = mnx + (i+0.5)*cw, y = mny + (j+0.5)*ch;
+        const s = Math.min(cw, ch) * 0.85;
+        const flip = (i + j) % 2 === 1;        // 逐行翻转，像一群游动的鱼
+        ctx.fillStyle = C.B;
+        fishPath(ctx, x, y, s, flip); ctx.fill();
+        ctx.fillStyle = C.A;                    // 眼睛用底色
+        ctx.beginPath();
+        ctx.arc(x + (flip?1:-1)*s*0.22, y - s*0.04, s*0.045, 0, Math.PI*2);
+        ctx.fill();
+      }
+  },
+
+  diamond(mnx, mny, mxx, mxy, C) {
+    const n = V('n');
+    const cw = (mxx-mnx)/n, ch = cw * 0.8;
+    ctx.fillStyle = C.A; ctx.fillRect(mnx, mny, mxx-mnx, mxy-mny);
+    const hw = cw/2 * (1 - V('gap')/100), hh = ch/2 * (1 - V('gap')/100);
+    const cols3 = [C.B, C.C, C.D];
+    const ci = Math.ceil((mxx-mnx)/(cw/2)) + 2;
+    const ri = Math.ceil((mxy-mny)/(ch/2)) + 2;
+    for (let j = -2; j <= ri; j++)
+      for (let i = -2; i <= ci; i++) {
+        if ((i + j) % 2 !== 0) continue;
+        const x = mnx + i*cw/2, y = mny + j*ch/2;
+        ctx.fillStyle = cols3[((i+j)/2 % 3 + 3) % 3];
+        ctx.beginPath();
+        ctx.moveTo(x, y-hh); ctx.lineTo(x+hw, y); ctx.lineTo(x, y+hh); ctx.lineTo(x-hw, y);
+        ctx.closePath(); ctx.fill();
+      }
+  },
+
+  mosaic(mnx, mny, mxx, mxy, C) {
+    const n = V('n');
+    const cw = (mxx-mnx)/n;
+    const rows = Math.max(1, Math.round((mxy-mny)/cw));
+    const ch = (mxy-mny)/rows;
+    const cols3 = [C.B, C.C, C.D];
+    let prev = -1;
+    for (let j = -1; j <= rows; j++) {
+      for (let i = -1; i <= n; i++) {
+        const id = i*53 + j*211;
+        let k;
+        if (prand(id) < 0.45 && prev >= 0) k = prev;      // 45% 概率延续左边颜色 → 色块聚簇
+        else k = Math.floor(prand(id+11) * 3);
+        prev = k;
+        ctx.fillStyle = cols3[k];
+        ctx.fillRect(mnx+i*cw, mny+j*ch, cw+0.6, ch+0.6);
+      }
+      prev = -1;
+    }
+  },
+
+  speckle(mnx, mny, mxx, mxy, C, W, H) {
+    ctx.fillStyle = C.A; ctx.fillRect(mnx, mny, mxx-mnx, mxy-mny);
+    const unit = Math.min(W, H) / 900;
+    const cols3 = [C.B, C.C, C.D];
+    for (let k = 0; k < V('n'); k++) {
+      const x = mnx + prand(k)    * (mxx-mnx);
+      const y = mny + prand(k+31) * (mxy-mny);
+      const r = (1 + prand(k+7) * V('sz')/40) * unit * 2.2;
+      ctx.fillStyle = rgba(cols3[k % 3], 0.22 + prand(k+3)*0.3);
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+      if (prand(k+13) > 0.85) {   // 少量双圆叠加 → 水彩晕染感
+        ctx.beginPath(); ctx.arc(x + r*0.6, y + r*0.4, r*0.7, 0, Math.PI*2); ctx.fill();
+      }
+    }
+  },
+};
+const P0 = 10; // gingham 边距
+
+/* ================= 参数面板 ================= */
+function V(id) { return pv[id]; }
+
+function buildParams() {
+  const box = $('paramSec');
+  box.innerHTML = '';
+  pv = {};
+  PARAMS[pat].forEach(d => {
+    pv[d.id] = d.v;
+    const row = document.createElement('div');
+    row.className = 'row';
+    if (d.type === 'check') {
+      row.innerHTML = `<label>${d.l}</label><input type="checkbox" ${d.v ? 'checked' : ''}>`;
+      row.querySelector('input').addEventListener('change', e => { pv[d.id] = e.target.checked ? 1 : 0; render(); });
+    } else {
+      row.innerHTML = `<label>${d.l}</label><input type="range" min="${d.min}" max="${d.max}" step="${d.step||1}" value="${d.v}"><span class="val"></span>`;
+      const rng = row.querySelector('input'), val = row.querySelector('.val');
+      const show = () => val.textContent = rng.value + (d.unit || '');
+      show();
+      rng.addEventListener('input', () => { pv[d.id] = +rng.value; show(); render(); });
+    }
+    box.appendChild(row);
+  });
+}
+
+/* ================= 核心渲染 ================= */
+function render(exporting = false) {
+  const W = canvas.width, H = canvas.height;
+  const rad = +$('angle').value * Math.PI / 180;
+  const C = { A: $('cA').value, B: $('cB').value, C: $('cC').value, D: $('cD').value };
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  if (shape !== 'none' && !exporting) drawCheckerPreview(W, H);
+
+  ctx.save();
+  if (shape !== 'none') {
+    shapePath(ctx, shape, W/2, H/2, Math.min(W, H) * 0.88);
+    ctx.clip();
+  }
+  ctx.translate(W/2, H/2);
+  ctx.rotate(rad);
+  const bb = rotBBox(W, H, rad);
+  DRAW[pat](bb[0], bb[1], bb[2], bb[3], C, W, H);
+  ctx.restore();
+}
+
+/* ================= 交互绑定 ================= */
+// 图案切换
+$('patRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#patRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  pat = btn.dataset.p;
+  buildParams();
+  render();
+});
+
+// 颜色
+['cA','cB','cC','cD'].forEach(id => $(id).addEventListener('input', render));
+
+// 预设色板（4 色一次性应用）
+$('paletteRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  const [a,b,c,d] = btn.dataset.c.split(',');
+  $('cA').value = a; $('cB').value = b; $('cC').value = c; $('cD').value = d;
+  render();
+});
+
+// 角度
+$('angle').addEventListener('input', () => { $('angleV').textContent = $('angle').value + '°'; render(); });
+$('degRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  $('angle').value = btn.dataset.deg;
+  $('angleV').textContent = btn.dataset.deg + '°';
+  render();
+});
+
+// 形状
+$('shapeRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#shapeRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  shape = btn.dataset.s;
+  render();
+});
+
+// 导出比例
+$('ratioRow').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  document.querySelectorAll('#ratioRow .chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  ratio = +btn.dataset.r;
+  applyRatio();
+  render();
+});
+
+// 随机配色（4 色和谐生成）
+$('btn-random').addEventListener('click', () => {
+  const h = Math.floor(Math.random() * 360);
+  $('cA').value = hslToHex(h, 45, 95);
+  $('cB').value = hslToHex(h, 70, 55);
+  $('cC').value = hslToHex((h+25)%360, 60, 78);
+  $('cD').value = hslToHex((h+180)%360, 75, 60);
+  scatterSeed = Math.random() * 1000;
+  render();
+});
+
+// 重散布（星星/斑点/爆炸星换一种随机分布）
+$('btn-scatter').addEventListener('click', () => { scatterSeed = Math.random() * 1000; render(); });
+
+// 导出（先渲染无预览格的版本，导完恢复）
+$('btn-download').addEventListener('click', () => {
+  render(true);
+  const a = document.createElement('a');
+  a.download = `pattern-sherly-${pat}-${canvas.width}x${canvas.height}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  render();
+});
+
+/* ================= 初始化 ================= */
+applyRatio();
+buildParams();
+render();
+</script>
+</body>
+</html>
