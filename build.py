@@ -440,7 +440,7 @@ BODY_LINKS = page_head("LINKS", "友链", "常逛的几个站，都是自己一�
 GISCUS_REPO = "sherlynome/sherlynome.github.io"
 GISCUS_REPO_ID = "R_kgDOVeTqPg"
 GISCUS_CATEGORY = "留言板"
-GISCUS_CATEGORY_ID = ""      # ← 把 DIC_kwDO... 填进来，留言板就自动接管，别处不用动
+GISCUS_CATEGORY_ID = "DIC_kwDOVeTqPs4DKGUD"
 
 GISCUS_PLACEHOLDER = """
         <div class="empty-state" style="border:none;background:none;">
@@ -460,7 +460,7 @@ GISCUS_SCRIPT = """
                 data-strict="0"
                 data-reactions-enabled="1"
                 data-emit-metadata="0"
-                data-input-position="top"
+                data-input-position="bottom"
                 data-theme="transparent_dark"
                 data-lang="zh-CN"
                 data-loading="lazy"
