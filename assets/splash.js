@@ -867,112 +867,120 @@
     s.stop(t + 4);
   }
 
-  /* ── 四季配乐（MIDI 式音符序列，Web Audio 现场合成） ─────
-     每首 16 拍，循环播放。音符格式 [音高, 起始拍, 时值拍, 力度]，
-     音高用 MIDI 编号（60 = C4 / 中央 C）。 */
-  var SONGS = [
-    { /* 春 · 樱 —— C 大调五声，轻快上行 */
-      bpm: 92, wave: 'triangle', vol: .55,
-      notes: [
-        [72,0,.5,.22],[76,.75,.5,.20],[79,1.5,.5,.22],[81,2,.5,.20],[79,2.5,.5,.18],
-        [76,3,.5,.20],[74,3.5,.5,.17],[72,4,1,.22],[74,5,.5,.18],[76,5.5,.5,.20],
-        [67,6,.5,.18],[72,6.5,.5,.20],[76,7,.5,.22],[74,7.5,.5,.18],
-        [72,8,2,.22],
-        [76,10,.5,.20],[79,10.5,.5,.22],[81,11,.5,.20],[84,11.5,.5,.22],
-        [81,12,1,.20],[79,13,.5,.18],[76,13.5,.5,.20],
-        [74,14,2,.20]
-      ],
-      bass: [[48,0,8,.05],[55,8,8,.05]]
-    },
-    { /* 夏 · 蝉 —— F 大调，慵懒的长音 */
-      bpm: 76, wave: 'sine', vol: .5,
-      notes: [
-        [69,0,1,.20],[72,1,1,.21],[74,2,1,.20],[72,3,1,.19],
-        [69,4,1.5,.20],[67,5.5,.5,.17],[65,6,2,.19],
-        [69,8,1,.20],[72,9,1,.21],[77,10,1,.19],[74,11,1,.20],
-        [72,12,2,.20],[69,14,2,.18]
-      ],
-      bass: [[53,0,8,.045],[60,8,8,.045]]
-    },
-    { /* 秋 · 落叶 —— A 小调，缓慢下行 */
-      bpm: 64, wave: 'triangle', vol: .55,
-      notes: [
-        [72,0,1.5,.21],[71,1.5,.5,.17],[69,2,2,.22],
-        [67,4,1.5,.19],[65,5.5,.5,.16],[64,6,2,.20],
-        [62,8,1.5,.19],[64,9.5,.5,.17],[65,10,2,.20],
-        [67,12,1.5,.19],[69,13.5,2.5,.20]
-      ],
-      bass: [[45,0,8,.05],[52,8,8,.05]]
-    },
-    { /* 冬 · 雪 —— 高音区，稀疏留白 */
-      bpm: 56, wave: 'sine', vol: .5,
-      notes: [
-        [76,0,2,.17],[79,2,2,.16],[83,4,3,.18],
-        [81,7,1,.15],[79,8,2,.17],[76,10,2,.16],
-        [74,12,2,.15],[71,14,2,.16]
-      ],
-      bass: [[52,0,8,.045],[59,8,8,.045]]
-    }
+  /* ── 四季配乐 ─────────────────────────────────────────────
+     生成逻辑来自白猫咖啡馆的 50 首程序化 BGM：
+     每小节出三和弦 + 根音，其余八分音符按概率从音阶里挑音，
+     所以每次播放的旋律都不一样，但和声走向是固定的。
+     这里只挑了四首，按季节对应。 */
+  var SCALES = {
+    maj: [0,2,4,5,7,9,11],
+    min: [0,2,3,5,7,8,10],
+    dor: [0,2,3,5,7,9,10],
+    lyd: [0,2,4,6,7,9,11]
+  };
+
+  /* 四季各一首：[名字, BPM, 根音(MIDI), 调式, 和弦进行, 风格, 波形] */
+  var TUNES = [
+    ['汽水味的风', 90, 62, 'maj', [0,4,5,3], 'bossa',   'triangle'],  /* 春 */
+    ['半糖主义',   82, 60, 'maj', [0,5,3,4], 'bossa',   'sine'],      /* 夏 */
+    ['巷口的邮筒', 78, 55, 'min', [0,4,5,3], 'lofi',    'triangle'],  /* 秋 */
+    ['暖气片旁',   54, 55, 'maj', [0,3,4,4], 'ambient', 'triangle']   /* 冬 */
   ];
 
-  var songTimer = null;
+  var tuneStep = 0, tuneNextT = 0, tuneTimer = null;
 
-  function midiToFreq(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  function mf(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
-  /* 一个音：短促起音 + 指数衰减，听着像敲击类音色 */
-  function tone(midi, t, dur, vel, wave) {
+  function voice(f, t0, dur, type, v) {
     if (!audioCtx || killed) return;
-    var o = audioCtx.createOscillator();
-    var g = audioCtx.createGain();
-    o.type = wave;
-    o.frequency.value = midiToFreq(midi);
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(vel, t + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0008, t + Math.max(dur, 0.12));
-    o.connect(g);
-    g.connect(masterGain);
-    o.start(t);
-    o.stop(t + dur + 0.06);
+    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.value = f;
+    g.gain.setValueAtTime(.0001, t0);
+    g.gain.linearRampToValueAtTime(v, t0 + .03);
+    g.gain.exponentialRampToValueAtTime(.001, t0 + dur);
+    o.connect(g); g.connect(masterGain);
+    o.start(t0); o.stop(t0 + dur + .05);
   }
 
-  /* 低音垫：更长更软，压住整首的骨架 */
-  function bassTone(midi, t, dur, vel) {
+  function hat(t0, v) {
     if (!audioCtx || killed) return;
-    var o = audioCtx.createOscillator();
+    var len = Math.floor(audioCtx.sampleRate * .04);
+    var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    var src = audioCtx.createBufferSource(); src.buffer = buf;
+    var f = audioCtx.createBiquadFilter();
+    f.type = 'highpass'; f.frequency.value = 6500;
     var g = audioCtx.createGain();
-    o.type = 'sine';
-    o.frequency.value = midiToFreq(midi);
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(vel, t + dur * 0.25);
-    g.gain.linearRampToValueAtTime(vel * 0.7, t + dur * 0.8);
-    g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
-    o.connect(g);
-    g.connect(masterGain);
-    o.start(t);
-    o.stop(t + dur + 0.06);
+    g.gain.setValueAtTime(v, t0);
+    g.gain.exponentialRampToValueAtTime(.001, t0 + .04);
+    src.connect(f); f.connect(g); g.connect(masterGain);
+    src.start(t0);
   }
 
-  function playSong(idx) {
+  function startTune(idx) {
     if (!audioCtx) return;
-    var song = SONGS[idx] || SONGS[0];
-    var beat = 60 / song.bpm;
-    var loopSec = beat * 16;
+    var T = TUNES[idx] || TUNES[0];
+    var bpm = T[1], root = T[2], mode = T[3], prog = T[4], st = T[5], wave = T[6];
+    var scale = SCALES[mode];
+    var stepDur = 60 / bpm / 2;     /* 八分音符 */
+    var SPB = 8;                    /* 每小节 8 个八分音符 */
 
-    function scheduleLoop() {
-      if (killed || !audioCtx) return;
-      var t0 = audioCtx.currentTime + 0.08;
-
-      song.notes.forEach(function (n) {
-        tone(n[0], t0 + n[1] * beat, n[2] * beat, n[3] * song.vol, song.wave);
+    function triad(deg) {
+      var n = [];
+      [0, 2, 4].forEach(function (off) {
+        var d = (deg + off) % 7;
+        var oc = Math.floor((deg + off) / 7) * 12;
+        n.push(root + scale[d] + oc);
       });
-      (song.bass || []).forEach(function (b) {
-        bassTone(b[0], t0 + b[1] * beat, b[2] * beat, b[3]);
-      });
-
-      /* 用 currentTime 重新取起点，不累积误差 */
-      songTimer = setTimeout(scheduleLoop, loopSec * 1000 - 40);
+      return n;
     }
-    scheduleLoop();
+
+    function playStep(stp, t0) {
+      var bar = Math.floor(stp / SPB), pos = stp % SPB;
+      var deg = prog[bar % prog.length];
+      var barDur = stepDur * SPB;
+
+      /* 小节头：三和弦 + 低音根音，撑住和声 */
+      if (pos === 0) {
+        triad(deg).forEach(function (m) { voice(mf(m - 12), t0, barDur * .96, 'triangle', .032); });
+        voice(mf(root - 24 + scale[deg % 7]), t0, barDur * .9, 'sine', .06);
+      }
+
+      /* ambient 风格只偶尔点一颗高音，留白为主 */
+      if (st === 'ambient') {
+        if (pos === 4 && Math.random() < .45)
+          voice(mf(root + 12 + scale[Math.floor(Math.random() * 7)]), t0, 1.2, 'sine', .035);
+        return;
+      }
+
+      if (pos === 2 || pos === 6) hat(t0, .045);
+      if (st === 'bossa' && (pos === 3 || pos === 7)) hat(t0, .03);
+
+      var prob = st === 'lofi' ? .42 : .55;
+      if (Math.random() < prob) {
+        var off = [0, 2, 4, 1][Math.floor(Math.random() * 4)];
+        var d = (deg + off) % 7, oc = off > 4 ? 12 : 0;
+        voice(mf(root + 12 + scale[d] + oc), t0, stepDur * 1.6, wave, .05);
+      }
+    }
+
+    tuneStep = 0;
+    tuneNextT = audioCtx.currentTime + 0.12;
+
+    function tick() {
+      if (killed || !audioCtx) return;
+      var now = audioCtx.currentTime;
+      /* 提前 0.4 秒排程，避免 setInterval 抖动造成节奏不稳 */
+      while (tuneNextT < now + 0.4) {
+        playStep(tuneStep, tuneNextT);
+        tuneStep++;
+        tuneNextT += stepDur;
+      }
+    }
+    tick();
+    tuneTimer = setInterval(tick, 60);
   }
 
   function seasonIndex() {
@@ -989,7 +997,7 @@
     timers = [];
     ambTimers.forEach(clearInterval);
     ambTimers = [];
-    if (songTimer) { clearTimeout(songTimer); songTimer = null; }
+    if (tuneTimer) { clearInterval(tuneTimer); tuneTimer = null; }
     rainActive = false;
     ghosts.forEach(function (g) {
       clearTimeout(g._wanderTimer);
@@ -1051,7 +1059,7 @@
       var mo = new Date().getMonth() + 1;
       si = mo >= 3 && mo <= 5 ? 0 : mo >= 6 && mo <= 8 ? 1 : mo >= 9 && mo <= 11 ? 2 : 3;
     }
-    playSong(si);
+    startTune(si);
     createWind();
 
     timers.push(setTimeout(function () {
