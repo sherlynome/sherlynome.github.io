@@ -362,6 +362,40 @@ body.splash-lock{overflow:hidden;}
 @keyframes skMoonPulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.06);}}
 @keyframes skDrift{0%{transform:translateX(0);}100%{transform:translateX(36px);}}
 
+/* ── 四季场景 ───────────────────────────────────────────────
+   原图是竖构图，横屏里居中放，两侧用该季天空色补齐（颜色由 JS 设）。
+   这套是浅色纸感插画，和站点的黑粉反差不小，但改成深色就没味了。 */
+.ss-wrap{
+  position:absolute;inset:0;z-index:4;
+  display:flex;align-items:center;justify-content:center;
+  background:#fdfbf7;overflow:hidden;
+}
+/* 让 svg 撑满整个容器，等比居中交给 preserveAspectRatio="xMidYMid meet"。
+   之前试过 height:100% + width:auto，但高度解析不可靠，svg 会按宽度撑开把顶部裁掉。 */
+.ss-wrap svg{
+  position:absolute;inset:0;width:100%;height:100%;display:block;
+}
+/* 两侧补色区压一层很淡的暗角，免得看起来像两块空画布 */
+.ss-wrap::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 46%,rgba(0,0,0,.12) 100%);
+  z-index:2;
+}
+/* 浅色画面里，粉色的 UI 文字几乎看不见，换成墨褐 */
+html[data-scene="season"] #splash .audio-indicator,
+html[data-scene="season"] #splash .catch-hint{color:#6b5a4a;}
+html[data-scene="season"] #splash .audio-bar{background:#a8846a;}
+html[data-scene="season"] #splash .skip-btn{
+  background:rgba(122,74,56,.10);border-color:rgba(122,74,56,.34);color:#6b5a4a;
+}
+html[data-scene="season"] #splash .skip-btn:hover{
+  background:rgba(122,74,56,.22);border-color:#7a4a38;color:#3d2f26;
+}
+/* 四季自带诗句当字幕，就不再用开场那条字幕了 */
+html[data-scene="season"] #splash .caption{display:none;}
+/* 「镜头推向城堡」那一下对插画没意义，会把画面放大 30% 把顶部的字裁掉 */
+html[data-scene="season"] #splash .stage.zoom-in{transform:none;}
+
 /* 横屏矮屏 */
 @media (max-height:420px) and (orientation:landscape){
   #splash .caption-cn{font-size:clamp(1.5rem,5vh,3rem);}

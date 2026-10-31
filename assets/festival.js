@@ -143,6 +143,14 @@
       });
     }
 
+    /* 调试用：?season=spring 强制看某个季节，并跳过节日判断 */
+    var fSeason = /[?&]season=(spring|summer|autumn|winter)/i.exec(location.search);
+    if (fSeason) {
+      root.setAttribute('data-season', fSeason[1]);
+      document.dispatchEvent(new CustomEvent('festival-ready', { detail: null }));
+      return;
+    }
+
     var picked = null, bestDist = Infinity;
     list.forEach(function (f) {
       if (!f.colors) return;
@@ -158,7 +166,16 @@
       if (want) picked = want;
     }
 
-    if (!picked) return;   /* 非节日：保持默认皮肤 */
+    /* 没有节日 → 按月份落到季节场景；站点配色保持默认的地雷系 */
+    if (!picked) {
+      var mo = today.getMonth() + 1;
+      var season = mo >= 3 && mo <= 5 ? 'spring'
+                 : mo >= 6 && mo <= 8 ? 'summer'
+                 : mo >= 9 && mo <= 11 ? 'autumn' : 'winter';
+      root.setAttribute('data-season', season);
+      document.dispatchEvent(new CustomEvent('festival-ready', { detail: null }));
+      return;
+    }
 
     root.setAttribute('data-festival', picked.id);
     window.__festival = picked;

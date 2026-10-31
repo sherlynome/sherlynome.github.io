@@ -52,6 +52,7 @@
 
   var rainActive = false,
       timers = [],
+      ambTimers = [],
       audioCtx = null,
       masterGain = null,
       killed = false;
@@ -221,16 +222,283 @@
 <div class="petals" id="petals"></div>`
   };
 
+  /* ── 四季场景 ─────────────────────────────────────────────
+     移植自「樱花系列设计储备 / 02-交互版 / 四季.html」。
+     原图是竖构图 900×1200 的浅色纸感插画，这里不改风格，
+     只在横屏里居中显示、两侧用该季天空色补齐，诗句直接用原图自带的。 */
+  var SS_NS = 'http://www.w3.org/2000/svg';
+  function sel(t, a, p) {
+    var e = document.createElementNS(SS_NS, t);
+    for (var k in a) e.setAttribute(k, a[k]);
+    if (p) p.appendChild(e);
+    return e;
+  }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  var SS_BR = [
+    [452,1008, 448,920, 452,830, 42],
+    [452,900,  390,840, 330,760, 18],
+    [452,890,  530,830, 585,755, 18],
+    [452,860,  420,800, 390,720, 13],
+    [452,850,  490,790, 520,715, 13],
+    [451,820,  448,760, 452,690, 14],
+    [450,880,  400,845, 355,815, 9],
+    [455,878,  510,842, 555,812, 9]
+  ];
+  var SS_REGIONS = [
+    [300,600,130,110],[600,590,140,115],[450,470,120,130],[450,645,160,100],
+    [560,705,105,75],[340,705,100,72],[660,540,75,65],[248,535,65,60],[455,555,95,85],
+    [380,470,80,70],[540,460,80,70]
+  ];
+
+  function ssBranches(p) {
+    SS_BR.forEach(function (b) {
+      sel('path', { d: 'M' + b[0] + ' ' + b[1] + ' Q' + b[2] + ' ' + b[3] + ' ' + b[4] + ' ' + b[5],
+        stroke: '#7a4a38', 'stroke-width': b[6], fill: 'none', 'stroke-linecap': 'round', opacity: .92 }, p);
+    });
+    sel('path', { d: 'M446 1000 Q443 940 446 880', stroke: '#96604a', 'stroke-width': 9,
+      fill: 'none', 'stroke-linecap': 'round', opacity: .6 }, p);
+    [438, 448, 458, 468].forEach(function (x) {
+      sel('path', { d: 'M' + x + ' 1008 q' + rnd(-3, 3) + ' -10 ' + rnd(-5, 5) + ' -14',
+        stroke: '#6da84e', 'stroke-width': 2.5, fill: 'none', 'stroke-linecap': 'round' }, p);
+    });
+  }
+
+  function ssCluster(p, x, y, r, pal, light, sh) {
+    var g = sel('g', {}, p);
+    sel('circle', { cx: x, cy: y, r: r, fill: pick(pal), opacity: .72 }, g);
+    var n = 4 + (Math.random() * 4 | 0);
+    for (var i = 0; i < n; i++) {
+      var a = rnd(0, 6.28), d = r * rnd(.3, .65);
+      sel('circle', { cx: x + Math.cos(a) * d, cy: y + Math.sin(a) * d * .8,
+        r: r * rnd(.4, .62), fill: pick(light), opacity: .85 }, g);
+    }
+    if (sh && Math.random() < .35) sel('circle', { cx: x + rnd(-.4, .4) * r, cy: y + r * .5, r: r * .4, fill: sh, opacity: .35 }, g);
+  }
+
+  function ssBlossom(p, x, y, sc, col, core) {
+    var g = sel('g', { transform: 'translate(' + x + ' ' + y + ') scale(' + sc + ')', opacity: .9 }, p);
+    for (var k = 0; k < 5; k++) {
+      var a = k / 5 * 6.283 - Math.PI / 2;
+      sel('ellipse', { cx: Math.cos(a) * 3.6, cy: Math.sin(a) * 3.6, rx: 2.9, ry: 2.2,
+        transform: 'rotate(' + (k * 72) + ' ' + (Math.cos(a) * 3.6) + ' ' + (Math.sin(a) * 3.6) + ')', fill: col }, g);
+    }
+    sel('circle', { cx: 0, cy: 0, r: 1.4, fill: core }, g);
+  }
+
+  function ssCrown(p, pal, light, shade) {
+    SS_REGIONS.forEach(function (R) {
+      var cx = R[0], cy = R[1], rx = R[2], ry = R[3];
+      var n = Math.round(rx * ry / 620);
+      for (var i = 0; i < n; i++) {
+        var a = rnd(0, 6.28), d = Math.sqrt(Math.random());
+        ssCluster(p, cx + Math.cos(a) * rx * d, cy + Math.sin(a) * ry * d, rnd(16, 34), pal, light, shade);
+      }
+    });
+    for (var i = 0; i < 16; i++) {
+      var a = rnd(0, 6.28);
+      ssCluster(p, 460 + Math.cos(a) * rnd(160, 235), 570 + Math.sin(a) * rnd(115, 170), rnd(9, 17), pal, light, shade);
+    }
+    for (var j = 0; j < 12; j++) ssCluster(p, 452 + rnd(-90, 90), 730 + rnd(-40, 40), rnd(20, 32), pal, light, shade);
+    [[300,660,125,34],[600,660,135,36],[450,705,155,32],[340,725,95,22],[560,735,100,24]].forEach(function (g) {
+      sel('ellipse', { cx: g[0], cy: g[1], rx: g[2], ry: g[3], fill: shade, opacity: .4 }, p);
+    });
+  }
+
+  function ssGround(p, c1, c2, c3, c4) {
+    sel('ellipse', { cx: 450, cy: 1012, rx: 290, ry: 62, fill: c1, opacity: .8 }, p);
+    sel('ellipse', { cx: 310, cy: 1000, rx: 140, ry: 42, fill: c2, opacity: .85 }, p);
+    sel('ellipse', { cx: 580, cy: 1010, rx: 150, ry: 44, fill: c3, opacity: .85 }, p);
+    sel('ellipse', { cx: 450, cy: 1030, rx: 170, ry: 40, fill: c4, opacity: .7 }, p);
+  }
+
+  function ssClouds(p, list) {
+    list.forEach(function (c) {
+      sel('ellipse', { cx: c[0], cy: c[1], rx: c[2], ry: c[3], fill: c[4], opacity: c[5], filter: 'url(#ssSoft)' }, p);
+    });
+  }
+
+  function ssHills(p, c) {
+    sel('path', { d: 'M0 800 Q180 720 360 780 Q560 840 900 750 L900 900 L0 900 Z',
+      fill: c, opacity: .5, filter: 'url(#ssWet)' }, p);
+  }
+
+  function ssTitle(p, main, sub) {
+    sel('text', { x: 450, y: 180, 'text-anchor': 'middle', fill: '#6b5a4a', 'font-size': '58',
+      'font-family': '"Kaiti SC","STKaiti","MaShanZheng",serif', 'letter-spacing': '14' }, p).textContent = main;
+    sel('text', { x: 450, y: 228, 'text-anchor': 'middle', fill: '#8a7a6a', 'font-size': '24',
+      'font-family': '"Kaiti SC","STKaiti","MaShanZheng",serif', 'letter-spacing': '6' }, p).textContent = sub;
+  }
+
+  function ssFall(p, n, mk) {
+    for (var i = 0; i < n; i++) {
+      var x0 = rnd(60, 840), d = rnd(7, 15), y1 = rnd(250, 600), y2 = rnd(880, 1080);
+      var e = mk();
+      sel('animateTransform', { attributeName: 'transform', type: 'translate',
+        values: x0 + ' ' + y1 + ';' + (x0 + rnd(-55, 55)) + ' ' + ((y1 + y2) / 2) + ';' + (x0 + rnd(-85, 85)) + ' ' + y2,
+        dur: d + 's', repeatCount: 'indefinite', begin: (-rnd(0, d)) + 's' }, e);
+      sel('animateTransform', { attributeName: 'transform', type: 'rotate',
+        values: '0;' + rnd(-180, 180) + ';' + rnd(-360, 360), dur: d + 's', repeatCount: 'indefinite',
+        begin: (-rnd(0, d)) + 's', additive: 'sum' }, e);
+      sel('animate', { attributeName: 'opacity', values: '.85;.85;0', keyTimes: '0;.8;1',
+        dur: d + 's', repeatCount: 'indefinite', begin: (-rnd(0, d)) + 's' }, e);
+    }
+  }
+  function ssPetal(p) {
+    return sel('path', { d: 'M0 -3 Q5 0 0 4 Q-5 0 0 -3', fill: pick(['#f7b3c5', '#fbd6df', '#f2a0b6']), opacity: .85 }, p);
+  }
+  function ssLeaf(p) {
+    return sel('path', { d: 'M0 -4 Q5 0 0 5 Q-5 0 0 -4',
+      fill: pick(['#d98243', '#c9653a', '#f0b86a', '#7cba62', '#5a9e58']), opacity: .85 }, p);
+  }
+  function ssSnow(p) {
+    return sel('circle', { cx: 0, cy: 0, r: rnd(2, 3.6), fill: '#fff', opacity: .9 }, p);
+  }
+
+  /* 四季配色表：idx 0春 1夏 2秋 3冬 */
+  var SS_PALETTE = [
+    { bg:'#cfe4f4', sky:'url(#ssSkySp)', clouds:[[200,170,270,140,'#eaf4fb',.9],[120,330,220,120,'#f6fafc',.85],[720,80,210,110,'#d8ecf9',.75]],
+      hill:'#a8c8b8', ground:['#8fc46a','#b6d97e','#6aae55','#4f9c5f'],
+      crown:['#f2a0b6','#f4a9bd','#ee95ad','#f7b8c9'], light:['#f9c6d3','#fbd6df','#fce3ea'], shade:'#d67f9c',
+      glow:'#f7c6d4', grass:['#4a9a45','#5fae52','#37845c'], name:'春', poem:'人面桃花相映红', fallN:20, fall:'petal' },
+    { bg:'#b8dced', sky:'url(#ssSkySu)', clouds:[[250,150,280,130,'#f2fbf3',.9],[700,100,200,100,'#ffffff',.7]],
+      hill:'#7ab894', ground:['#4f9c50','#7cba62','#3f8f4d','#357a45'],
+      crown:['#5a9e58','#6bb06a','#4c8f52'], light:['#8cc58a','#a5d69c','#79b877'], shade:'#3f7a46',
+      glow:'#9ccf8f', grass:['#3a8a42','#54a352','#2f7a50'], name:'夏', poem:'绿树阴浓夏日长', fallN:10, fall:'leaf' },
+    { bg:'#f2d8ad', sky:'url(#ssSkyAu)', clouds:[[220,160,250,120,'#fbe8c8',.9],[700,90,190,100,'#f9ddb0',.8]],
+      hill:'#c9a06a', ground:['#c98a4e','#d9a860','#b0713d','#96602f'],
+      crown:['#d98243','#e09a4e','#c9653a'], light:['#f0b86a','#f2c982','#e8a35a'], shade:'#a84f2e',
+      glow:'#e8a05e', grass:['#a86a35','#c08a4a','#8a5530'], name:'秋', poem:'霜叶红于二月花', fallN:24, fall:'leaf' },
+    { bg:'#e2ebf3', sky:'url(#ssSkyWi)', clouds:[[220,160,250,120,'#eef4f9',.9],[700,100,200,100,'#e2ecf4',.8]],
+      hill:'#c5d4e2', ground:['#e8eff5','#ffffff','#d5e2ec','#c2d3e0'],
+      crown:['#e8eef4','#f4f8fb','#dde7ef'], light:['#ffffff','#f8fbfd'], shade:'#b8c8d8',
+      glow:'#dfe9f2', grass:['#9db3a8','#9db3a8','#8fa79c'], name:'冬', poem:'千树万树梨花开', fallN:36, fall:'snow' }
+  ];
+
+  function buildSeason(layer, idx) {
+    var svg = layer.querySelector('#ssSvg');
+    if (!svg) return;
+    var pal = SS_PALETTE[idx];
+    var wrap = layer.querySelector('.ss-wrap');
+    if (wrap) wrap.style.background = pal.bg;
+    svg.innerHTML = '';
+
+    /* 滤镜和天空渐变 */
+    var defs = sel('defs', {}, svg);
+    sel('filter', { id: 'ssSoft', x: '-30%', y: '-30%', width: '160%', height: '160%' }, defs);
+    sel('feGaussianBlur', { stdDeviation: '2.2' }, defs.lastChild);
+    sel('filter', { id: 'ssWet', x: '-25%', y: '-25%', width: '150%', height: '150%' }, defs);
+    var wet = defs.lastChild;
+    sel('feGaussianBlur', { stdDeviation: '1.2', result: 'b' }, wet);
+    sel('feTurbulence', { type: 'fractalNoise', baseFrequency: '0.028', numOctaves: '3', seed: '11', result: 'n' }, wet);
+    sel('feDisplacementMap', { in: 'SourceGraphic', in2: 'n', scale: '14' }, wet);
+    sel('radialGradient', { id: 'ssVig', cx: '50%', cy: '42%', r: '80%' }, defs);
+    var vg = defs.lastChild;
+    sel('stop', { offset: '65%', 'stop-color': '#000', 'stop-opacity': '0' }, vg);
+    sel('stop', { offset: '100%', 'stop-color': '#8a6a5a', 'stop-opacity': '0.14' }, vg);
+
+    var skies = [['ssSkySp','#bcd9f2','#e8f3fa'],['ssSkySu','#8ec9e8','#dff2e2'],
+                 ['ssSkyAu','#f6d9a8','#fdf1dd'],['ssSkyWi','#d7e3ee','#f5f8fb']];
+    skies.forEach(function (sk) {
+      sel('linearGradient', { id: sk[0], x1: '0', y1: '0', x2: '0', y2: '1' }, defs);
+      var g = defs.lastChild;
+      sel('stop', { offset: '0%', 'stop-color': sk[1] }, g);
+      sel('stop', { offset: '100%', 'stop-color': sk[2] }, g);
+    });
+
+    sel('rect', { width: 900, height: 1200, fill: '#fdfbf7' }, svg);
+    var layerG = sel('g', {}, svg);
+
+    sel('rect', { width: 900, height: 900, fill: pal.sky, opacity: .9 }, layerG);
+    ssClouds(layerG, pal.clouds);
+    ssHills(layerG, pal.hill);
+    ssGround(layerG, pal.ground[0], pal.ground[1], pal.ground[2], pal.ground[3]);
+    ssBranches(layerG);
+
+    var i, g;
+    for (i = 0; i < 34; i++) {
+      sel('path', { d: 'M' + rnd(200, 700) + ' ' + rnd(975, 1050) + ' q' + rnd(-2, 2) + ' -8 ' + rnd(-4, 4) + ' -' + rnd(10, 16),
+        stroke: pick(pal.grass), 'stroke-width': 2.2, fill: 'none', 'stroke-linecap': 'round', opacity: .8 }, layerG);
+    }
+
+    var glow = sel('g', { filter: 'url(#ssSoft)' }, layerG);
+    SS_REGIONS.forEach(function (R) {
+      sel('ellipse', { cx: R[0], cy: R[1], rx: R[2] * 1.35, ry: R[3] * 1.3, fill: pal.glow, opacity: .42 }, glow);
+    });
+
+    var crown = sel('g', { filter: 'url(#ssSoft)' }, layerG);
+    ssCrown(crown, pal.crown, pal.light, pal.shade);
+
+    /* 树上细画的小花（春夏秋；冬天没有） */
+    if (idx !== 3) {
+      var fl = sel('g', {}, layerG);
+      for (i = 0; i < 40; i++) {
+        var R = SS_REGIONS[Math.random() * SS_REGIONS.length | 0];
+        var x = R[0] + rnd(-R[2] * .8, R[2] * .8), y = R[1] + rnd(-R[3] * .8, R[3] * .8);
+        if (y > 770 || y < 395) continue;
+        ssBlossom(fl, x, y, rnd(.8, 1.6), idx === 0 ? pick(['#fff', '#feeef3', '#fde3ea']) : '#fff', '#f2c94c');
+      }
+    }
+
+    /* 地上落下的花瓣/叶/雪 */
+    var groundC = idx === 0 ? '#fbd6df' : (idx === 3 ? '#ffffff' : pick(pal.light));
+    for (i = 0; i < 40; i++) {
+      sel('circle', { cx: rnd(210, 690), cy: rnd(972, 1050), r: rnd(2, 4.5), fill: groundC, opacity: rnd(.5, .9) }, layerG);
+    }
+
+    ssFall(layerG, pal.fallN, function () {
+      return pal.fall === 'petal' ? ssPetal(layerG) : (pal.fall === 'snow' ? ssSnow(layerG) : ssLeaf(layerG));
+    });
+
+    ssTitle(layerG, pal.name, pal.poem);
+
+    /* 纸纹 + 暗角 */
+    sel('rect', { width: 900, height: 1200, fill: 'url(#ssVig)' }, svg);
+  }
+
+  SCENES.season = {
+    html: '<div class="ss-wrap"><svg id="ssSvg" viewBox="0 0 900 1200" preserveAspectRatio="xMidYMid meet"></svg></div>',
+    init: function (layer) {
+      var m = new Date().getMonth() + 1;      /* 1-12 */
+      var idx = m >= 3 && m <= 5 ? 0 : (m >= 6 && m <= 8 ? 1 : (m >= 9 && m <= 11 ? 2 : 3));
+      /* 带 ?season=xxx 时按名字精确取，否则按月份 */
+      var named = document.documentElement.getAttribute('data-season');
+      if (named === 'spring') idx = 0;
+      else if (named === 'summer') idx = 1;
+      else if (named === 'autumn') idx = 2;
+      else if (named === 'winter') idx = 3;
+      buildSeason(layer, idx);
+    }
+  };
+
   function applyScene() {
     var f = window.__festival;
-    if (!f || !f.scene) return;
-    var html = SCENES[f.scene];
-    if (!html) return;
+
+    /* 优先级：节日指定了 scene 就用节日的，否则退回季节，都没有就不动。
+       注意 data-season 的值是 spring/summer/autumn/winter，
+       而场景注册的键统一叫 season，这里要映射一下。 */
+    var seasonName = document.documentElement.getAttribute('data-season');
+    var key = (f && f.scene) || (seasonName ? 'season' : null);
+    if (!key) return;
+
+    var def = SCENES[key];
+    if (!def) return;
+
     var layer = document.getElementById('sceneLayer');
     if (!layer) return;
-    layer.innerHTML = html;               /* 整层换掉，不是只换背景 */
-    document.documentElement.setAttribute('data-scene', f.scene);
+
+    /* 场景有两种形态：纯 HTML 字符串，或者 {html, init}（init 用来现画） */
+    if (typeof def === 'string') {
+      layer.innerHTML = def;
+    } else {
+      layer.innerHTML = def.html;
+      if (def.init) def.init(layer);
+    }
+
+    document.documentElement.setAttribute('data-scene', key);
     refreshSceneRefs();
+
     /* 场景里没有幽灵就别再提示「点一点小幽灵」 */
     if (!ghostContainer) {
       var ch = $('#catchHint');
@@ -578,6 +846,93 @@
     s.stop(t + 4);
   }
 
+  /* ── 季节音景 ─────────────────────────────────────────────
+     基础层（pad + 风）四季共用，这里叠一层各季的特征音色。
+     全部用 Web Audio 现场合成，不加载任何音频文件。 */
+  function seasonAmbience(idx) {
+    if (!audioCtx) return;
+
+    if (idx === 0) {
+      /* 春：零星的鸟鸣，短促上滑的三角波 */
+      ambTimers.push(setInterval(function () {
+        if (!audioCtx || killed) return;
+        var t = audioCtx.currentTime;
+        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = 'sine';
+        var base = 1900 + Math.random() * 1100;
+        o.frequency.setValueAtTime(base, t);
+        o.frequency.exponentialRampToValueAtTime(base * 1.55, t + 0.06);
+        o.frequency.exponentialRampToValueAtTime(base * 1.15, t + 0.15);
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(.038, t + .02);
+        g.gain.exponentialRampToValueAtTime(.001, t + .2);
+        o.connect(g); g.connect(masterGain);
+        o.start(t); o.stop(t + .22);
+      }, 2600));
+    }
+
+    if (idx === 1) {
+      /* 夏：蝉鸣，窄带噪声 + 快速调幅 */
+      var src = audioCtx.createBufferSource();
+      src.buffer = noiseBuffer(2); src.loop = true;
+      var bp = audioCtx.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = 4200; bp.Q.value = 7;
+      var g1 = audioCtx.createGain(); g1.gain.value = 0;
+      src.connect(bp); bp.connect(g1); g1.connect(masterGain);
+      src.start();
+      var lfo = audioCtx.createOscillator(), lg = audioCtx.createGain();
+      lfo.type = 'sawtooth'; lfo.frequency.value = 38; lg.gain.value = .014;
+      lfo.connect(lg); lg.connect(g1.gain); lfo.start();
+      g1.gain.linearRampToValueAtTime(.045, audioCtx.currentTime + 3);
+    }
+
+    if (idx === 2) {
+      /* 秋：风更明显，偶尔一声木质敲击（落叶/枯枝） */
+      var s2 = audioCtx.createBufferSource();
+      s2.buffer = noiseBuffer(3); s2.loop = true;
+      var lp = audioCtx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 780;
+      var g2 = audioCtx.createGain(); g2.gain.value = 0;
+      s2.connect(lp); lp.connect(g2); g2.connect(masterGain);
+      s2.start();
+      g2.gain.linearRampToValueAtTime(.055, audioCtx.currentTime + 4);
+      var lfo2 = audioCtx.createOscillator(), lg2 = audioCtx.createGain();
+      lfo2.frequency.value = .11; lg2.gain.value = 260;
+      lfo2.connect(lg2); lg2.connect(lp.frequency); lfo2.start();
+
+      ambTimers.push(setInterval(function () {
+        if (!audioCtx || killed) return;
+        var t = audioCtx.currentTime;
+        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(190 + Math.random() * 90, t);
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(.05, t + .008);
+        g.gain.exponentialRampToValueAtTime(.001, t + .45);
+        o.connect(g); g.connect(masterGain);
+        o.start(t); o.stop(t + .5);
+      }, 4200));
+    }
+
+    if (idx === 3) {
+      /* 冬：稀疏的高音铃片，长衰减，留白多 */
+      ambTimers.push(setInterval(function () {
+        if (!audioCtx || killed) return;
+        var t = audioCtx.currentTime;
+        [1, 2.4, 3.7].forEach(function (h, k) {
+          var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+          o.type = 'sine';
+          o.frequency.value = 1568 * h;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(.028 / (k + 1), t + .01);
+          g.gain.exponentialRampToValueAtTime(.001, t + 3.2);
+          o.connect(g); g.connect(masterGain);
+          o.start(t); o.stop(t + 3.3);
+        });
+      }, 5200));
+    }
+  }
+
   /* ── 收尾：淡出并拆掉整个开场 ───────────────────────────── */
   function teardown() {
     if (killed) return;
@@ -585,6 +940,8 @@
 
     timers.forEach(clearTimeout);
     timers = [];
+    ambTimers.forEach(clearInterval);
+    ambTimers = [];
     rainActive = false;
     ghosts.forEach(function (g) {
       clearTimeout(g._wanderTimer);
@@ -660,9 +1017,16 @@
     }, 4000));
     timers.push(setTimeout(function () { triggerGlowPulse('soft-1'); }, 5500));
     timers.push(setTimeout(function () {
-      rainActive = true;
-      drawRain();
-      createRainSound();
+      /* 只有默认城堡场景才有雨；季节场景换成各季的特征音色 */
+      if (rainCanvas) {
+        rainActive = true;
+        drawRain();
+        createRainSound();
+      } else if (document.documentElement.getAttribute('data-season')) {
+        seasonAmbience(document.documentElement.getAttribute('data-season') === 'spring' ? 0
+          : document.documentElement.getAttribute('data-season') === 'summer' ? 1
+          : document.documentElement.getAttribute('data-season') === 'autumn' ? 2 : 3);
+      }
       triggerGlowPulse('soft-2');
     }, 8000));
     /* 镜头推向城堡 */
