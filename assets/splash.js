@@ -106,138 +106,118 @@
   /* 默认场景是西式城堡（写在 build.py 的 SPLASH 里，不在这里）。
      节日如果配了 scene 字段，就把城堡整块换成这里的画面。 */
   var SCENES = {
-    /* 中秋：整套换掉，不是只换背景色。
-       天空、星、月、云、庭院、月饼全在这里，沿用同一套时间轴和音景。 */
-    midautumn: `
-<div class="mt-sky"></div>
-<div class="mt-stars"></div>
-<div class="mt-halo"></div>
-<div class="mt-moon"></div>
-<div class="mt-cloud ct1"></div>
-<div class="mt-cloud ct2"></div>
-<div class="mt-cloud ct3"></div>
+    /* 夜樱：一棵树 + 月亮 + 落花。
+       树的画法来自「樱花系列设计储备 / 01-单体图 / 樱花树 单独.html」，
+       原图是白底，这里去掉底、树干压暗、花冠加月色辉光，才立得住夜景。 */
+    sakura: `
+<div class="sk-sky"></div>
+<div class="sk-stars"></div>
+<div class="sk-halo"></div>
+<div class="sk-moon"></div>
+<div class="sk-cloud sc1"></div>
+<div class="sk-cloud sc2"></div>
 
-<div class="mt-yard">
+<div class="sk-scene">
   <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice">
     <defs>
-      <linearGradient id="mtWall" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#1B2440"/><stop offset="1" stop-color="#0B1120"/>
+      <radialGradient id="skSoft" cx="50%" cy="45%" r="52%">
+        <stop offset="0%" stop-color="#FFF6FA" stop-opacity="1"/>
+        <stop offset="68%" stop-color="#FCC4D9" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="#F9BCD6" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="skInner" cx="50%" cy="40%" r="50%">
+        <stop offset="0%" stop-color="#FFF1F7" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#F9BCD6" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="skPetal" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#FFF1F7"/><stop offset="100%" stop-color="#F9BCD6"/>
       </linearGradient>
+      <radialGradient id="skShadow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#FFB7D5" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#FFB7D5" stop-opacity="0"/>
+      </radialGradient>
+      <g id="skFlower">
+        <g fill="url(#skPetal)" stroke="#F2A9C4" stroke-width="0.5">
+          <path d="M0 -8 C 3 -2, 3 -2, 8 0 C 3 2, 3 2, 0 8 C -3 2, -3 2, -8 0 C -3 -2, -3 -2, 0 -8 Z"/>
+          <path d="M0 -8 C 3 -2, 3 -2, 8 0 C 3 2, 3 2, 0 8 C -3 2, -3 2, -8 0 C -3 -2, -3 -2, 0 -8 Z" transform="rotate(72)"/>
+          <path d="M0 -8 C 3 -2, 3 -2, 8 0 C 3 2, 3 2, 0 8 C -3 2, -3 2, -8 0 C -3 -2, -3 -2, 0 -8 Z" transform="rotate(144)"/>
+          <path d="M0 -8 C 3 -2, 3 -2, 8 0 C 3 2, 3 2, 0 8 C -3 2, -3 2, -8 0 C -3 -2, -3 -2, 0 -8 Z" transform="rotate(216)"/>
+          <path d="M0 -8 C 3 -2, 3 -2, 8 0 C 3 2, 3 2, 0 8 C -3 2, -3 2, -8 0 C -3 -2, -3 -2, 0 -8 Z" transform="rotate(288)"/>
+        </g>
+        <circle r="1.8" fill="#F9BCD6"/>
+      </g>
+      <path id="skPetalPath" d="M0 -10 C 7 -6, 9 3, 3 7 C 1 9, -1 9, -3 7 C -9 3, -7 -6, 0 -10 Z"/>
     </defs>
 
-    <!-- 远山 -->
-    <path d="M0,548 Q240,486 480,520 T960,506 T1440,524 L1600,516 L1600,600 L0,600 Z" fill="#0B0F1C" opacity=".9"/>
-    <path d="M0,572 Q320,528 640,556 T1280,552 T1600,570 L1600,600 L0,600 Z" fill="#070A14"/>
+    <!-- 地平线 -->
+    <path d="M0,558 Q400,542 800,556 T1600,548 L1600,600 L0,600 Z" fill="#120E1E"/>
+    <path d="M0,578 Q500,566 1000,576 T1600,572 L1600,600 L0,600 Z" fill="#0A0812"/>
 
-    <!-- 右侧中式屋檐：只露一角 -->
-    <g>
-      <path d="M980,600 L980,452 L1600,452 L1600,600 Z" fill="url(#mtWall)"/>
-      <path d="M936,452 Q1240,382 1620,452 L1620,490 Q1240,424 936,490 Z" fill="#22304E"/>
-      <path d="M936,452 q-50,-10 -70,-40 q38,16 70,8 z" fill="#22304E"/>
-      <path d="M1614,452 q38,-12 48,-40 q-28,20 -48,12 z" fill="#22304E"/>
-      <g stroke="#31415F" stroke-width="4" opacity=".85">
-        <path d="M1040,472 L1040,456"/><path d="M1120,464 L1120,450"/><path d="M1200,458 L1200,448"/>
-        <path d="M1280,456 L1280,446"/><path d="M1360,456 L1360,446"/><path d="M1440,460 L1440,448"/>
-        <path d="M1520,466 L1520,452"/>
+    <!-- 落在地上的花瓣 -->
+    <g fill="#F9BCD6" opacity=".5">
+      <ellipse cx="1120" cy="572" rx="5" ry="3" transform="rotate(-18 1120 572)"/>
+      <ellipse cx="1196" cy="582" rx="4.4" ry="2.6" transform="rotate(12 1196 582)"/>
+      <ellipse cx="1360" cy="576" rx="4.8" ry="2.8" transform="rotate(-6 1360 576)"/>
+      <ellipse cx="980" cy="584" rx="4.2" ry="2.5" transform="rotate(22 980 584)"/>
+      <ellipse cx="1290" cy="590" rx="4" ry="2.4" transform="rotate(-14 1290 590)"/>
+    </g>
+
+    <!-- 树本体 -->
+    <g transform="translate(818,0) scale(1.06)">
+      <!-- 树下光晕 -->
+      <ellipse cx="300" cy="520" rx="168" ry="24" fill="url(#skShadow)"/>
+
+      <!-- 树干：S 形上升 + 双侧对称分枝 -->
+      <g fill="none" stroke="#8A7358" stroke-linecap="round">
+        <path stroke-width="14" d="M300 520 C 288 470, 312 430, 298 380 C 286 336, 314 300, 300 258"/>
+        <path stroke-width="8" d="M294 400 C 260 380, 234 360, 214 332"/>
+        <path stroke-width="8" d="M306 400 C 340 380, 366 360, 386 332"/>
+        <path stroke-width="6" d="M299 330 C 268 310, 248 292, 236 268"/>
+        <path stroke-width="6" d="M303 330 C 334 310, 354 292, 366 268"/>
+        <path stroke-width="5" d="M301 282 C 280 262, 270 248, 266 232"/>
+        <path stroke-width="5" d="M301 282 C 322 262, 332 248, 336 232"/>
       </g>
-      <rect x="1150" y="512" width="86" height="66" rx="5" fill="#FFD166" opacity=".5"/>
-      <rect x="1340" y="512" width="86" height="66" rx="5" fill="#FFD166" opacity=".4"/>
-      <g stroke="#101A2E" stroke-width="5" opacity=".9">
-        <path d="M1193,512 L1193,578"/><path d="M1150,545 L1236,545"/>
-        <path d="M1383,512 L1383,578"/><path d="M1340,545 L1426,545"/>
+
+      <!-- 花冠：两层粉调叠加 -->
+      <circle cx="300" cy="245" r="150" fill="url(#skSoft)"/>
+      <circle cx="200" cy="300" r="75" fill="url(#skSoft)" opacity=".8"/>
+      <circle cx="400" cy="300" r="75" fill="url(#skSoft)" opacity=".8"/>
+      <circle cx="235" cy="240" r="62" fill="url(#skSoft)" opacity=".7"/>
+      <circle cx="365" cy="240" r="62" fill="url(#skSoft)" opacity=".7"/>
+      <circle cx="242" cy="320" r="48" fill="url(#skSoft)" opacity=".6"/>
+      <circle cx="358" cy="320" r="48" fill="url(#skSoft)" opacity=".6"/>
+      <circle cx="300" cy="250" r="100" fill="url(#skInner)"/>
+      <circle cx="245" cy="290" r="52" fill="url(#skInner)" opacity=".8"/>
+      <circle cx="355" cy="290" r="52" fill="url(#skInner)" opacity=".8"/>
+
+      <!-- 细画的小花：放大后必须加密，否则花冠像一团发光的雾 -->
+      <use href="#skFlower" transform="translate(262 218)"/>
+      <use href="#skFlower" transform="translate(338 232) scale(0.85)"/>
+      <use href="#skFlower" transform="translate(300 290) scale(0.9)"/>
+      <use href="#skFlower" transform="translate(218 288) scale(0.8)"/>
+      <use href="#skFlower" transform="translate(382 292) scale(0.8)"/>
+      <use href="#skFlower" transform="translate(196 246) scale(0.72)"/>
+      <use href="#skFlower" transform="translate(404 250) scale(0.72)"/>
+      <use href="#skFlower" transform="translate(246 186) scale(0.76)"/>
+      <use href="#skFlower" transform="translate(356 190) scale(0.76)"/>
+      <use href="#skFlower" transform="translate(300 168) scale(0.7)"/>
+      <use href="#skFlower" transform="translate(232 330) scale(0.68)"/>
+      <use href="#skFlower" transform="translate(368 330) scale(0.68)"/>
+      <use href="#skFlower" transform="translate(300 344) scale(0.72)"/>
+
+      <!-- 树上摇曳的花瓣 -->
+      <g fill="url(#skPetal)" opacity=".85">
+        <g transform="translate(158 380)"><g class="skpetal" style="animation-duration:5s"><use href="#skPetalPath"/></g></g>
+        <g transform="translate(452 330)"><g class="skpetal" style="animation-duration:5.6s;animation-delay:-1.2s"><use href="#skPetalPath"/></g></g>
+        <g transform="translate(398 452) scale(0.85)"><g class="skpetal" style="animation-duration:6.4s;animation-delay:-2.5s"><use href="#skPetalPath"/></g></g>
+        <g transform="translate(210 462) scale(0.9)"><g class="skpetal" style="animation-duration:7.2s;animation-delay:-0.8s"><use href="#skPetalPath"/></g></g>
+        <g transform="translate(320 160) scale(0.8)"><g class="skpetal" style="animation-duration:8s;animation-delay:-4s"><use href="#skPetalPath"/></g></g>
       </g>
     </g>
-
-    <!-- 左侧桂花树 -->
-    <g>
-      <path d="M150,600 C168,486 206,432 246,392" stroke="#2A2018" stroke-width="22" fill="none" stroke-linecap="round"/>
-      <path d="M228,432 C178,406 140,390 110,394" stroke="#2A2018" stroke-width="13" fill="none" stroke-linecap="round"/>
-      <path d="M242,404 C282,368 320,352 358,356" stroke="#2A2018" stroke-width="12" fill="none" stroke-linecap="round"/>
-      <path d="M188,472 C152,472 124,488 108,510" stroke="#2A2018" stroke-width="9" fill="none" stroke-linecap="round"/>
-      <g fill="#22351F">
-        <ellipse cx="100" cy="378" rx="52" ry="30" transform="rotate(-16 100 378)"/>
-        <ellipse cx="176" cy="352" rx="58" ry="32" transform="rotate(-6 176 352)"/>
-        <ellipse cx="262" cy="336" rx="60" ry="32" transform="rotate(8 262 336)"/>
-        <ellipse cx="346" cy="352" rx="50" ry="28" transform="rotate(12 346 352)"/>
-        <ellipse cx="230" cy="394" rx="52" ry="28"/>
-      </g>
-      <g fill="#FFD166">
-        <circle cx="94" cy="370" r="4"/><circle cx="116" cy="358" r="3.4"/><circle cx="134" cy="380" r="3.8"/>
-        <circle cx="160" cy="340" r="4"/><circle cx="184" cy="356" r="3.4"/><circle cx="200" cy="338" r="3.8"/>
-        <circle cx="246" cy="324" r="4"/><circle cx="270" cy="342" r="3.4"/><circle cx="290" cy="328" r="3.8"/>
-        <circle cx="330" cy="342" r="4"/><circle cx="354" cy="358" r="3.4"/>
-        <circle cx="212" cy="386" r="3.4"/><circle cx="240" cy="400" r="3.8"/><circle cx="266" cy="388" r="3.4"/>
-        <circle cx="176" cy="372" r="3"/>
-      </g>
-    </g>
-
-    <!-- 石灯笼 -->
-    <g transform="translate(404,468)">
-      <ellipse cx="0" cy="92" rx="36" ry="8" fill="#000" opacity=".32"/>
-      <rect x="-34" y="76" width="68" height="14" rx="4" fill="#2A3554"/>
-      <rect x="-10" y="34" width="20" height="46" fill="#2A3554"/>
-      <rect x="-28" y="4" width="56" height="30" rx="5" fill="#2A3554"/>
-      <rect x="-18" y="10" width="36" height="18" rx="3" fill="#FFD166" opacity=".85"/>
-      <path d="M-42,4 L0,-24 L42,4 Z" fill="#33425F"/>
-      <circle cx="0" cy="-28" r="5" fill="#33425F"/>
-    </g>
-
-    <!-- 月饼：回字纹，别画成曲奇 -->
-    <g transform="translate(766,432)">
-      <ellipse cx="0" cy="30" rx="46" ry="10" fill="#000" opacity=".32"/>
-      <circle cx="0" cy="0" r="44" fill="#C9984E"/>
-      <circle cx="0" cy="0" r="37" fill="#EFC078"/>
-      <g fill="#C9984E">
-        <circle cx="0" cy="-39" r="4.4"/><circle cx="27.6" cy="-27.6" r="4.4"/>
-        <circle cx="39" cy="0" r="4.4"/><circle cx="27.6" cy="27.6" r="4.4"/>
-        <circle cx="0" cy="39" r="4.4"/><circle cx="-27.6" cy="27.6" r="4.4"/>
-        <circle cx="-39" cy="0" r="4.4"/><circle cx="-27.6" cy="-27.6" r="4.4"/>
-      </g>
-      <path d="M-13,-13 L13,-13 L13,13 L-13,13 Z" fill="none" stroke="#A9743A" stroke-width="3.2" stroke-linejoin="round"/>
-      <path d="M-5,-5 L5,-5 L5,5 L-5,5 Z" fill="none" stroke="#A9743A" stroke-width="2.6" stroke-linejoin="round"/>
-    </g>
-
-    <!-- 玉兔 · 坐着仰头看月：头要大、身体要圆，不然像白蛋顶个球 -->
-    <g transform="translate(556,362)">
-      <ellipse cx="6" cy="136" rx="66" ry="12" fill="#000" opacity=".3"/>
-      <ellipse cx="8" cy="74" rx="60" ry="62" fill="#F2ECDD"/>
-      <ellipse cx="4" cy="2" rx="52" ry="46" fill="#F2ECDD"/>
-      <ellipse cx="-24" cy="-74" rx="14" ry="42" fill="#F2ECDD" transform="rotate(-13 -24 -74)"/>
-      <ellipse cx="-24" cy="-74" rx="7" ry="28" fill="#F7C7D8" transform="rotate(-13 -24 -74)"/>
-      <ellipse cx="28" cy="-72" rx="14" ry="42" fill="#F2ECDD" transform="rotate(11 28 -72)"/>
-      <ellipse cx="28" cy="-72" rx="7" ry="28" fill="#F7C7D8" transform="rotate(11 28 -72)"/>
-      <ellipse cx="-14" cy="-14" rx="6.8" ry="7.8" fill="#2C241C"/>
-      <ellipse cx="21" cy="-14" rx="6.8" ry="7.8" fill="#2C241C"/>
-      <circle cx="-11.6" cy="-16.8" r="2.5" fill="#fff"/>
-      <circle cx="23.4" cy="-16.8" r="2.5" fill="#fff"/>
-      <path d="M7,-1 l5,4.2 -5,4.2 -5,-4.2 z" fill="#F2879E"/>
-      <path d="M2,8 q5,4 10,0" stroke="#D9899C" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <ellipse cx="-31" cy="4" rx="11.5" ry="7" fill="#F7C7D8" opacity=".8"/>
-      <ellipse cx="39" cy="4" rx="11.5" ry="7" fill="#F7C7D8" opacity=".8"/>
-      <ellipse cx="-16" cy="92" rx="15" ry="11" fill="#FBF7EE"/>
-      <ellipse cx="40" cy="92" rx="15" ry="11" fill="#FBF7EE"/>
-    </g>
-
-    <!-- 玉兔 · 趴着打盹 -->
-    <g transform="translate(920,458) scale(.95)">
-      <ellipse cx="0" cy="56" rx="70" ry="12" fill="#000" opacity=".28"/>
-      <ellipse cx="4" cy="10" rx="72" ry="48" fill="#F2ECDD"/>
-      <ellipse cx="-50" cy="-16" rx="45" ry="41" fill="#F2ECDD"/>
-      <ellipse cx="-84" cy="-56" rx="13" ry="37" fill="#F2ECDD" transform="rotate(-42 -84 -56)"/>
-      <ellipse cx="-84" cy="-56" rx="6.5" ry="24" fill="#F7C7D8" transform="rotate(-42 -84 -56)"/>
-      <ellipse cx="-48" cy="-64" rx="13" ry="37" fill="#F2ECDD" transform="rotate(-20 -48 -64)"/>
-      <ellipse cx="-48" cy="-64" rx="6.5" ry="24" fill="#F7C7D8" transform="rotate(-20 -48 -64)"/>
-      <path d="M-66,-18 q8,8 16,0" stroke="#2C241C" stroke-width="3.6" fill="none" stroke-linecap="round"/>
-      <path d="M-40,-18 q8,8 16,0" stroke="#2C241C" stroke-width="3.6" fill="none" stroke-linecap="round"/>
-      <path d="M-52,-2 l4.6,3.6 -4.6,3.6 -4.6,-3.6 z" fill="#F2879E"/>
-      <ellipse cx="-80" cy="0" rx="9.5" ry="5.6" fill="#F7C7D8" opacity=".8"/>
-      <circle cx="70" cy="30" r="15" fill="#FBF7EE"/>
-    </g>
-
   </svg>
 </div>
 
-<div class="mt-fog"></div>
+<div class="sk-fog"></div>
 <div class="petals" id="petals"></div>`
   };
 

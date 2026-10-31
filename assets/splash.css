@@ -286,82 +286,81 @@ body.splash-lock{overflow:hidden;}
 }
 #splash .catch-hint.show{opacity:.8;}
 
-/* ── 中秋场景 ───────────────────────────────────────────────
-   这套 DOM 在 splash.js 的 SCENES.midautumn 里，会整层替换掉默认的城堡。
-   所以这里不是「在默认场景上打补丁」，而是一套独立的画面。 */
-.mt-sky{
+/* ── 夜樱场景 ───────────────────────────────────────────────
+   DOM 在 splash.js 的 SCENES.sakura，整层替换掉默认城堡。
+   树来自设计储备里的单体图，去掉白底、压暗树干、加月色辉光。 */
+.sk-sky{
   position:absolute;inset:0;z-index:0;
   background:
-    radial-gradient(ellipse at 88% 8%,rgba(255,236,180,.10) 0%,transparent 44%),
-    radial-gradient(ellipse at 50% 104%,rgba(36,48,92,.50) 0%,transparent 58%),
-    linear-gradient(180deg,#06080F 0%,#0D1122 48%,#161B30 80%,#0A0D18 100%);
+    radial-gradient(ellipse at 84% 6%,rgba(255,214,236,.12) 0%,transparent 46%),
+    radial-gradient(ellipse at 50% 104%,rgba(66,40,92,.45) 0%,transparent 60%),
+    linear-gradient(180deg,#08060F 0%,#110C20 46%,#1A1230 78%,#0B0813 100%);
 }
-.mt-stars{
-  position:absolute;inset:0;z-index:1;opacity:.5;
+.sk-stars{
+  position:absolute;inset:0;z-index:1;opacity:.55;
   animation:sTwinkle 7s ease-in-out infinite;
   background-image:
-    radial-gradient(1px 1px at 12% 20%,#fff,transparent),
-    radial-gradient(1px 1px at 28% 36%,#fff,transparent),
-    radial-gradient(2px 2px at 44% 14%,#FFE9B8,transparent),
-    radial-gradient(1px 1px at 62% 30%,#fff,transparent),
-    radial-gradient(1px 1px at 76% 18%,#fff,transparent),
-    radial-gradient(1px 1px at 18% 52%,#FFE9B8,transparent),
-    radial-gradient(1px 1px at 52% 46%,#fff,transparent),
-    radial-gradient(1px 1px at 86% 40%,#fff,transparent),
-    radial-gradient(1px 1px at 34% 66%,#fff,transparent);
+    radial-gradient(1px 1px at 10% 18%,#fff,transparent),
+    radial-gradient(1px 1px at 26% 34%,#fff,transparent),
+    radial-gradient(2px 2px at 40% 12%,#FFE3F2,transparent),
+    radial-gradient(1px 1px at 58% 26%,#fff,transparent),
+    radial-gradient(1px 1px at 72% 14%,#fff,transparent),
+    radial-gradient(1px 1px at 16% 48%,#FFE3F2,transparent),
+    radial-gradient(1px 1px at 48% 42%,#fff,transparent),
+    radial-gradient(1px 1px at 88% 34%,#fff,transparent),
+    radial-gradient(1px 1px at 32% 62%,#fff,transparent);
 }
-/* 月晕：大范围暖光，撑出「月亮很亮」的感觉 */
-.mt-halo{
-  position:absolute;top:-6%;right:4%;width:54vmin;height:54vmin;z-index:1;
-  background:radial-gradient(circle,rgba(255,238,190,.22) 0%,rgba(255,214,140,.10) 34%,transparent 64%);
-  pointer-events:none;animation:mtHalo 9s ease-in-out infinite;
+.sk-halo{
+  position:absolute;top:-8%;right:2%;width:50vmin;height:50vmin;z-index:1;
+  background:radial-gradient(circle,rgba(255,226,242,.20) 0%,rgba(255,183,213,.09) 34%,transparent 64%);
+  pointer-events:none;animation:skHalo 9s ease-in-out infinite;
 }
-.mt-moon{
-  position:absolute;top:7%;right:13%;z-index:2;
-  width:clamp(120px,19vw,190px);aspect-ratio:1;border-radius:50%;
-  background:radial-gradient(circle at 36% 32%,#FFFDF2 0%,#FFF3CF 40%,#FFE29A 74%,#F0C468 100%);
-  box-shadow:0 0 50px rgba(255,240,200,.55),0 0 120px rgba(255,214,120,.32),0 0 220px rgba(255,200,90,.16);
-  animation:mtMoonPulse 8s ease-in-out infinite;
+.sk-moon{
+  position:absolute;top:8%;right:12%;z-index:2;
+  width:clamp(96px,15vw,150px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 36% 32%,#FFFAFD 0%,#FFE9F3 42%,#FFD3E8 76%,#F0A9CC 100%);
+  box-shadow:0 0 46px rgba(255,226,242,.5),0 0 110px rgba(255,183,213,.28),0 0 200px rgba(240,140,190,.14);
+  animation:skMoonPulse 8s ease-in-out infinite;
 }
-/* 月面环形山 */
-.mt-moon::after{
+.sk-moon::after{
   content:'';position:absolute;inset:0;border-radius:50%;
   background:
-    radial-gradient(circle at 32% 44%,rgba(214,182,120,.30) 0 7%,transparent 8%),
-    radial-gradient(circle at 60% 30%,rgba(214,182,120,.24) 0 5.5%,transparent 6.5%),
-    radial-gradient(circle at 68% 62%,rgba(214,182,120,.26) 0 8%,transparent 9%),
-    radial-gradient(circle at 42% 70%,rgba(214,182,120,.18) 0 4.5%,transparent 5.5%);
+    radial-gradient(circle at 32% 44%,rgba(226,170,200,.26) 0 7%,transparent 8%),
+    radial-gradient(circle at 60% 30%,rgba(226,170,200,.20) 0 5.5%,transparent 6.5%),
+    radial-gradient(circle at 68% 62%,rgba(226,170,200,.22) 0 8%,transparent 9%);
 }
-/* 祥云 */
-.mt-cloud{
-  position:absolute;z-index:3;height:24px;border-radius:100px;
-  background:#33405F;opacity:.42;
+.sk-cloud{
+  position:absolute;z-index:3;height:22px;border-radius:100px;
+  background:#3E2F55;opacity:.4;
 }
-.mt-cloud::before,.mt-cloud::after{
+.sk-cloud::before,.sk-cloud::after{
   content:'';position:absolute;background:inherit;border-radius:50%;
 }
-.mt-cloud::before{width:46px;height:46px;left:20px;top:-20px;}
-.mt-cloud::after{width:58px;height:58px;right:18px;top:-30px;}
-.mt-cloud.ct1{width:150px;left:5%;top:24%;animation:mtDrift 30s ease-in-out infinite alternate;}
-.mt-cloud.ct2{width:118px;left:54%;top:15%;opacity:.28;animation:mtDrift 40s ease-in-out infinite alternate-reverse;}
-.mt-cloud.ct3{width:178px;left:12%;top:62%;opacity:.2;animation:mtDrift 48s ease-in-out infinite alternate;}
+.sk-cloud::before{width:44px;height:44px;left:18px;top:-19px;}
+.sk-cloud::after{width:56px;height:56px;right:16px;top:-29px;}
+.sk-cloud.sc1{width:150px;left:4%;top:22%;animation:skDrift 32s ease-in-out infinite alternate;}
+.sk-cloud.sc2{width:120px;left:52%;top:14%;opacity:.26;animation:skDrift 42s ease-in-out infinite alternate-reverse;}
 
-.mt-yard{position:absolute;bottom:0;left:0;width:100%;height:55%;z-index:4;}
-.mt-yard svg{width:100%;height:100%;display:block;}
-.mt-fog{
-  position:absolute;bottom:0;left:0;width:100%;height:26%;z-index:5;pointer-events:none;
-  background:linear-gradient(180deg,transparent 0%,rgba(20,28,54,.32) 58%,rgba(6,8,16,.58) 100%);
+.sk-scene{position:absolute;bottom:0;left:0;width:100%;height:58%;z-index:4;}
+.sk-scene svg{
+  width:100%;height:100%;display:block;
+  /* 花冠在夜里要像被月光照亮，靠这层辉光撑住 */
+  filter:drop-shadow(0 0 34px rgba(255,183,213,.42));
+}
+.sk-fog{
+  position:absolute;bottom:0;left:0;width:100%;height:24%;z-index:5;pointer-events:none;
+  background:linear-gradient(180deg,transparent 0%,rgba(28,18,44,.28) 60%,rgba(8,6,13,.55) 100%);
 }
 
-@keyframes mtHalo{0%,100%{opacity:.82;}50%{opacity:1;}}
-@keyframes mtMoonPulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.07);}}
-@keyframes mtDrift{0%{transform:translateX(0);}100%{transform:translateX(38px);}}
-
-/* 中秋飘落的是金桂，不是樱花 */
-html[data-festival="midautumn"] #splash .petal{
-  background:radial-gradient(circle at 30% 30%,#FFF6DC 0%,#FFD166 70%,#E8A93C 100%);
-  border-radius:50%;
+/* 树上那五片花瓣的摇曳（原图自带，搬过来改个类名） */
+.skpetal{
+  animation:skSway 6s ease-in-out infinite alternate;
+  transform-origin:center;transform-box:fill-box;
 }
+@keyframes skSway{from{transform:rotate(-30deg);}to{transform:rotate(30deg);}}
+@keyframes skHalo{0%,100%{opacity:.82;}50%{opacity:1;}}
+@keyframes skMoonPulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.06);}}
+@keyframes skDrift{0%{transform:translateX(0);}100%{transform:translateX(36px);}}
 
 /* 横屏矮屏 */
 @media (max-height:420px) and (orientation:landscape){

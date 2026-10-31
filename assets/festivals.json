@@ -9,7 +9,6 @@
     "  deep    按下/描边用的深色      bg 背景             curtain 开场帷幕的主色",
     "改完记得跑一次 python make_splash_fonts.py，否则新的开场文案会缺字、回退成楷体。"
   ],
-
   "festivals": [
     {
       "id": "newyear",
@@ -18,8 +17,12 @@
       "lead": 2,
       "after": 1,
       "colors": {
-        "accent": "#FFD166", "accent2": "#FFE3A3", "accent3": "#FFF3D6",
-        "deep": "#C99B2E", "bg": "#0A0906", "curtain": "#6B4E0A"
+        "accent": "#FFD166",
+        "accent2": "#FFE3A3",
+        "accent3": "#FFF3D6",
+        "deep": "#C99B2E",
+        "bg": "#0A0906",
+        "curtain": "#6B4E0A"
       },
       "splash": {
         "cn": "新的一年，从头开始",
@@ -33,8 +36,12 @@
       "lead": 3,
       "after": 1,
       "colors": {
-        "accent": "#FF2E63", "accent2": "#FF7A9C", "accent3": "#FFC2D1",
-        "deep": "#D1003F", "bg": "#12040A", "curtain": "#7A0021"
+        "accent": "#FF2E63",
+        "accent2": "#FF7A9C",
+        "accent3": "#FFC2D1",
+        "deep": "#D1003F",
+        "bg": "#12040A",
+        "curtain": "#7A0021"
       },
       "splash": {
         "cn": "心跳漏掉一拍",
@@ -48,8 +55,12 @@
       "lead": 6,
       "after": 5,
       "colors": {
-        "accent": "#E23E57", "accent2": "#FF7A85", "accent3": "#FFC94A",
-        "deep": "#8C1D2C", "bg": "#100406", "curtain": "#8B1A1A"
+        "accent": "#E23E57",
+        "accent2": "#FF7A85",
+        "accent3": "#FFC94A",
+        "deep": "#8C1D2C",
+        "bg": "#100406",
+        "curtain": "#8B1A1A"
       },
       "splash": {
         "cn": "岁岁平安，年年有余",
@@ -63,8 +74,12 @@
       "lead": 2,
       "after": 1,
       "colors": {
-        "accent": "#A78BFA", "accent2": "#C4B5FD", "accent3": "#FFB3D9",
-        "deep": "#6D4FD0", "bg": "#0A0812", "curtain": "#3B2A6B"
+        "accent": "#A78BFA",
+        "accent2": "#C4B5FD",
+        "accent3": "#FFB3D9",
+        "deep": "#6D4FD0",
+        "bg": "#0A0812",
+        "curtain": "#3B2A6B"
       },
       "splash": {
         "cn": "一年见一次，也值得",
@@ -77,10 +92,14 @@
       "lunar": "8-15",
       "lead": 3,
       "after": 1,
-      "scene": "midautumn",
+      "scene": "sakura",
       "colors": {
-        "accent": "#E8E2D0", "accent2": "#F5F0E4", "accent3": "#FFD166",
-        "deep": "#B8A87C", "bg": "#0A0B10", "curtain": "#4A4436"
+        "accent": "#FFB7D5",
+        "accent2": "#FFD6E8",
+        "accent3": "#FFF0F6",
+        "deep": "#E86BA8",
+        "bg": "#0C0A14",
+        "curtain": "#6B1F3A"
       },
       "splash": {
         "cn": "月亮今晚是圆的",
@@ -94,8 +113,12 @@
       "lead": 6,
       "after": 1,
       "colors": {
-        "accent": "#FF7A29", "accent2": "#FFA45C", "accent3": "#C77DFF",
-        "deep": "#C24E00", "bg": "#0B0610", "curtain": "#2E1042"
+        "accent": "#FF7A29",
+        "accent2": "#FFA45C",
+        "accent3": "#C77DFF",
+        "deep": "#C24E00",
+        "bg": "#0B0610",
+        "curtain": "#2E1042"
       },
       "splash": {
         "cn": "今晚，鬼也可以很可爱",
@@ -109,8 +132,12 @@
       "lead": 7,
       "after": 1,
       "colors": {
-        "accent": "#D7263D", "accent2": "#FF6B7A", "accent3": "#7FD1A8",
-        "deep": "#A01020", "bg": "#080A09", "curtain": "#4A1218"
+        "accent": "#D7263D",
+        "accent2": "#FF6B7A",
+        "accent3": "#7FD1A8",
+        "deep": "#A01020",
+        "bg": "#080A09",
+        "curtain": "#4A1218"
       },
       "splash": {
         "cn": "雪落下来的时候",
@@ -118,15 +145,18 @@
       }
     }
   ],
-
   "birthday": {
     "_说明": "想给自己过生日就把 month/day 填上（公历），留 0 表示不启用",
     "month": 0,
     "day": 0,
     "name": "生日",
     "colors": {
-      "accent": "#FFB3D9", "accent2": "#FFD1E8", "accent3": "#FFF0F6",
-      "deep": "#E86BA8", "bg": "#0E0810", "curtain": "#5A2340"
+      "accent": "#FFB3D9",
+      "accent2": "#FFD1E8",
+      "accent3": "#FFF0F6",
+      "deep": "#E86BA8",
+      "bg": "#0E0810",
+      "curtain": "#5A2340"
     },
     "splash": {
       "cn": "又长大一岁啦",
