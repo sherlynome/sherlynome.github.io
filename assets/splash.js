@@ -667,9 +667,11 @@
     try {
       audioCtx = new AC();
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0;
+      /* 必须先用 setValueAtTime 把起点钉在 0，只写 value=0 再 ramp 在某些浏览器里
+         会把起点算成"上一次自动化事件的结束时间"，一上来就是一声闷响 */
+      masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
       masterGain.connect(audioCtx.destination);
-      masterGain.gain.linearRampToValueAtTime(.45, audioCtx.currentTime + 3);
+      masterGain.gain.linearRampToValueAtTime(.38, audioCtx.currentTime + 2.5);
       return true;
     } catch (e) { return false; }
   }
@@ -677,13 +679,18 @@
   function createAmbientPad() {
     if (!audioCtx) return;
     var padGain = audioCtx.createGain();
-    padGain.gain.value = 0;
+    padGain.gain.setValueAtTime(0, audioCtx.currentTime);
     var filter = audioCtx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.value = 600;
-    [110, 164.81, 220].forEach(function (f, i) {
+    filter.frequency.value = 1400;
+    /* 高通抬到 180Hz：这个频段以下在笔记本喇叭上听不出音高，只会糊成一片"嗡嗡"。
+       原来还有个 130.81Hz(C3) 的根音，是"wen"声的主要来源，直接去掉。 */
+    var hp = audioCtx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 180;
+    [196, 261.63, 392].forEach(function (f) {
       var o = audioCtx.createOscillator();
-      o.type = i ? 'triangle' : 'sine';
+      o.type = 'sine';
       o.frequency.value = f;
       o.connect(padGain);
       o.start();
@@ -694,15 +701,25 @@
     lfo.connect(lg);
     lg.connect(padGain.gain);
     lfo.start();
-    padGain.connect(filter);
+    padGain.connect(hp);
+    hp.connect(filter);
     filter.connect(masterGain);
-    padGain.gain.linearRampToValueAtTime(.12, audioCtx.currentTime + 5);
+    padGain.gain.linearRampToValueAtTime(.055, audioCtx.currentTime + 5);
   }
 
   function noiseBuffer(seconds) {
-    var b = audioCtx.createBuffer(1, audioCtx.sampleRate * seconds, audioCtx.sampleRate),
+    var len = Math.floor(audioCtx.sampleRate * seconds);
+    var b = audioCtx.createBuffer(1, len, audioCtx.sampleRate),
         d = b.getChannelData(0);
-    for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    /* 首尾各做 60ms 淡化。不做的话循环接缝处波形突变，
+       每 loop 一次就"咔"一声，听起来像规律的低频嗡 */
+    var fade = Math.floor(audioCtx.sampleRate * 0.06);
+    for (var k = 0; k < fade; k++) {
+      var r = k / fade;
+      d[k] *= r;
+      d[len - 1 - k] *= r;
+    }
     return b;
   }
 
@@ -720,7 +737,7 @@
     f.connect(g);
     g.connect(masterGain);
     s.start();
-    g.gain.linearRampToValueAtTime(.05, audioCtx.currentTime + 4);
+    g.gain.linearRampToValueAtTime(.032, audioCtx.currentTime + 4);
     var lfo = audioCtx.createOscillator(), lg = audioCtx.createGain();
     lfo.frequency.value = .08;
     lg.gain.value = 150;
