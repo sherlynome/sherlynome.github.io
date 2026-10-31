@@ -481,6 +481,8 @@ BODY_GUEST = page_head("GUESTBOOK", "留言", "说点什么，工具哪里难用
       <div class="giscus" id="giscus-box">%s
       </div>
     </div>
+    <p class="guest-hint">留言要先用 GitHub 账号登录（免费注册，不用会写代码）。<br>
+      没有也不想注册的话，<a href="about.html">微信／小红书私信我</a>，一样看得到。</p>
     <div class="guest-actions">
       <a class="msgbtn" href="%s/issues/new" target="_blank" rel="noopener">在 GitHub 开 issue →</a>
       <a class="msgbtn" href="about.html">怎么找我？</a>
