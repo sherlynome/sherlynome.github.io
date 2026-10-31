@@ -558,7 +558,8 @@
   }
 
   function createGhosts() {
-    if (!ghostContainer) return;   // 中秋这类场景没有幽灵
+    if (!ghostContainer) return false;          // 中秋这类场景没有幽灵容器
+    if (!window.__festival) return false;       // 不是节日就别放幽灵，日常该安静点
     var pool = shuffled(GHOST_SVGS.slice());
     for (var i = 0; i < GHOST_COUNT; i++) {
       var g = document.createElement('div');
@@ -585,6 +586,7 @@
       ghostContainer.appendChild(g);
       ghosts.push(g);
     }
+    return true;
   }
 
   function startWander(g, idx) {
@@ -1003,12 +1005,15 @@
       skipBtn.classList.add('show');
       audioIndicator.classList.add('show');
     }, 200));
+    /* 钟声是"节日感"的，日常开场不放，只留环境和风 */
+    var fest = !!window.__festival;
     timers.push(setTimeout(function () {
       blackout.classList.add('fade');
-      playBell(196);
+      if (fest) playBell(196);
     }, 1000));
-    timers.push(setTimeout(function () { playBell(261.63); }, 3000));
-    timers.push(setTimeout(createGhosts, 3500));
+    timers.push(setTimeout(function () { if (fest) playBell(261.63); }, 3000));
+    var hasGhost = false;
+    timers.push(setTimeout(function () { hasGhost = createGhosts() === true; }, 3500));
     timers.push(setTimeout(function () {
       curtainLeft.classList.add('open');
       curtainRight.classList.add('open');
@@ -1040,16 +1045,16 @@
     /* 字幕 */
     timers.push(setTimeout(function () {
       caption.classList.add('show');
-      playBell(329.63);
+      if (fest) playBell(329.63);
     }, 12500));
     /* 花瓣 + 提示 */
     timers.push(setTimeout(function () {
       createPetals();
-      catchHint.classList.add('show');
+      if (hasGhost) catchHint.classList.add('show');   // 没幽灵就别提示点幽灵
     }, 13500));
     /* 收尾：最后一声钟，停留两秒后交还首页 */
     timers.push(setTimeout(function () {
-      playChime(1568);
+      if (fest) playChime(1568);
       skipBtn.classList.remove('show');
     }, 15000));
     timers.push(setTimeout(teardown, 17500));

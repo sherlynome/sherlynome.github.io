@@ -143,6 +143,9 @@
       });
     }
 
+    /* 调试用：?festival=none 强制走「非节日」路径——默认城堡场景，不放幽灵和钟声 */
+    if (/[?&]festival=none\b/.test(location.search)) return;
+
     /* 调试用：?season=spring 强制看某个季节，并跳过节日判断 */
     var fSeason = /[?&]season=(spring|summer|autumn|winter)/i.exec(location.search);
     if (fSeason) {
