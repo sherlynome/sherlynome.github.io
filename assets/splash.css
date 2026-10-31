@@ -51,10 +51,25 @@ body.splash-lock{overflow:hidden;}
   cursor:pointer;transition:opacity 1.2s ease;
 }
 #splash .audio-prompt.fade{opacity:0;pointer-events:none;}
-#splash .prompt-ghost{width:clamp(80px,20vw,120px);margin-bottom:24px;animation:sPromptFloat 2.5s ease-in-out infinite;}
-/* 启幕页那只小幽灵是节日专属。
-   用 html:not([data-festival]) 判断而不是 JS——festivals.json 拉不到时也能兜住 */
-html:not([data-festival]) #splash .prompt-ghost{display:none;}
+/* 启幕页上方的图形：默认全隐藏，按「节日 / 季节」各亮一个。
+   用 CSS 判断而不是 JS——festivals.json 拉不到时也不会露出不该有的那个。 */
+#splash .prompt-mark{
+  display:none;width:clamp(80px,20vw,120px);
+  margin-bottom:24px;animation:sPromptFloat 2.5s ease-in-out infinite;
+}
+#splash .prompt-mark svg{width:100%;height:auto;display:block;}
+
+#splash .pm-ghost svg{filter:drop-shadow(0 0 16px rgba(255,143,184,.55));}
+#splash .pm-spring svg{filter:drop-shadow(0 0 18px rgba(255,183,213,.55));}
+#splash .pm-summer svg{filter:drop-shadow(0 0 18px rgba(127,191,106,.45));}
+#splash .pm-autumn svg{filter:drop-shadow(0 0 18px rgba(224,138,78,.5));}
+#splash .pm-winter svg{filter:drop-shadow(0 0 18px rgba(207,227,245,.5));}
+
+html[data-festival] #splash .pm-ghost{display:block;}
+html:not([data-festival])[data-season="spring"] #splash .pm-spring{display:block;}
+html:not([data-festival])[data-season="summer"] #splash .pm-summer{display:block;}
+html:not([data-festival])[data-season="autumn"] #splash .pm-autumn{display:block;}
+html:not([data-festival])[data-season="winter"] #splash .pm-winter{display:block;}
 @keyframes sPromptFloat{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-12px) rotate(3deg);}}
 #splash .prompt-text{
   font-family:"MaShanZheng",var(--s-serif);
