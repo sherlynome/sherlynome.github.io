@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作品集 · sherly 工坊</title>
+<meta name="description" content="建模、插画、设计作品集。">
+<meta name="theme-color" content="#0A0709">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🎀</text></svg>">
+<link rel="stylesheet" href="assets/site.css">
+
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="index.html"><i>🎀</i>sherly<em>工坊</em></a>
+  <div class="links">
+    <a href="https://github.com/sherlynome" target="_blank" rel="noopener">GitHub ↗</a>
+    <span class="cnt"><b>14</b> TOOLS</span>
+  </div>
+</nav>
+
+<div class="tabbar">
+  <div class="row">
+    <a class="tab" href="nav.html">导航</a>
+    <a class="tab" href="index.html">主页</a>
+    <a class="tab" href="blog.html">博客</a>
+    <a class="tab" href="notes.html">动态</a>
+    <a class="tab on" href="works.html">作品集</a>
+    <a class="tab" href="repo.html">仓库</a>
+    <a class="tab" href="links.html">友链</a>
+    <a class="tab" href="guest.html">留言</a>
+    <a class="tab" href="about.html">关于</a>
+  </div>
+  <div class="band"></div>
+</div>
+
+
+<header class="page-head">
+  <div class="wrap">
+    <div class="sec-k">WORKS</div>
+    <h1>作品集</h1>
+    <p>建模、插画、设计。做完的都在这，点开看大图。</p>
+    
+  </div>
+</header>
+
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="filters" id="wfilter">
+      <button class="chip on" data-f="all">全部</button>
+      <button class="chip" data-f="model">建模</button>
+      <button class="chip" data-f="draw">插画</button>
+      <button class="chip" data-f="design">设计</button>
+    </div>
+    <div class="workgrid" id="workgrid"></div>
+    <div class="notes-foot"><span id="wnote">还在整理，慢慢往里放 ✦</span></div>
+  </div>
+</section>
+
+
+<div class="foot-strip"></div>
+<footer>
+  <div class="wrap row">
+    <div>© 2026 <b>sherly 🌙</b> · 随便逛，随便用</div>
+    <div>建站于 <b>GitHub Pages</b> · 不收集任何数据</div>
+  </div>
+</footer>
+
+<div class="mask" id="mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-name">
+    <button class="x" id="m-close" aria-label="关闭">✕</button>
+    <div class="m-top">
+      <img id="m-img" alt="">
+      <div><h4 id="m-name"></h4><div class="m-cat" id="m-cat"></div></div>
+    </div>
+    <p class="m-intro" id="m-intro"></p>
+    <div class="m-h">HOW TO</div>
+    <ol id="m-steps"></ol>
+    <div class="m-tip" id="m-tip"></div>
+    <div class="m-actions"><a class="go" id="m-go" target="_blank" rel="noopener">打开工具 →</a></div>
+  </div>
+</div>
+
+<script src="assets/site.js"></script>
+
+<script>
+let ALL = [];
+function paint(cat) {
+  const grid = $('#workgrid');
+  grid.innerHTML = '';
+  const list = ALL.filter(w => cat === 'all' || w.cat === cat);
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="big">✦</div><h3>这一类还没有东西</h3><p>换个分类看看，或者等我慢慢放。</p></div>';
+    return;
+  }
+  list.forEach(w => grid.appendChild(workCard(w)));
+}
+(async () => {
+  try {
+    const data = await getJSON('assets/works.json');
+    ALL = data.items || [];
+    paint('all');
+    const demo = ALL.filter(w => w.demo).length;
+    if (demo) $('#wnote').textContent = '带「示例」角标的 ' + demo + ' 张是占位图，换成你的作品后就会消失 ✦';
+  } catch (e) {
+    $('#workgrid').innerHTML = '<div class="empty-state"><div class="big">✦</div><h3>读不到作品数据</h3><p>assets/works.json 没取到。</p></div>';
+  }
+})();
+bindFilters($('#wfilter'), paint);
+</script>
+
+</body>
+</html>

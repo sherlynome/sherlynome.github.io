@@ -1,0 +1,13 @@
+{
+  "updated": "2026-11-01",
+  "items": [
+    { "title": "示例 01 · 待替换", "cat": "model", "catName": "建模", "cover": "assets/thumbs/cat-cafe.jpg",
+      "desc": "这是占位图，换成你的建模渲染图", "demo": true },
+    { "title": "示例 02 · 待替换", "cat": "draw", "catName": "插画", "cover": "assets/thumbs/sakura-station.jpg",
+      "desc": "这是占位图，换成你的画", "demo": true },
+    { "title": "示例 03 · 待替换", "cat": "design", "catName": "设计", "cover": "assets/thumbs/lace.jpg",
+      "desc": "这是占位图，换成你的设计稿", "demo": true },
+    { "title": "示例 04 · 待替换", "cat": "model", "catName": "建模", "cover": "assets/thumbs/one-last-kiss.jpg",
+      "desc": "这是占位图", "demo": true }
+  ]
+}

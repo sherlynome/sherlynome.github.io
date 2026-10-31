@@ -1,0 +1,496 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""生成整站 HTML。
+
+改内容 → 改这个文件 → python build.py，所有页面重写一遍。
+样式在 assets/site.css，交互在 assets/site.js，工具/作品数据在 assets/*.json。
+"""
+from pathlib import Path
+import json
+
+ROOT = Path(__file__).resolve().parent
+GH = "https://github.com/sherlynome"
+GH_REPO = "https://github.com/sherlynome/sherlynome.github.io"
+
+TABS = [
+    ("nav.html", "导航"),
+    ("index.html", "主页"),
+    ("blog.html", "博客"),
+    ("notes.html", "动态"),
+    ("works.html", "作品集"),
+    ("repo.html", "仓库"),
+    ("links.html", "友链"),
+    ("guest.html", "留言"),
+    ("about.html", "关于"),
+]
+
+# ── 动态（短句，随手记） ───────────────────────────────────
+NOTES = [
+    dict(date="2026.11.01", cat="站点", title="整站换成地雷系：黑底 × 荧光粉",
+         text="之前那套浅蓝水色全推翻。底压到近黑，粉色只留一处亮点；字换成字由棒棒体，看着更像我自己发出去的东西。",
+         read="1 分钟", link=""),
+    dict(date="2026.11.01", cat="工具", title="白猫咖啡馆：窗帘挪到猫咪身后",
+         text="原来窗帘压在猫头上。把窗户整层沉到猫咪后面，场景面板改成浮层卡片，顺手把窗帘上的云朵换成 SVG 画的。",
+         read="1 分钟", link="tools/cat-cafe.html"),
+    dict(date="2026.10.31", cat="上新", title="工具墙扩到 14 个",
+         text="新增蕾丝底图生成器、Lo 娘柄图排版、吧唧裁切。每个工具都配了 1:1 封面和站内说明，点「怎么用」就能看。",
+         read="1 分钟", link="tools.html"),
+    dict(date="2026.10.30", cat="站点", title="把所有工具的界面统一了",
+         text="以前每个工具各写各的样式，按钮圆角都不一样。现在共用一份皮肤：调色板、字体、控件尺寸都走同一套变量。",
+         read="1 分钟", link=""),
+    dict(date="2026.10.25", cat="站点", title="站上线了",
+         text="工具越攒越多，散在硬盘里自己也找不到。干脆摆成一个站，至少知道每个是干嘛的。",
+         read="1 分钟", link=""),
+]
+
+# ── 博客（长文，先把坑位留着） ─────────────────────────────
+BLOGS = []   # dict(date, title, text, read, link)
+
+# ── 友链 ───────────────────────────────────────────────────
+LINKS = [
+    dict(href="https://blog.yurucamp.vip", icon="🌙", title="夕凪の小站",
+         desc="普通人的爱好分享地 · 排版干净得要命"),
+    dict(href="https://xnmoe.com", icon="✦", title="NNNullptr",
+         desc="南的个人站 · 卡片墙堆得又满又好看"),
+]
+
+FOOTER = """
+<div class="foot-strip"></div>
+<footer>
+  <div class="wrap row">
+    <div>© 2026 <b>sherly 🌙</b> · 随便逛，随便用</div>
+    <div>建站于 <b>GitHub Pages</b> · 不收集任何数据</div>
+  </div>
+</footer>
+"""
+
+MASK = """
+<div class="mask" id="mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-name">
+    <button class="x" id="m-close" aria-label="关闭">✕</button>
+    <div class="m-top">
+      <img id="m-img" alt="">
+      <div><h4 id="m-name"></h4><div class="m-cat" id="m-cat"></div></div>
+    </div>
+    <p class="m-intro" id="m-intro"></p>
+    <div class="m-h">HOW TO</div>
+    <ol id="m-steps"></ol>
+    <div class="m-tip" id="m-tip"></div>
+    <div class="m-actions"><a class="go" id="m-go" target="_blank" rel="noopener">打开工具 →</a></div>
+  </div>
+</div>
+"""
+
+
+def tabbar(slug: str) -> str:
+    items = "\n".join(
+        '    <a class="tab%s" href="%s">%s</a>' % (" on" if s == slug else "", s, n)
+        for s, n in TABS
+    )
+    return """
+<div class="tabbar">
+  <div class="row">
+%s
+  </div>
+  <div class="band"></div>
+</div>
+""" % items
+
+
+def nav(n_tools: int) -> str:
+    return """
+<nav class="nav">
+  <a class="brand" href="index.html"><i>🎀</i>sherly<em>工坊</em></a>
+  <div class="links">
+    <a href="%s" target="_blank" rel="noopener">GitHub ↗</a>
+    <span class="cnt"><b>%d</b> TOOLS</span>
+  </div>
+</nav>
+""" % (GH, n_tools)
+
+
+def layout(slug, title, desc, body, script="", head=""):
+    n_tools = len(json.loads((ROOT / "assets/tools.json").read_text(encoding="utf-8")))
+    return """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<meta name="theme-color" content="#0A0709">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🎀</text></svg>">
+<link rel="stylesheet" href="assets/site.css">
+{head}
+</head>
+<body>
+{nav}{tabs}
+{body}
+{footer}{mask}
+<script src="assets/site.js"></script>
+{script}
+</body>
+</html>
+""".format(title=title, desc=desc, head=head, nav=nav(n_tools), tabs=tabbar(slug),
+           body=body, footer=FOOTER, mask=MASK, script=script)
+
+
+def page_head(k, h1, sub, kao=""):
+    k_ = '<div class="kao">%s</div>' % kao if kao else ""
+    return """
+<header class="page-head">
+  <div class="wrap">
+    <div class="sec-k">%s</div>
+    <h1>%s</h1>
+    <p>%s</p>
+    %s
+  </div>
+</header>
+""" % (k, h1, sub, k_)
+
+
+def note_rows(notes, limit=None):
+    rows = []
+    for n in (notes[:limit] if limit else notes):
+        tag = 'a' if n["link"] else 'div'
+        attrs = ' href="%s"' % n["link"] if n["link"] else ""
+        target = ' target="_blank" rel="noopener"' if n["link"].startswith("http") else ""
+        rows.append("""
+    <%s class="post"%s%s>
+      <time>%s</time>
+      <div>
+        <h3>%s</h3>
+        <p>%s</p>
+        <div class="p-meta"><span class="p-cat">%s</span><span>%s</span></div>
+      </div>
+      <span class="p-go">%s</span>
+    </%s>""" % (tag, attrs, target, n["date"], n["title"], n["text"],
+                n["cat"], n["read"], "→" if n["link"] else "·", tag))
+    return "\n".join(rows)
+
+
+def link_cards(links):
+    out = []
+    for l in links:
+        out.append("""
+      <a class="lk" href="%s" target="_blank" rel="noopener">
+        <span class="ico">%s</span>
+        <div><h4>%s</h4><p>%s</p></div>
+        <span class="go">→</span>
+      </a>""" % (l["href"], l["icon"], l["title"], l["desc"]))
+    out.append("""
+      <span class="lk empty">
+        <span class="ico">♡</span>
+        <div><h4>这里空着</h4><p>想换友链就来小红书找我，把我加进你的站</p></div>
+      </span>""")
+    return "\n".join(out)
+
+
+# ============================================================
+# 各页内容
+# ============================================================
+HERO = """
+<header class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="glow"></div>
+    <div class="lines"></div>
+    <div class="veil"></div>
+  </div>
+  <div class="wrap hero-in">
+    <div class="eyebrow">SHERLY'S ATELIER</div>
+    <h1>sherly 的<span class="hl">小工坊</span><span class="bow">🎀</span></h1>
+    <p class="lead">6 年编导，二次元博主，Lo 娘。<br>
+      会建模、画画、也写点代码——做图做素材，工具越攒越多，就摆到这里。<br>
+      <b>用得上就拿去用。</b></p>
+    <div class="hero-meta">
+      <a class="pill" href="works.html"><b id="n-works">0</b>件作品</a>
+      <a class="pill" href="tools.html"><b>14</b>个工具</a>
+      <a class="pill" href="notes.html"><b>5</b>条动态</a>
+    </div>
+    <p class="kao">(｡･ω･｡)ﾉ 全部离线可用，不登录，不看广告</p>
+  </div>
+  <a class="scroll" href="#works-preview">SCROLL<span></span></a>
+</header>
+"""
+
+BODY_INDEX = HERO + """
+<section class="sec" id="works-preview">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-k">01 / WORKS</div>
+      <h2>最近的作品</h2>
+      <span class="sub">建模 · 插画 · 设计，做完的都放这</span>
+    </div>
+    <div class="workgrid" id="home-works"></div>
+    <div class="notes-foot"><a class="msgbtn" href="works.html">看全部作品 →</a></div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-k">02 / TOOLS</div>
+      <h2>顺手做的小工具</h2>
+      <span class="sub">点开即用，不用下载</span>
+    </div>
+    <div class="grid" id="home-tools"></div>
+    <div class="notes-foot"><a class="msgbtn" href="tools.html">14 个全在这 →</a></div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-k">03 / NOTES</div>
+      <h2>最近在折腾什么</h2>
+      <span class="sub">改了工具、动了站，随手记一笔</span>
+    </div>
+    <div class="feed">%s</div>
+    <div class="notes-foot"><a class="msgbtn" href="notes.html">全部动态 →</a></div>
+  </div>
+</section>
+""" % note_rows(NOTES, 3)
+
+SCRIPT_INDEX = """
+<script>
+(async () => {
+  try {
+    const works = await getJSON('assets/works.json');
+    const grid = $('#home-works');
+    const items = works.items.slice(0, 4);
+    items.forEach(w => grid.appendChild(workCard(w)));
+    $('#n-works').textContent = works.items.filter(w => !w.demo).length || works.items.length;
+    if (!items.length) grid.innerHTML = '<div class="empty-state"><div class="big">✦</div><h3>还没有作品</h3><p>传上去就会出现在这。</p></div>';
+  } catch (e) { console.warn(e); }
+
+  try {
+    const tools = await getJSON('assets/tools.json');
+    const grid = $('#home-tools');
+    tools.slice(0, 6).forEach((t, i) => grid.appendChild(toolCard(t, i)));
+  } catch (e) { console.warn(e); }
+})();
+</script>
+"""
+
+BODY_NAV = page_head("NAVIGATION", "导航", "整站的地图。想找什么，从这里进。", "(´▽`ʃ♡ƪ) 一共 9 个页面，别走丢") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="navgrid">
+      <a class="navcard" href="index.html"><div class="no">01</div><h3>主页</h3><p>最新作品、工具和动态的入口</p><span class="arrow">→</span></a>
+      <a class="navcard" href="blog.html"><div class="no">02</div><h3>博客</h3><p>长文：教程、拆解、踩过的坑</p><span class="arrow">→</span></a>
+      <a class="navcard" href="notes.html"><div class="no">03</div><h3>动态</h3><p>短句：今天改了什么、在折腾什么</p><span class="arrow">→</span></a>
+      <a class="navcard" href="works.html"><div class="no">04</div><h3>作品集</h3><p>建模 / 插画 / 设计，点开看大图</p><span class="arrow">→</span></a>
+      <a class="navcard" href="repo.html"><div class="no">05</div><h3>仓库</h3><p>GitHub 上的源码，随便抄</p><span class="arrow">→</span></a>
+      <a class="navcard" href="links.html"><div class="no">06</div><h3>友链</h3><p>常逛的几个站</p><span class="arrow">→</span></a>
+      <a class="navcard" href="guest.html"><div class="no">07</div><h3>留言</h3><p>说点什么，用 GitHub 账号登</p><span class="arrow">→</span></a>
+      <a class="navcard" href="about.html"><div class="no">08</div><h3>关于</h3><p>我是谁，这站怎么搭的</p><span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-k">OUTSIDE</div>
+      <h2>常去的地方</h2>
+    </div>
+    <div class="linkgrid">%s</div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-k">TOOLS</div>
+      <h2>14 个工具</h2>
+      <span class="sub">全部纯前端，点开就用</span>
+    </div>
+    <div class="grid" id="toolgrid"></div>
+  </div>
+</section>
+""" % link_cards(LINKS)
+
+SCRIPT_NAV = """
+<script>
+(async () => {
+  const tools = await getJSON('assets/tools.json');
+  const grid = $('#toolgrid');
+  tools.forEach((t, i) => grid.appendChild(toolCard(t, i)));
+})();
+</script>
+"""
+
+BODY_WORKS = page_head("WORKS", "作品集", "建模、插画、设计。做完的都在这，点开看大图。") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="filters" id="wfilter">
+      <button class="chip on" data-f="all">全部</button>
+      <button class="chip" data-f="model">建模</button>
+      <button class="chip" data-f="draw">插画</button>
+      <button class="chip" data-f="design">设计</button>
+    </div>
+    <div class="workgrid" id="workgrid"></div>
+    <div class="notes-foot"><span id="wnote">还在整理，慢慢往里放 ✦</span></div>
+  </div>
+</section>
+"""
+
+SCRIPT_WORKS = """
+<script>
+let ALL = [];
+function paint(cat) {
+  const grid = $('#workgrid');
+  grid.innerHTML = '';
+  const list = ALL.filter(w => cat === 'all' || w.cat === cat);
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="big">✦</div><h3>这一类还没有东西</h3><p>换个分类看看，或者等我慢慢放。</p></div>';
+    return;
+  }
+  list.forEach(w => grid.appendChild(workCard(w)));
+}
+(async () => {
+  try {
+    const data = await getJSON('assets/works.json');
+    ALL = data.items || [];
+    paint('all');
+    const demo = ALL.filter(w => w.demo).length;
+    if (demo) $('#wnote').textContent = '带「示例」角标的 ' + demo + ' 张是占位图，换成你的作品后就会消失 ✦';
+  } catch (e) {
+    $('#workgrid').innerHTML = '<div class="empty-state"><div class="big">✦</div><h3>读不到作品数据</h3><p>assets/works.json 没取到。</p></div>';
+  }
+})();
+bindFilters($('#wfilter'), paint);
+</script>
+"""
+
+BODY_BLOG = page_head("BLOG", "博客", "长一点的东西：教程、拆解、踩过的坑。") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="empty-state">
+      <div class="big">✎</div>
+      <h3>第一篇还没写</h3>
+      <p>短句都在「动态」里。<br>等我想好第一篇写什么，这里就热闹了。</p>
+    </div>
+  </div>
+</section>
+"""
+
+BODY_NOTES = page_head("NOTES", "动态", "改了工具、动了站，随手记一笔。") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="feed">%s</div>
+    <div class="notes-foot"><span>这里会慢慢攒起来 ✦</span></div>
+  </div>
+</section>
+""" % note_rows(NOTES)
+
+BODY_REPO = page_head("REPOSITORY", "仓库", "源码全在 GitHub 上，随便看、随便抄。") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="repogrid" id="repos"></div>
+    <div class="notes-foot"><a class="msgbtn" href="%s" target="_blank" rel="noopener">去 GitHub 看全部 →</a></div>
+  </div>
+</section>
+""" % GH
+
+SCRIPT_REPO = """
+<script>
+(async () => {
+  const box = $('#repos');
+  try {
+    const res = await fetch('https://api.github.com/users/sherlynome/repos?sort=updated&per_page=30');
+    if (!res.ok) throw new Error(res.status);
+    const list = (await res.json()).filter(r => !r.fork);
+    if (!list.length) throw new Error('empty');
+    box.innerHTML = list.map(r => `
+      <a class="repo" href="${r.html_url}" target="_blank" rel="noopener">
+        <h3><span>◈</span>${r.name}</h3>
+        <p>${r.description || '还没写简介'}</p>
+        <div class="foot">
+          <span>${r.language || '—'}</span>
+          <span>★ <b>${r.stargazers_count}</b></span>
+          <span>${(r.updated_at || '').slice(0, 10)} 更新</span>
+        </div>
+      </a>`).join('');
+  } catch (e) {
+    box.innerHTML = `
+      <a class="repo" href="%s" target="_blank" rel="noopener">
+        <h3><span>◈</span>sherlynome.github.io</h3>
+        <p>这个站本身的源码。其余仓库在 GitHub 主页。</p>
+        <div class="foot"><span>直接去 GitHub →</span></div>
+      </a>`;
+  }
+})();
+</script>
+""" % GH
+
+BODY_LINKS = page_head("LINKS", "友链", "常逛的几个站，都是自己一块一块搭出来的。") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="linkgrid">%s</div>
+  </div>
+</section>
+""" % link_cards(LINKS)
+
+BODY_GUEST = page_head("GUESTBOOK", "留言", "说点什么，工具哪里难用、想要什么新的，都行。") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="giscus-wrap">
+      <div class="giscus" id="giscus-box">
+        <div class="empty-state" style="border:none;background:none;">
+          <div class="big">♡</div>
+          <h3>留言板还没接线</h3>
+          <p>要把仓库的 Discussions 打开、装上 giscus 才生效。<br>
+             在那之前，微信/小红书私信我，或者去 GitHub 开 issue。</p>
+        </div>
+      </div>
+    </div>
+    <div class="guest-actions">
+      <a class="msgbtn" href="%s/issues/new" target="_blank" rel="noopener">在 GitHub 开 issue →</a>
+      <a class="msgbtn" href="about.html">怎么找我？</a>
+    </div>
+  </div>
+</section>
+""" % GH_REPO
+
+BODY_ABOUT = page_head("ABOUT", "关于", "做图做素材的人，顺手写点工具。") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="about">
+      <p>6 年编导，二次元博主，Lo 娘。平时做笔记、做图、做素材，市面上顺手的工具没几个，就干脆自己写。</p>
+      <p>会的东西挺杂：<b>建模、插画、排版、剪片子</b>，代码是后来为了做工具硬学的——所以这里的工具都长得很朴素，但每个都解决过我自己一个具体的问题。</p>
+      <p>这个站是纯静态的，托管在 GitHub Pages：<b>没有后台、没有数据库、不收集任何数据</b>。工具全在浏览器里跑，图片不上传服务器。</p>
+      <p class="kao">(｡･ω･｡)ﾉ 想换友链、想要新工具、发现 bug，都可以找我</p>
+      <div class="guest-actions">
+        <a class="msgbtn" href="guest.html">去留言 →</a>
+        <a class="msgbtn" href="%s" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+""" % GH
+
+
+PAGES = [
+    ("nav.html", "导航 · sherly 工坊", "整站地图：主页、博客、动态、作品集、仓库、友链、留言、关于。", BODY_NAV, SCRIPT_NAV),
+    ("index.html", "sherly 工坊 · 做图做素材的小工具与作品", "sherly 的个人站：建模、插画、设计作品，以及十几个纯前端的网页小工具。", BODY_INDEX, SCRIPT_INDEX),
+    ("blog.html", "博客 · sherly 工坊", "长文：工具教程、拆解、踩过的坑。", BODY_BLOG, ""),
+    ("notes.html", "动态 · sherly 工坊", "随手记：改了工具、动了站。", BODY_NOTES, ""),
+    ("works.html", "作品集 · sherly 工坊", "建模、插画、设计作品集。", BODY_WORKS, SCRIPT_WORKS),
+    ("repo.html", "仓库 · sherly 工坊", "GitHub 上的源码仓库。", BODY_REPO, SCRIPT_REPO),
+    ("links.html", "友链 · sherly 工坊", "常逛的几个个人站。", BODY_LINKS, ""),
+    ("guest.html", "留言 · sherly 工坊", "留言板。", BODY_GUEST, ""),
+    ("about.html", "关于 · sherly 工坊", "关于 sherly 和这个站。", BODY_ABOUT, ""),
+]
+
+
+def main():
+    for slug, title, desc, body, script in PAGES:
+        html = layout(slug, title, desc, body, script)
+        (ROOT / slug).write_text(html, encoding="utf-8")
+        print("  ✓ %-12s %5d 字符" % (slug, len(html)))
+    print("\n生成完成：%d 页" % len(PAGES))
+
+
+if __name__ == "__main__":
+    main()

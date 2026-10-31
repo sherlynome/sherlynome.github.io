@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>导航 · sherly 工坊</title>
+<meta name="description" content="整站地图：主页、博客、动态、作品集、仓库、友链、留言、关于。">
+<meta name="theme-color" content="#0A0709">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🎀</text></svg>">
+<link rel="stylesheet" href="assets/site.css">
+
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="index.html"><i>🎀</i>sherly<em>工坊</em></a>
+  <div class="links">
+    <a href="https://github.com/sherlynome" target="_blank" rel="noopener">GitHub ↗</a>
+    <span class="cnt"><b>14</b> TOOLS</span>
+  </div>
+</nav>
+
+<div class="tabbar">
+  <div class="row">
+    <a class="tab on" href="nav.html">导航</a>
+    <a class="tab" href="index.html">主页</a>
+    <a class="tab" href="blog.html">博客</a>
+    <a class="tab" href="notes.html">动态</a>
+    <a class="tab" href="works.html">作品集</a>
+    <a class="tab" href="repo.html">仓库</a>
+    <a class="tab" href="links.html">友链</a>
+    <a class="tab" href="guest.html">留言</a>
+    <a class="tab" href="about.html">关于</a>
+  </div>
+  <div class="band"></div>
+</div>
+
+
+<header class="page-head">
+  <div class="wrap">
+    <div class="sec-k">NAVIGATION</div>
+    <h1>导航</h1>
+    <p>整站的地图。想找什么，从这里进。</p>
+    <div class="kao">(´▽`ʃ♡ƪ) 一共 9 个页面，别走丢</div>
+  </div>
+</header>
+
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="navgrid">
+      <a class="navcard" href="index.html"><div class="no">01</div><h3>主页</h3><p>最新作品、工具和动态的入口</p><span class="arrow">→</span></a>
+      <a class="navcard" href="blog.html"><div class="no">02</div><h3>博客</h3><p>长文：教程、拆解、踩过的坑</p><span class="arrow">→</span></a>
+      <a class="navcard" href="notes.html"><div class="no">03</div><h3>动态</h3><p>短句：今天改了什么、在折腾什么</p><span class="arrow">→</span></a>
+      <a class="navcard" href="works.html"><div class="no">04</div><h3>作品集</h3><p>建模 / 插画 / 设计，点开看大图</p><span class="arrow">→</span></a>
+      <a class="navcard" href="repo.html"><div class="no">05</div><h3>仓库</h3><p>GitHub 上的源码，随便抄</p><span class="arrow">→</span></a>
+      <a class="navcard" href="links.html"><div class="no">06</div><h3>友链</h3><p>常逛的几个站</p><span class="arrow">→</span></a>
+      <a class="navcard" href="guest.html"><div class="no">07</div><h3>留言</h3><p>说点什么，用 GitHub 账号登</p><span class="arrow">→</span></a>
+      <a class="navcard" href="about.html"><div class="no">08</div><h3>关于</h3><p>我是谁，这站怎么搭的</p><span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-k">OUTSIDE</div>
+      <h2>常去的地方</h2>
+    </div>
+    <div class="linkgrid">
+      <a class="lk" href="https://blog.yurucamp.vip" target="_blank" rel="noopener">
+        <span class="ico">🌙</span>
+        <div><h4>夕凪の小站</h4><p>普通人的爱好分享地 · 排版干净得要命</p></div>
+        <span class="go">→</span>
+      </a>
+
+      <a class="lk" href="https://xnmoe.com" target="_blank" rel="noopener">
+        <span class="ico">✦</span>
+        <div><h4>NNNullptr</h4><p>南的个人站 · 卡片墙堆得又满又好看</p></div>
+        <span class="go">→</span>
+      </a>
+
+      <span class="lk empty">
+        <span class="ico">♡</span>
+        <div><h4>这里空着</h4><p>想换友链就来小红书找我，把我加进你的站</p></div>
+      </span></div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-k">TOOLS</div>
+      <h2>14 个工具</h2>
+      <span class="sub">全部纯前端，点开就用</span>
+    </div>
+    <div class="grid" id="toolgrid"></div>
+  </div>
+</section>
+
+
+<div class="foot-strip"></div>
+<footer>
+  <div class="wrap row">
+    <div>© 2026 <b>sherly 🌙</b> · 随便逛，随便用</div>
+    <div>建站于 <b>GitHub Pages</b> · 不收集任何数据</div>
+  </div>
+</footer>
+
+<div class="mask" id="mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-name">
+    <button class="x" id="m-close" aria-label="关闭">✕</button>
+    <div class="m-top">
+      <img id="m-img" alt="">
+      <div><h4 id="m-name"></h4><div class="m-cat" id="m-cat"></div></div>
+    </div>
+    <p class="m-intro" id="m-intro"></p>
+    <div class="m-h">HOW TO</div>
+    <ol id="m-steps"></ol>
+    <div class="m-tip" id="m-tip"></div>
+    <div class="m-actions"><a class="go" id="m-go" target="_blank" rel="noopener">打开工具 →</a></div>
+  </div>
+</div>
+
+<script src="assets/site.js"></script>
+
+<script>
+(async () => {
+  const tools = await getJSON('assets/tools.json');
+  const grid = $('#toolgrid');
+  tools.forEach((t, i) => grid.appendChild(toolCard(t, i)));
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动态 · sherly 工坊</title>
+<meta name="description" content="随手记：改了工具、动了站。">
+<meta name="theme-color" content="#0A0709">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🎀</text></svg>">
+<link rel="stylesheet" href="assets/site.css">
+
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="index.html"><i>🎀</i>sherly<em>工坊</em></a>
+  <div class="links">
+    <a href="https://github.com/sherlynome" target="_blank" rel="noopener">GitHub ↗</a>
+    <span class="cnt"><b>14</b> TOOLS</span>
+  </div>
+</nav>
+
+<div class="tabbar">
+  <div class="row">
+    <a class="tab" href="nav.html">导航</a>
+    <a class="tab" href="index.html">主页</a>
+    <a class="tab" href="blog.html">博客</a>
+    <a class="tab on" href="notes.html">动态</a>
+    <a class="tab" href="works.html">作品集</a>
+    <a class="tab" href="repo.html">仓库</a>
+    <a class="tab" href="links.html">友链</a>
+    <a class="tab" href="guest.html">留言</a>
+    <a class="tab" href="about.html">关于</a>
+  </div>
+  <div class="band"></div>
+</div>
+
+
+<header class="page-head">
+  <div class="wrap">
+    <div class="sec-k">NOTES</div>
+    <h1>动态</h1>
+    <p>改了工具、动了站，随手记一笔。</p>
+    
+  </div>
+</header>
+
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="feed">
+    <div class="post">
+      <time>2026.11.01</time>
+      <div>
+        <h3>整站换成地雷系：黑底 × 荧光粉</h3>
+        <p>之前那套浅蓝水色全推翻。底压到近黑，粉色只留一处亮点；字换成字由棒棒体，看着更像我自己发出去的东西。</p>
+        <div class="p-meta"><span class="p-cat">站点</span><span>1 分钟</span></div>
+      </div>
+      <span class="p-go">·</span>
+    </div>
+
+    <a class="post" href="tools/cat-cafe.html">
+      <time>2026.11.01</time>
+      <div>
+        <h3>白猫咖啡馆：窗帘挪到猫咪身后</h3>
+        <p>原来窗帘压在猫头上。把窗户整层沉到猫咪后面，场景面板改成浮层卡片，顺手把窗帘上的云朵换成 SVG 画的。</p>
+        <div class="p-meta"><span class="p-cat">工具</span><span>1 分钟</span></div>
+      </div>
+      <span class="p-go">→</span>
+    </a>
+
+    <a class="post" href="tools.html">
+      <time>2026.10.31</time>
+      <div>
+        <h3>工具墙扩到 14 个</h3>
+        <p>新增蕾丝底图生成器、Lo 娘柄图排版、吧唧裁切。每个工具都配了 1:1 封面和站内说明，点「怎么用」就能看。</p>
+        <div class="p-meta"><span class="p-cat">上新</span><span>1 分钟</span></div>
+      </div>
+      <span class="p-go">→</span>
+    </a>
+
+    <div class="post">
+      <time>2026.10.30</time>
+      <div>
+        <h3>把所有工具的界面统一了</h3>
+        <p>以前每个工具各写各的样式，按钮圆角都不一样。现在共用一份皮肤：调色板、字体、控件尺寸都走同一套变量。</p>
+        <div class="p-meta"><span class="p-cat">站点</span><span>1 分钟</span></div>
+      </div>
+      <span class="p-go">·</span>
+    </div>
+
+    <div class="post">
+      <time>2026.10.25</time>
+      <div>
+        <h3>站上线了</h3>
+        <p>工具越攒越多，散在硬盘里自己也找不到。干脆摆成一个站，至少知道每个是干嘛的。</p>
+        <div class="p-meta"><span class="p-cat">站点</span><span>1 分钟</span></div>
+      </div>
+      <span class="p-go">·</span>
+    </div></div>
+    <div class="notes-foot"><span>这里会慢慢攒起来 ✦</span></div>
+  </div>
+</section>
+
+
+<div class="foot-strip"></div>
+<footer>
+  <div class="wrap row">
+    <div>© 2026 <b>sherly 🌙</b> · 随便逛，随便用</div>
+    <div>建站于 <b>GitHub Pages</b> · 不收集任何数据</div>
+  </div>
+</footer>
+
+<div class="mask" id="mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-name">
+    <button class="x" id="m-close" aria-label="关闭">✕</button>
+    <div class="m-top">
+      <img id="m-img" alt="">
+      <div><h4 id="m-name"></h4><div class="m-cat" id="m-cat"></div></div>
+    </div>
+    <p class="m-intro" id="m-intro"></p>
+    <div class="m-h">HOW TO</div>
+    <ol id="m-steps"></ol>
+    <div class="m-tip" id="m-tip"></div>
+    <div class="m-actions"><a class="go" id="m-go" target="_blank" rel="noopener">打开工具 →</a></div>
+  </div>
+</div>
+
+<script src="assets/site.js"></script>
+
+</body>
+</html>

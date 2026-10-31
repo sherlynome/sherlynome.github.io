@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""把站酷快乐体（SIL OFL 1.1，可免费商用）按 index.html 实际用字裁剪成 woff2。
+"""把字由棒棒体（优设 × 字由联名，免费可商用）按页面实际用字裁剪成 woff2。
 
 为什么要裁剪：整字体 1.5MB，页面只用到几百个字。子集化后 ~80KB，
 本地自托管、不依赖 CDN、国内打开不卡。
@@ -14,8 +14,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SRC_TTF = ROOT / "fonts" / "_src" / "ZCOOLKuaiLe-Regular.ttf"
-OUT_WOFF2 = ROOT / "fonts" / "kuaile-subset.woff2"
+SRC_OTF = ROOT / "fonts" / "_src" / "YSBangBangTi.otf"
+OUT_WOFF2 = ROOT / "fonts" / "bangbang-subset.woff2"
 # 首页 + 套了皮肤的工具页（工具里的按钮/标签文案也要在子集里，否则会回退系统字体）
 PAGES = ["index.html"] + [f"tools/{p.name}" for p in sorted((ROOT / "tools").glob("*.html"))]
 
@@ -38,9 +38,9 @@ def collect_chars() -> str:
 
 
 def main() -> int:
-    if not SRC_TTF.exists():
-        print(f"缺少源字体：{SRC_TTF}")
-        print("下载：https://github.com/google/fonts/raw/main/ofl/zcoolkuaile/ZCOOLKuaiLe-Regular.ttf")
+    if not SRC_OTF.exists():
+        print(f"缺少源字体：{SRC_OTF}")
+        print("字由棒棒体只通过字由客户端分发，需要自行放进 fonts/_src/")
         return 1
 
     text = collect_chars()
@@ -49,7 +49,7 @@ def main() -> int:
     tmp_txt.write_text(text, encoding="utf-8")
 
     cmd = [
-        sys.executable, "-m", "fontTools.subset", str(SRC_TTF),
+        sys.executable, "-m", "fontTools.subset", str(SRC_OTF),
         f"--text-file={tmp_txt}",
         f"--output-file={OUT_WOFF2}",
         "--flavor=woff2",

@@ -3,634 +3,170 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>sherly 🌙 · 小工具工坊</title>
-<meta name="description" content="sherly 的网页小工具合集：吧唧图案、条纹棋盘格、水印机、场景合成。全部纯前端，免费、免登录。">
+<title>sherly 工坊 · 做图做素材的小工具与作品</title>
+<meta name="description" content="sherly 的个人站：建模、插画、设计作品，以及十几个纯前端的网页小工具。">
+<meta name="theme-color" content="#0A0709">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🎀</text></svg>">
-<style>
-  @font-face{
-    font-family:"KuaiLe";
-    src:url("fonts/kuaile-subset.woff2") format("woff2");
-    font-weight:400; font-style:normal; font-display:swap;
-  }
-  /* 站酷快乐体的数字太随性（0 像方框、11 像斜杠），数字走系统字体 */
-  @font-face{
-    font-family:"NumFix";
-    src:local("Microsoft YaHei UI"),local("Microsoft YaHei"),local("PingFang SC"),local("Hiragino Sans GB"),local("Segoe UI");
-    unicode-range:U+0030-0039,U+0025,U+002B;
-  }
-  :root{
-    --sky:#F2FAFE;
-    --sky-2:#E4F3FB;
-    --aqua:#A9DCEC;
-    --aqua-deep:#4E9FBC;
-    --miku:#39C5BB;
-    --pink:#FFB9D2;
-    --pink-soft:#FFE6EF;
-    --ink:#2C4A5C;
-    --ink-soft:#6E90A3;
-    --line:#D6ECF6;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{max-width:100%;overflow-x:hidden;}
-  html{scroll-behavior:smooth;}
-  body{
-    background:
-      radial-gradient(1200px 520px at 14% -8%, #EAF7FD 0%, rgba(234,247,253,0) 62%),
-      radial-gradient(900px 440px at 88% 3%, #F7EDF8 0%, rgba(247,237,248,0) 58%),
-      linear-gradient(180deg,#FBFDFF 0%, #F2FAFE 46%, #EAF5FB 100%);
-    background-attachment:fixed;
-    color:var(--ink);
-    font-family:"NumFix","KuaiLe","ZCOOL KuaiLe","YouYuan","幼圆","Microsoft YaHei UI","Microsoft YaHei","PingFang SC",sans-serif;
-    line-height:1.75;
-    -webkit-font-smoothing:antialiased;
-    min-height:100vh;
-  }
-  .wrap{max-width:1060px;margin:0 auto;padding:0 24px;position:relative;z-index:2;width:100%;}
+<link rel="stylesheet" href="assets/site.css">
 
-  .topbar{
-    background:linear-gradient(90deg,#DCF1FA,#EAF7FD 50%,#F7EAF6);
-    color:#4F7C93; font-size:12.5px; text-align:center; padding:9px 14px;
-    letter-spacing:.4px; border-bottom:1px solid rgba(169,220,236,.5);
-  }
-  .topbar b{color:var(--aqua-deep);font-weight:400;}
-
-  .bg-wave{
-    position:fixed; left:0; right:0; bottom:0; height:36vh; z-index:0;
-    pointer-events:none; opacity:.6; width:100%;
-  }
-  .deco{position:absolute;pointer-events:none;z-index:1;}
-
-  header{padding:76px 0 38px;position:relative;}
-  .badge-top{
-    display:inline-flex;align-items:center;gap:9px;
-    font-size:12.5px;color:var(--aqua-deep);letter-spacing:.6px;
-    background:rgba(255,255,255,.9);border:1px solid var(--line);
-    padding:7px 17px 7px 13px;border-radius:99px;margin-bottom:26px;
-    box-shadow:0 6px 18px rgba(120,180,210,.10);
-  }
-  .badge-top .dot{width:7px;height:7px;border-radius:50%;background:var(--miku);box-shadow:0 0 0 4px rgba(57,197,187,.16);}
-
-  h1{
-    font-size:clamp(33px,6vw,56px);
-    line-height:1.3; letter-spacing:.5px; font-weight:400;
-    margin-bottom:6px; position:relative;
-  }
-  h1 em{font-style:normal;position:relative;display:inline-block;color:var(--aqua-deep);}
-  h1 em .underline{
-    position:absolute;left:0;right:0;bottom:-5px;height:9px;
-    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8 Q 12 2, 24 7 T 48 7 T 72 7 T 96 7 T 120 7 T 144 7 T 168 7 T 192 7' stroke='%23A9DCEC' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/100% 100%;
-  }
-  .bow-wrap{display:inline-block;margin-left:10px;font-size:34px;line-height:1;transform:translateY(-6px) rotate(-8deg);animation:bowFloat 5s ease-in-out infinite;font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;}
-  @keyframes bowFloat{0%,100%{transform:translateY(0) rotate(-4deg);}50%{transform:translateY(-6px) rotate(2deg);}}
-
-  .lead{font-size:16.5px;color:var(--ink-soft);max-width:590px;margin:20px 0 32px;line-height:2;}
-  .lead strong{color:var(--ink);font-weight:500;}
-
-  .stats{display:flex;flex-wrap:wrap;gap:14px;}
-  .stat{
-    background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:18px;
-    padding:13px 22px;min-width:104px;
-    box-shadow:0 8px 24px rgba(120,180,210,.10);
-  }
-  .stat b{display:block;font-size:24px;color:var(--aqua-deep);line-height:1.25;font-weight:400;}
-  .stat span{font-size:11.5px;color:var(--ink-soft);}
-
-  .sec{padding:32px 0;position:relative;}
-  .sec-head{display:flex;align-items:center;gap:11px;margin-bottom:24px;flex-wrap:wrap;}
-  .sec-head h2{font-size:22px;font-weight:400;letter-spacing:.6px;color:var(--ink);}
-  .sec-head .sub{font-size:13px;color:var(--ink-soft);}
-  .sec-head .spark{font-size:14px;color:#F3CD86;}
-  .sec-head .kao-h{font-size:15px;color:#9FD3E6;margin-left:-2px;}
-
-  .about{
-    position:relative;
-    background:rgba(255,255,255,.95);
-    border:1.5px solid var(--line);
-    border-radius:26px 22px 26px 20px;
-    box-shadow:0 14px 40px rgba(120,180,210,.13);
-    padding:32px 34px;
-  }
-  /* 颜文字：站酷快乐体没有这些符号，单独指定符号字体 */
-  .k,.kao-inline{
-    font-family:"Segoe UI Symbol","Segoe UI Emoji","MS Gothic","Yu Gothic UI","Meiryo",sans-serif;
-    letter-spacing:0;
-  }
-  .kao{margin-top:16px!important;font-size:15px;color:var(--ink-soft);line-height:1.9;}
-  .kao .k{color:var(--aqua-deep);margin-right:2px;}
-  .kao-inline{color:var(--pink);font-size:13px;}
-
-  .about p{font-size:16px;margin-bottom:14px;color:#3B5B6D;line-height:1.95;}
-  .about p:last-of-type{margin-bottom:0;}
-
-  .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:26px;}
-  .chip{
-    font-family:inherit;font-size:13px;padding:9px 20px;cursor:pointer;
-    background:rgba(255,255,255,.9);color:var(--ink-soft);
-    border:1.5px solid var(--line);border-radius:99px;
-    transition:all .2s ease;
-  }
-  .chip:hover{color:var(--aqua-deep);border-color:var(--aqua);transform:translateY(-2px);}
-  .chip.on{
-    background:linear-gradient(135deg,#8FD3E8,#67BFD9);
-    color:#fff;border-color:transparent;
-    box-shadow:0 8px 20px rgba(103,191,217,.32);
-  }
-
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(254px,1fr));gap:22px;}
-  .card{
-    position:relative;display:flex;flex-direction:column;
-    text-decoration:none;color:inherit;
-    background:rgba(255,255,255,.97);
-    border:1.5px solid var(--line);
-    border-radius:22px 18px 22px 18px;
-    box-shadow:0 10px 28px rgba(120,180,210,.10);
-    padding:11px 11px 14px;
-    transition:transform .22s cubic-bezier(.2,.8,.3,1), box-shadow .22s, border-color .22s;
-    overflow:hidden;
-  }
-  .card:hover{transform:translateY(-5px);box-shadow:0 18px 40px rgba(120,180,210,.20);border-color:var(--aqua);}
-  .card .thumb{
-    position:relative;border-radius:15px;overflow:hidden;aspect-ratio:1/1;
-    background:linear-gradient(135deg,#E9F8FD,#F8FCFE);
-  }
-  .card .thumb img{
-    width:100%;height:100%;display:block;object-fit:cover;
-    transition:transform .5s cubic-bezier(.2,.8,.3,1);
-  }
-  .card:hover .thumb img{transform:scale(1.035);}
-  .card .body{padding:13px 8px 0;display:flex;flex-direction:column;flex:1;}
-  .card h3{font-size:15.5px;font-weight:400;margin-bottom:6px;letter-spacing:.3px;color:var(--ink);}
-  .card p{font-size:12.5px;color:var(--ink-soft);flex:1;line-height:1.7;margin-bottom:12px;}
-  .card .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .card .tag{font-size:11px;padding:4px 11px;border-radius:99px;letter-spacing:.3px;}
-  .tag.pattern{background:#E3F4FC;color:#4C8FAD;}
-  .tag.water{background:var(--pink-soft);color:#C4688D;}
-  .tag.scene{background:#E1F6F2;color:#2A968E;}
-  .tag.ani{background:#EDE9F9;color:#7466AE;}
-  .card .how{
-    font:inherit;font-size:11.5px;color:var(--aqua-deep);
-    background:rgba(169,220,236,.22);
-    border:1px solid rgba(169,220,236,.8);
-    border-radius:99px;padding:4px 12px;cursor:pointer;white-space:nowrap;
-    transition:background .2s,color .2s,transform .2s,border-color .2s;
-  }
-  .card .how:hover{background:var(--aqua);color:#fff;border-color:transparent;transform:translateY(-1px);}
-
-  /* 使用说明弹窗 */
-  .mask{
-    position:fixed;inset:0;z-index:90;display:none;
-    align-items:center;justify-content:center;padding:20px;
-    background:rgba(40,74,94,.30);backdrop-filter:blur(3px);
-  }
-  .mask.on{display:flex;}
-  .modal{
-    position:relative;width:min(540px,100%);max-height:86vh;overflow:auto;
-    background:#fff;border:1.5px solid var(--line);
-    border-radius:24px 20px 24px 20px;
-    box-shadow:0 30px 70px rgba(60,110,140,.26);
-    padding:24px 24px 20px;
-    animation:pop .26s cubic-bezier(.2,.9,.3,1);
-  }
-  @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.985);}to{opacity:1;transform:none;}}
-  .modal .x{
-    position:absolute;top:13px;right:13px;width:31px;height:31px;border-radius:50%;
-    border:1px solid var(--line);background:#fff;color:var(--ink-soft);
-    font-size:14px;line-height:1;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .modal .x:hover{color:var(--aqua-deep);border-color:var(--aqua);}
-  .modal .m-top{display:flex;gap:13px;align-items:center;margin-bottom:14px;padding-right:32px;}
-  .modal .m-top img{width:54px;height:54px;border-radius:14px;border:1px solid var(--line);flex:none;object-fit:cover;}
-  .modal h4{font-size:18.5px;font-weight:400;color:var(--ink);margin-bottom:3px;letter-spacing:.4px;}
-  .modal .m-cat{font-size:11.5px;color:var(--ink-soft);}
-  .modal .m-intro{font-size:13.8px;line-height:1.95;color:var(--ink-soft);margin:0;}
-  .modal .m-h{font-size:12px;color:var(--aqua-deep);letter-spacing:1.4px;margin:19px 0 10px;}
-  .modal ol{margin:0;padding:0;list-style:none;counter-reset:s;}
-  .modal ol li{
-    counter-increment:s;position:relative;padding-left:27px;
-    font-size:13.2px;line-height:1.85;color:var(--ink-soft);margin-bottom:7px;
-  }
-  .modal ol li:last-child{margin-bottom:0;}
-  .modal ol li::before{
-    content:counter(s);position:absolute;left:0;top:3px;
-    width:18px;height:18px;border-radius:50%;
-    background:rgba(169,220,236,.38);color:var(--aqua-deep);
-    font-size:10.5px;display:flex;align-items:center;justify-content:center;
-  }
-  .modal .m-tip{
-    margin-top:15px;font-size:12.3px;line-height:1.8;color:#5F8CA3;
-    background:rgba(169,220,236,.15);border-left:3px solid var(--aqua);
-    border-radius:0 12px 12px 0;padding:9px 13px;
-  }
-  .modal .m-actions{display:flex;gap:10px;margin-top:19px;}
-  .modal .go{
-    flex:1;text-align:center;text-decoration:none;
-    background:linear-gradient(135deg,#8FD3E8,#67BFD9);color:#fff;
-    padding:12px 18px;border-radius:99px;font-size:14px;letter-spacing:.5px;
-    box-shadow:0 10px 24px rgba(103,191,217,.30);
-    transition:filter .2s,transform .2s;
-  }
-  .modal .go:hover{filter:brightness(1.05);transform:translateY(-1px);}
-
-  footer{
-    margin-top:42px;padding:32px 0 56px;position:relative;z-index:2;
-    font-size:12.5px;color:var(--ink-soft);
-  }
-  footer .row{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:center;}
-  footer b{color:var(--aqua-deep);font-weight:400;}
-
-  @media (max-width:620px){
-    .topbar{font-size:11px;padding:8px 12px;}
-    header{padding:46px 0 24px;}
-    h1{font-size:30px;line-height:1.36;}
-    .lead{font-size:15px;margin:17px 0 25px;line-height:1.9;}
-    .stats{gap:8px;}
-    .stat{flex:1 1 0;min-width:0;padding:10px 8px;text-align:center;border-radius:14px;}
-    .stat b{font-size:18px;}
-    .stat span{font-size:10px;display:block;line-height:1.45;}
-    .about{padding:24px 20px;border-radius:22px;}
-    .about::before{left:26px;width:74px;}
-    .about p{font-size:14px;}
-    .sec{padding:24px 0;}
-    .sec-head h2{font-size:19px;}
-    .grid{grid-template-columns:1fr;gap:14px;}
-    .card{padding:9px 9px 12px;border-radius:20px 16px 20px 16px;}
-    .card .thumb{aspect-ratio:4/3;}
-    .card .body{padding:12px 6px 0;}
-    .card h3{font-size:15px;}
-    .modal{padding:20px 17px 16px;border-radius:22px 18px 22px 18px;}
-    .modal .m-intro{font-size:13.2px;}
-    .mask{padding:12px;}
-    footer .row{flex-direction:column;align-items:flex-start;gap:8px;}
-  }
-</style>
 </head>
 <body>
 
-<div class="topbar">全部工具<b>纯本地运行</b> · 免登录 · 不收集数据 🎀</div>
+<nav class="nav">
+  <a class="brand" href="index.html"><i>🎀</i>sherly<em>工坊</em></a>
+  <div class="links">
+    <a href="https://github.com/sherlynome" target="_blank" rel="noopener">GitHub ↗</a>
+    <span class="cnt"><b>14</b> TOOLS</span>
+  </div>
+</nav>
 
-<svg class="bg-wave" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
-  <path fill="#DCEEF9" fill-opacity="0.55" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-  <path fill="#CFE9F6" fill-opacity="0.45" d="M0,256L60,245.3C120,235,240,213,360,218.7C480,224,600,256,720,261.3C840,267,960,245,1080,234.7C1200,224,1320,224,1380,224L1440,224L1440,320L0,320Z"></path>
-</svg>
+<div class="tabbar">
+  <div class="row">
+    <a class="tab" href="nav.html">导航</a>
+    <a class="tab on" href="index.html">主页</a>
+    <a class="tab" href="blog.html">博客</a>
+    <a class="tab" href="notes.html">动态</a>
+    <a class="tab" href="works.html">作品集</a>
+    <a class="tab" href="repo.html">仓库</a>
+    <a class="tab" href="links.html">友链</a>
+    <a class="tab" href="guest.html">留言</a>
+    <a class="tab" href="about.html">关于</a>
+  </div>
+  <div class="band"></div>
+</div>
 
-<div class="wrap">
 
-  <header>
-    <svg class="deco" style="right:5%;top:70px;width:96px;opacity:.8" viewBox="0 0 120 70" aria-hidden="true">
-      <path d="M22 52c-8 0-14-6-14-13s6-13 14-13c1-9 9-16 18-16 8 0 15 5 17 13 9 0 16 7 16 15s-7 14-16 14H22z" fill="#FFFFFF" stroke="#BFE3F1" stroke-width="2" stroke-linejoin="round"/>
-    </svg>
-    <span class="deco" style="right:31%;top:196px;font-size:22px;color:#39C5BB;opacity:.55">♪</span>
-    <svg class="deco" style="right:23%;top:158px;width:24px;opacity:.85" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 2l2.2 6.3L21 10l-5.3 4 1.7 6.6L12 17l-5.4 3.6L8.3 14 3 10l6.8-1.7L12 2z" fill="#FFE9C4" stroke="#F3CD86" stroke-width="1.4" stroke-linejoin="round"/>
-    </svg>
-    <svg class="deco" style="left:1%;top:215px;width:16px;opacity:.7" viewBox="0 0 20 26" aria-hidden="true">
-      <path d="M10 2c4 5 7 8.6 7 12.6A7 7 0 0 1 3 14.6C3 10.6 6 7 10 2z" fill="#CDEAF7" stroke="#A9DCEC" stroke-width="1.6"/>
-    </svg>
-
-    <div class="badge-top"><span class="dot"></span>sherly 的小工具工坊 · <span id="n-badge">11</span> tools</div>
-
-    <h1>
-      用代码做点<br>
-      <em>可爱又顺手<span class="underline"></span></em>
-      的小工具<span class="bow-wrap">🎀</span>
-    </h1>
-
-    <p class="lead">
-      6 年编导，二次元博主，Lo 娘。给自己做图做素材，工具越攒越多，就摆到这里。
-      <strong>用得上就拿去用。</strong>
-    </p>
-
-    <div class="stats">
-      <div class="stat"><b id="n-tools">11</b><span>个工具</span></div>
-      <div class="stat"><b>6</b><span>年编导</span></div>
-      <div class="stat"><b>0</b><span>个后端 · 纯前端</span></div>
+<header class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="glow"></div>
+    <div class="lines"></div>
+    <div class="veil"></div>
+  </div>
+  <div class="wrap hero-in">
+    <div class="eyebrow">SHERLY'S ATELIER</div>
+    <h1>sherly 的<span class="hl">小工坊</span><span class="bow">🎀</span></h1>
+    <p class="lead">6 年编导，二次元博主，Lo 娘。<br>
+      会建模、画画、也写点代码——做图做素材，工具越攒越多，就摆到这里。<br>
+      <b>用得上就拿去用。</b></p>
+    <div class="hero-meta">
+      <a class="pill" href="works.html"><b id="n-works">0</b>件作品</a>
+      <a class="pill" href="tools.html"><b>14</b>个工具</a>
+      <a class="pill" href="notes.html"><b>5</b>条动态</a>
     </div>
-  </header>
+    <p class="kao">(｡･ω･｡)ﾉ 全部离线可用，不登录，不看广告</p>
+  </div>
+  <a class="scroll" href="#works-preview">SCROLL<span></span></a>
+</header>
 
-  <section class="sec">
-    <div class="about">
-      <p>做工具的初衷很简单：给小红书配图的时候，市面上的工具要么加水印、要么收费、要么把图传到别人服务器上。</p>
-      <p>所以干脆自己写。全部单文件、纯前端、离线可用——打开就能用，关掉什么都不留下。</p>
-      <p class="kao"><span class="k">(｡･ω･｡)ﾉ</span>用得顺手就好，不必谢</p>
-    </div>
-  </section>
-
-  <section class="sec" id="tools">
+<section class="sec" id="works-preview">
+  <div class="wrap">
     <div class="sec-head">
-      <span class="spark">✦</span>
-      <h2>工具墙</h2>
-      <span class="kao-h k">✧◝(⁰▿⁰)◜✧</span>
+      <div class="sec-k">01 / WORKS</div>
+      <h2>最近的作品</h2>
+      <span class="sub">建模 · 插画 · 设计，做完的都放这</span>
+    </div>
+    <div class="workgrid" id="home-works"></div>
+    <div class="notes-foot"><a class="msgbtn" href="works.html">看全部作品 →</a></div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-k">02 / TOOLS</div>
+      <h2>顺手做的小工具</h2>
       <span class="sub">点开即用，不用下载</span>
     </div>
-    <div class="filters" id="filters">
-      <button class="chip on" data-f="all">全部</button>
-      <button class="chip" data-f="pattern">图案 · 底图</button>
-      <button class="chip" data-f="water">水印</button>
-      <button class="chip" data-f="scene">场景合成</button>
-      <button class="chip" data-f="ani">二次元</button>
-    </div>
-    <div class="grid" id="grid"></div>
-  </section>
+    <div class="grid" id="home-tools"></div>
+    <div class="notes-foot"><a class="msgbtn" href="tools.html">14 个全在这 →</a></div>
+  </div>
+</section>
 
-  <footer>
-    <div class="row">
-      <div>© 2026 <b>sherly 🌙</b> · 工具全部免费，随便用 <span class="kao-inline">(´▽`ʃ♡ƪ)</span></div>
-      <div>建站于 <b>GitHub Pages</b> · 不收集任何数据</div>
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-k">03 / NOTES</div>
+      <h2>最近在折腾什么</h2>
+      <span class="sub">改了工具、动了站，随手记一笔</span>
     </div>
-  </footer>
+    <div class="feed">
+    <div class="post">
+      <time>2026.11.01</time>
+      <div>
+        <h3>整站换成地雷系：黑底 × 荧光粉</h3>
+        <p>之前那套浅蓝水色全推翻。底压到近黑，粉色只留一处亮点；字换成字由棒棒体，看着更像我自己发出去的东西。</p>
+        <div class="p-meta"><span class="p-cat">站点</span><span>1 分钟</span></div>
+      </div>
+      <span class="p-go">·</span>
+    </div>
 
-</div>
+    <a class="post" href="tools/cat-cafe.html">
+      <time>2026.11.01</time>
+      <div>
+        <h3>白猫咖啡馆：窗帘挪到猫咪身后</h3>
+        <p>原来窗帘压在猫头上。把窗户整层沉到猫咪后面，场景面板改成浮层卡片，顺手把窗帘上的云朵换成 SVG 画的。</p>
+        <div class="p-meta"><span class="p-cat">工具</span><span>1 分钟</span></div>
+      </div>
+      <span class="p-go">→</span>
+    </a>
+
+    <a class="post" href="tools.html">
+      <time>2026.10.31</time>
+      <div>
+        <h3>工具墙扩到 14 个</h3>
+        <p>新增蕾丝底图生成器、Lo 娘柄图排版、吧唧裁切。每个工具都配了 1:1 封面和站内说明，点「怎么用」就能看。</p>
+        <div class="p-meta"><span class="p-cat">上新</span><span>1 分钟</span></div>
+      </div>
+      <span class="p-go">→</span>
+    </a></div>
+    <div class="notes-foot"><a class="msgbtn" href="notes.html">全部动态 →</a></div>
+  </div>
+</section>
+
+
+<div class="foot-strip"></div>
+<footer>
+  <div class="wrap row">
+    <div>© 2026 <b>sherly 🌙</b> · 随便逛，随便用</div>
+    <div>建站于 <b>GitHub Pages</b> · 不收集任何数据</div>
+  </div>
+</footer>
 
 <div class="mask" id="mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-name">
-    <button class="x" id="m-close" aria-label="关闭">×</button>
+    <button class="x" id="m-close" aria-label="关闭">✕</button>
     <div class="m-top">
       <img id="m-img" alt="">
-      <div>
-        <h4 id="m-name"></h4>
-        <div class="m-cat" id="m-cat"></div>
-      </div>
+      <div><h4 id="m-name"></h4><div class="m-cat" id="m-cat"></div></div>
     </div>
     <p class="m-intro" id="m-intro"></p>
-    <div class="m-h">怎么用</div>
+    <div class="m-h">HOW TO</div>
     <ol id="m-steps"></ol>
     <div class="m-tip" id="m-tip"></div>
     <div class="m-actions"><a class="go" id="m-go" target="_blank" rel="noopener">打开工具 →</a></div>
   </div>
 </div>
 
+<script src="assets/site.js"></script>
+
 <script>
-const TOOLS = [
-  {
-    file:'badge-pattern.html', name:'吧唧图案工作室', cat:'pattern', catName:'图案 · 底图',
-    tag:'12 种图案 × 6 套配色，1200×1200 直接印',
-    intro:'做谷子底图的主力工具。条纹、棋盘格、格子布、苏格兰格、波点、星星、爆炸星、漩涡、小鱼、菱形格、马赛克、水彩斑点，十二种图案都在里面；配色备了草莓牛奶、橄榄园、海盐苏打、香芋奶昔、柠檬汽水、复古黑白六套，也能自己调 A 底 / B 主 / C 辅 / D 点缀四色。',
-    steps:[
-      '左侧选图案类型，图案立刻铺到画布',
-      '点一套预设配色，或手动改四个色值',
-      '拖「角度 / 旋转」改变图案走向',
-      '选谷子形状：自由画布 / 方形 / 圆形 / 爱心 / 长方形 / 斜方形',
-      '想换手感就点「随机配色」「重散布」，满意后导出 PNG'
-    ],
-    tip:'导出是 1200×1200，做 58mm 吧唧刚好够 300dpi，不用再放大。'
-  },
-  {
-    file:'stripe.html', name:'条纹生成器', cat:'pattern', catName:'图案 · 底图',
-    tag:'数量、宽度、角度，全部摊开给你调',
-    intro:'只做条纹，但每个参数都摆出来：条纹数量、A 色宽度、旋转角度（0 / 15 / 45 / 90 / 135 有预设，标了「竖 0°」「横 90°」不用记）、七套现成配色。还能选谷子形状，以及「平铺填满 / 完整居中」两种显示方式。',
-    steps:[
-      '先挑配色：草莓牛奶 / 樱花 / 香芋 / 抹茶 / 海盐 / 柠檬 / 经典黑白',
-      '拖「条纹数量」与「A 色宽度」定疏密',
-      '点角度预设，或直接拖旋转滑杆',
-      '选形状与显示方式：平铺填满适合整版，完整居中适合单枚',
-      '导出 PNG'
-    ],
-    tip:'条纹太多会糊成一片，58mm 的吧唧建议 8～14 条。'
-  },
-  {
-    file:'checker.html', name:'棋盘格生成器', cat:'pattern', catName:'图案 · 底图',
-    tag:'一行几格、一列几格分开数，锁了就不变形',
-    intro:'棋盘格与格子布两种图案，行列数可以分开设；打开「正方形格子」就锁定比例，怎么改都不会拉成长条。七套配色，角度可旋转，右下角能决定要不要署名。',
-    steps:[
-      '选「棋盘格」或「格子布」',
-      '拖「一行格数」「一列格数」，要正格子就开「正方形格子」',
-      '调旋转角度（0 / 15 / 45 / 90 / 135）',
-      '选配色，或手动改 A / B 两色',
-      '确认署名开关后导出 PNG'
-    ],
-    tip:'格子布比棋盘格柔，做棉布质感的柄图选它。'
-  },
-  {
-    file:'candy-shape.html', name:'糖果喷绘形状底图', cat:'pattern', catName:'图案 · 底图',
-    tag:'12 种底板形状，糖果质感，导出透明底',
-    intro:'做谷子底板用的形状生成器：圆形、花边圆、花朵、星形、心形、云朵、蛋形、圆角方、胶囊、拱门、六边形、椭圆。底板能是彩色喷绘也能纯白；色块大小、边缘柔和度、颗粒强度分别控制，喷出来的颗粒感接近印刷网点。',
-    steps:[
-      '选底图形状',
-      '决定底板样式：彩色喷绘 或 纯白底板',
-      '拖「形状留白」控制图案离边多远',
-      '调「色块大小 / 边缘柔和 / 颗粒强度」定质感',
-      '点「换色块形态」重排一次，导出透明 PNG'
-    ],
-    tip:'导出是透明背景，可以直接拖进别的排版工具里用。'
-  },
-  {
-    file:'lace.html', name:'蕾丝底图生成器', cat:'pattern', catName:'图案 · 底图',
-    tag:'五页分开做：单元 → 环绕 → 内饰 → 底形状 → 背景',
-    intro:'一整套蕾丝工序拆成五页：① 单元打孔编辑（打孔形状、大小、旋转、宽度、透明、对称）② 环绕排列（数量、单元缩放、环路径收缩）③ 内环与内部打孔装饰（点圈 / 线圈）④ 底形状与蕾丝类型（透明蕾丝还是纯色背景）⑤ 背景图案十种，带间距、大小、排布。',
-    steps:[
-      '第一页做好一个蕾丝单元：选打孔形状，调大小、旋转、宽度',
-      '第二页设环绕数量与收缩，让单元围成一圈',
-      '第三页加内环打孔装饰，点圈或线圈',
-      '第四页定底形状、内部填充、中心色与边缘色',
-      '第五页套背景图案；五页每页都能单独导出透明 PNG'
-    ],
-    tip:'「透明」和「对称」两个开关决定它最后是镂空蕾丝还是实心花纹，先想好再调。'
-  },
-  {
-    file:'lolita-print.html', name:'Lo 娘柄图排版', cat:'pattern', catName:'图案 · 底图',
-    tag:'上传透明图案，7 种排布自动拼成柄图',
-    intro:'把单枚图案拼成整版柄图。最多放 5 张透明底图案，七种排布（半随机 / 网格 / 交错 / 砖砌 / 斜线 / 环形 / 无规则），元素大小、密度、旋转（锁死 / ±15° / ±45° / 全向）、缩放变化、镜像概率都能调，出来的版不会呆板。',
-    steps:[
-      '点「添加透明底图案」上传，最多 5 张',
-      '选排布模式：要规整选网格 / 斜线，要自然选半随机 / 无规则',
-      '拖元素大小与密度，再开一点旋转与镜像',
-      '要底纹就导入背景图，不要就用底色（支持吸管取色）',
-      '开满屏水印防搬运，填署名，导出 3:4 或 1:1'
-    ],
-    tip:'「换一批随机」不会删图，只是重排一次，不满意可以连点几下。'
-  },
-  {
-    file:'badge-cut.html', name:'吧唧裁切', cat:'pattern', catName:'图案 · 底图',
-    tag:'带裁切线和安全线，印刷图与样机图一起出',
-    intro:'吧唧制作最后一步。上传角色图后单指拖动、双指缩放摆位，画面上直接画出裁切线（出血）和安全线，能马上看出会不会裁到脸。四类形状尺寸、滤镜、底色对齐、署名、旋转和 3D 翻面，最后同时导出 300dpi 印刷图与样机展示图。',
-    steps:[
-      '点「点击上传角色图」',
-      '拖动 / 缩放，让关键内容落在安全线以内',
-      '点底部「形状」选尺寸，按需要切圆或方',
-      '用「滤镜 / 底色 / 署名」收拾画面',
-      '进「更多 → 信息 · 导出」出 300dpi 印刷图，或出样机图发笔记'
-    ],
-    tip:'印刷图是含出血的，送印别自己再裁，工厂会按裁切线切。'
-  },
-  {
-    file:'watermark-v5.html', name:'粉粉水印机 v5', cat:'water', catName:'水印',
-    tag:'平铺水印 + 模糊条 + 摩尔纹，一整套防盗',
-    intro:'发布前的最后一道。先选比例（之后随时能换），再进画布工作台：平铺水印管透明度、密度、大小；模糊条专门盖 ID 和聊天记录；摩尔纹让整张图变乱码防截图；还有署名角标、贴纸（「手作不易 禁二改二传」这类）和分割线。',
-    steps:[
-      '先选画布比例，之后随时能换',
-      '上传底图，需要的话先「调整裁切」',
-      '开「平铺水印」，调透明度 / 密度 / 大小',
-      '有 ID 或聊天记录就用「模糊条」拖一条盖住',
-      '加署名角标和贴纸，完成后保存'
-    ],
-    tip:'底图可以不上传——只想做一张空白水印样板也支持。'
-  },
-  {
-    file:'watermark-e.html', name:'sherly 水印 · e 版', cat:'water', catName:'水印',
-    tag:'大图自适应修复版，带快捷键预设',
-    intro:'和水印机 v5 同一套功能，e 版针对大图做了自适应：大尺寸原图不再糊、不卡，导出尺寸跟原图对齐。额外带自检与快捷键预设，批量处理原图更省事。',
-    steps:[
-      '选比例，上传大图',
-      '平铺水印 / 模糊条 / 摩尔纹按需打开',
-      '用快捷键预设快速切档位',
-      '确认大图没被压糊，保存'
-    ],
-    tip:'日常加水印用 v5 更轻；原图很大或要批量出图，用 e 版。'
-  },
-  {
-    file:'cat-cafe.html', name:'白猫咖啡馆 · 治愈时刻', cat:'scene', catName:'场景合成',
-    tag:'做一杯自己的拉花，配白猫电台',
-    intro:'一个能做咖啡的小游戏。进店坐坐，选一个拉花图案，端给白猫；店里能换桌布、打开白猫电台（FM 87.9）听歌、收藏曲目，最后拍一张纪念拍立得存进相册。',
-    steps:[
-      '点「进店坐坐 ☕」进店',
-      '选一个拉花图案，点「端给我吧」',
-      '换桌布、开电台，选你喜欢的曲子',
-      '点「📷 纪念拍立得」进预览',
-      '满意就「保存到相册」，不满意「回去改改」'
-    ],
-    tip:'电台开着才有味道，建议戴耳机。'
-  },
-  {
-    file:'rabbit-island.html', name:'兔子小岛', cat:'scene', catName:'场景合成',
-    tag:'可旋转的 3D 小岛，季节与天气能切',
-    intro:'three.js 实时渲染的小岛，可以绕着看它转。季节、天气、时间三组开关，樱花会跟着飘，夜色会慢慢压下来；拖拽旋转视角，滚轮拉近。',
-    steps:[
-      '拖拽旋转视角，滚轮缩放',
-      '左上角切季节',
-      '切天气与时段：晴 → 夜晚',
-      '等樱花飘一阵再截图，氛围最好'
-    ],
-    tip:'当动态壁纸或截图做封面都行，纯前端实时渲染，不占硬盘。'
-  },
-  {
-    file:'sakura-station.html', name:'富士山樱花站台', cat:'scene', catName:'场景合成',
-    tag:'可逛的富士樱小站，五个机位随便切',
-    intro:'一整个 3D 车站场景：白天 / 自动，晴天 / 阴天 / 雨天 / 雪天，五个机位（全景、车站、大桥、店内、跟车），「跟车」能贴着电车跑一段。看腻了点「回到正面」一键复位。',
-    steps:[
-      '选时段：白天 或 自动',
-      '选天气，雨天和雪天氛围差别很大',
-      '用机位按钮换视角，想动感就选「跟车」',
-      '等电车进站再截图'
-    ],
-    tip:'「自动」会自己走时间，晚上进站那一段最好看。'
-  },
-  {
-    file:'one-last-kiss.html', name:'One Last Kiss 封面', cat:'ani', catName:'二次元',
-    tag:'一键线稿化 + 流动渐变，做唱片封面',
-    intro:'把照片变成终章那种线稿封面：上传裁切后，线条强度与线稿浓度控制描线的多少，渐变角度、色彩偏移、流动速度控制底色的呼吸感，再叠主标题、艺术家、副标题。',
-    steps:[
-      '上传图片，拖动裁成想要的构图',
-      '调「线条强度 / 线稿浓度」，调到能看出轮廓又不脏',
-      '调渐变角度与色彩偏移，流动速度先留住',
-      '打开「显示文字」，填主标题 / 艺术家 / 副标题',
-      '点「随机配色」换几版，满意后保存封面'
-    ],
-    tip:'流动速度调到静止可以截图，调快更适合录屏当动态封面。'
-  },
-  {
-    file:'eva-badge.html', name:'EVA 海岸吧唧背景', cat:'ani', catName:'二次元',
-    tag:'EVA 海岸配色 + 台词，三种画幅',
-    intro:'新剧场版海岸那种红与米白的背景生成器。内置台词（どうしてみんな優しいの！ / 笑えばいいと思うよ），三种画幅：3:4 封面、方形、圆形徽章；配色可自定义，还能导入音频当 8bit BGM。',
-    steps:[
-      '选画幅：3:4 封面 / 方形 / 圆形徽章',
-      '选台词，或切「自定义」自己写',
-      '调配色',
-      '需要的话「导入音频」加一段 BGM',
-      '导出'
-    ],
-    tip:'圆形徽章那档直接是吧唧的形状，省一步裁切。'
-  }
-];
+(async () => {
+  try {
+    const works = await getJSON('assets/works.json');
+    const grid = $('#home-works');
+    const items = works.items.slice(0, 4);
+    items.forEach(w => grid.appendChild(workCard(w)));
+    $('#n-works').textContent = works.items.filter(w => !w.demo).length || works.items.length;
+    if (!items.length) grid.innerHTML = '<div class="empty-state"><div class="big">✦</div><h3>还没有作品</h3><p>传上去就会出现在这。</p></div>';
+  } catch (e) { console.warn(e); }
 
-const grid = document.getElementById('grid');
-document.getElementById('n-tools').textContent = TOOLS.length;
-document.getElementById('n-badge').textContent = TOOLS.length;
-
-const thumbOf = t => 'assets/thumbs/' + t.file.replace('.html', '') + '.jpg';
-
-function render(cat){
-  grid.innerHTML = '';
-  TOOLS.filter(t => cat === 'all' || t.cat === cat).forEach(t => {
-    const a = document.createElement('a');
-    a.className = 'card';
-    a.href = 'tools/' + t.file;
-    a.target = '_blank';
-    a.rel = 'noopener';
-
-    const thumb = document.createElement('div');
-    thumb.className = 'thumb';
-    const img = document.createElement('img');
-    img.src = thumbOf(t);
-    img.alt = t.name;
-    img.loading = 'lazy';
-    img.decoding = 'async';
-    thumb.appendChild(img);
-
-    const body = document.createElement('div');
-    body.className = 'body';
-    const h3 = document.createElement('h3');
-    h3.textContent = t.name;
-    const p = document.createElement('p');
-    p.textContent = t.tag;
-    const foot = document.createElement('div');
-    foot.className = 'foot';
-    const tag = document.createElement('span');
-    tag.className = 'tag ' + t.cat;
-    tag.textContent = t.catName;
-    const how = document.createElement('button');
-    how.type = 'button';
-    how.className = 'how';
-    how.textContent = '怎么用';
-    how.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openHow(t); });
-    foot.append(tag, how);
-
-    body.append(h3, p, foot);
-    a.append(thumb, body);
-    grid.appendChild(a);
-  });
-}
-
-const mask = document.getElementById('mask');
-
-function openHow(t){
-  document.getElementById('m-img').src = thumbOf(t);
-  document.getElementById('m-name').textContent = t.name;
-  document.getElementById('m-cat').textContent = t.catName;
-  document.getElementById('m-intro').textContent = t.intro;
-  const ol = document.getElementById('m-steps');
-  ol.innerHTML = '';
-  t.steps.forEach(s => {
-    const li = document.createElement('li');
-    li.textContent = s;
-    ol.appendChild(li);
-  });
-  const tip = document.getElementById('m-tip');
-  if (t.tip) { tip.textContent = t.tip; tip.style.display = ''; }
-  else { tip.style.display = 'none'; }
-  document.getElementById('m-go').href = 'tools/' + t.file;
-  mask.classList.add('on');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeHow(){
-  mask.classList.remove('on');
-  document.body.style.overflow = '';
-}
-
-document.getElementById('m-close').addEventListener('click', closeHow);
-mask.addEventListener('click', e => { if (e.target === mask) closeHow(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHow(); });
-
-render('all');
-
-document.getElementById('filters').addEventListener('click', e => {
-  const btn = e.target.closest('.chip');
-  if (!btn) return;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-  btn.classList.add('on');
-  render(btn.dataset.f);
-});
+  try {
+    const tools = await getJSON('assets/tools.json');
+    const grid = $('#home-tools');
+    tools.slice(0, 6).forEach((t, i) => grid.appendChild(toolCard(t, i)));
+  } catch (e) { console.warn(e); }
+})();
 </script>
+
 </body>
 </html>

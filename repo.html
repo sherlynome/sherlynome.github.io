@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仓库 · sherly 工坊</title>
+<meta name="description" content="GitHub 上的源码仓库。">
+<meta name="theme-color" content="#0A0709">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🎀</text></svg>">
+<link rel="stylesheet" href="assets/site.css">
+
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="index.html"><i>🎀</i>sherly<em>工坊</em></a>
+  <div class="links">
+    <a href="https://github.com/sherlynome" target="_blank" rel="noopener">GitHub ↗</a>
+    <span class="cnt"><b>14</b> TOOLS</span>
+  </div>
+</nav>
+
+<div class="tabbar">
+  <div class="row">
+    <a class="tab" href="nav.html">导航</a>
+    <a class="tab" href="index.html">主页</a>
+    <a class="tab" href="blog.html">博客</a>
+    <a class="tab" href="notes.html">动态</a>
+    <a class="tab" href="works.html">作品集</a>
+    <a class="tab on" href="repo.html">仓库</a>
+    <a class="tab" href="links.html">友链</a>
+    <a class="tab" href="guest.html">留言</a>
+    <a class="tab" href="about.html">关于</a>
+  </div>
+  <div class="band"></div>
+</div>
+
+
+<header class="page-head">
+  <div class="wrap">
+    <div class="sec-k">REPOSITORY</div>
+    <h1>仓库</h1>
+    <p>源码全在 GitHub 上，随便看、随便抄。</p>
+    
+  </div>
+</header>
+
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="repogrid" id="repos"></div>
+    <div class="notes-foot"><a class="msgbtn" href="https://github.com/sherlynome" target="_blank" rel="noopener">去 GitHub 看全部 →</a></div>
+  </div>
+</section>
+
+
+<div class="foot-strip"></div>
+<footer>
+  <div class="wrap row">
+    <div>© 2026 <b>sherly 🌙</b> · 随便逛，随便用</div>
+    <div>建站于 <b>GitHub Pages</b> · 不收集任何数据</div>
+  </div>
+</footer>
+
+<div class="mask" id="mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-name">
+    <button class="x" id="m-close" aria-label="关闭">✕</button>
+    <div class="m-top">
+      <img id="m-img" alt="">
+      <div><h4 id="m-name"></h4><div class="m-cat" id="m-cat"></div></div>
+    </div>
+    <p class="m-intro" id="m-intro"></p>
+    <div class="m-h">HOW TO</div>
+    <ol id="m-steps"></ol>
+    <div class="m-tip" id="m-tip"></div>
+    <div class="m-actions"><a class="go" id="m-go" target="_blank" rel="noopener">打开工具 →</a></div>
+  </div>
+</div>
+
+<script src="assets/site.js"></script>
+
+<script>
+(async () => {
+  const box = $('#repos');
+  try {
+    const res = await fetch('https://api.github.com/users/sherlynome/repos?sort=updated&per_page=30');
+    if (!res.ok) throw new Error(res.status);
+    const list = (await res.json()).filter(r => !r.fork);
+    if (!list.length) throw new Error('empty');
+    box.innerHTML = list.map(r => `
+      <a class="repo" href="${r.html_url}" target="_blank" rel="noopener">
+        <h3><span>◈</span>${r.name}</h3>
+        <p>${r.description || '还没写简介'}</p>
+        <div class="foot">
+          <span>${r.language || '—'}</span>
+          <span>★ <b>${r.stargazers_count}</b></span>
+          <span>${(r.updated_at || '').slice(0, 10)} 更新</span>
+        </div>
+      </a>`).join('');
+  } catch (e) {
+    box.innerHTML = `
+      <a class="repo" href="https://github.com/sherlynome" target="_blank" rel="noopener">
+        <h3><span>◈</span>sherlynome.github.io</h3>
+        <p>这个站本身的源码。其余仓库在 GitHub 主页。</p>
+        <div class="foot"><span>直接去 GitHub →</span></div>
+      </a>`;
+  }
+})();
+</script>
+
+</body>
+</html>
