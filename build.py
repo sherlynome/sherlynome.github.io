@@ -212,6 +212,11 @@ SPLASH = """
 
   <div class="stage" id="stage">
     <div class="blackout" id="blackout"></div>
+
+    <!-- 场景层：天空/月亮/城堡/雨都在这里面。
+         节日配了 scene 的话，splash.js 会把整层换掉，
+         换成完全不同的画面（比如中秋的中式庭院），不只是换个颜色 -->
+    <div id="sceneLayer">
     <div class="sky"></div>
     <div class="stars"></div>
     <div class="moon"></div>
@@ -261,10 +266,11 @@ SPLASH = """
 
     <div class="fog"></div>
     <canvas class="rain" id="rainCanvas"></canvas>
+    <div class="petals" id="petals"></div>
+    </div><!-- /sceneLayer -->
 
     <div class="glow-pulse" id="glowPulse"></div>
     <div class="speak-effect" id="speakEffect"></div>
-    <div class="petals" id="petals"></div>
 
     <div class="caption" id="caption">
       <div class="caption-cn">循此苦旅，以达天际</div>

@@ -286,23 +286,82 @@ body.splash-lock{overflow:hidden;}
 }
 #splash .catch-hint.show{opacity:.8;}
 
-/* ── 节日特化 ───────────────────────────────────────────── */
-/* 中秋：换成靛蓝夜空，月亮更大更满，飘落的是金桂，幽灵退到背景不抢戏 */
-html[data-festival="midautumn"] #splash .sky{
+/* ── 中秋场景 ───────────────────────────────────────────────
+   这套 DOM 在 splash.js 的 SCENES.midautumn 里，会整层替换掉默认的城堡。
+   所以这里不是「在默认场景上打补丁」，而是一套独立的画面。 */
+.mt-sky{
+  position:absolute;inset:0;z-index:0;
   background:
-    radial-gradient(ellipse at 50% 102%,rgba(36,48,92,.45) 0%,transparent 55%),
-    radial-gradient(ellipse at 86% 12%,rgba(255,240,210,.10) 0%,transparent 40%),
-    linear-gradient(180deg,#080A14 0%,#101426 55%,#161B30 82%,#0B0E18 100%);
+    radial-gradient(ellipse at 88% 8%,rgba(255,236,180,.10) 0%,transparent 44%),
+    radial-gradient(ellipse at 50% 104%,rgba(36,48,92,.50) 0%,transparent 58%),
+    linear-gradient(180deg,#06080F 0%,#0D1122 48%,#161B30 80%,#0A0D18 100%);
 }
-html[data-festival="midautumn"] #splash .moon{
-  width:clamp(110px,22vw,190px);height:clamp(110px,22vw,190px);
-  top:6%;right:12%;
+.mt-stars{
+  position:absolute;inset:0;z-index:1;opacity:.5;
+  animation:sTwinkle 7s ease-in-out infinite;
+  background-image:
+    radial-gradient(1px 1px at 12% 20%,#fff,transparent),
+    radial-gradient(1px 1px at 28% 36%,#fff,transparent),
+    radial-gradient(2px 2px at 44% 14%,#FFE9B8,transparent),
+    radial-gradient(1px 1px at 62% 30%,#fff,transparent),
+    radial-gradient(1px 1px at 76% 18%,#fff,transparent),
+    radial-gradient(1px 1px at 18% 52%,#FFE9B8,transparent),
+    radial-gradient(1px 1px at 52% 46%,#fff,transparent),
+    radial-gradient(1px 1px at 86% 40%,#fff,transparent),
+    radial-gradient(1px 1px at 34% 66%,#fff,transparent);
 }
+/* 月晕：大范围暖光，撑出「月亮很亮」的感觉 */
+.mt-halo{
+  position:absolute;top:-6%;right:4%;width:54vmin;height:54vmin;z-index:1;
+  background:radial-gradient(circle,rgba(255,238,190,.22) 0%,rgba(255,214,140,.10) 34%,transparent 64%);
+  pointer-events:none;animation:mtHalo 9s ease-in-out infinite;
+}
+.mt-moon{
+  position:absolute;top:7%;right:13%;z-index:2;
+  width:clamp(120px,19vw,190px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 36% 32%,#FFFDF2 0%,#FFF3CF 40%,#FFE29A 74%,#F0C468 100%);
+  box-shadow:0 0 50px rgba(255,240,200,.55),0 0 120px rgba(255,214,120,.32),0 0 220px rgba(255,200,90,.16);
+  animation:mtMoonPulse 8s ease-in-out infinite;
+}
+/* 月面环形山 */
+.mt-moon::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 44%,rgba(214,182,120,.30) 0 7%,transparent 8%),
+    radial-gradient(circle at 60% 30%,rgba(214,182,120,.24) 0 5.5%,transparent 6.5%),
+    radial-gradient(circle at 68% 62%,rgba(214,182,120,.26) 0 8%,transparent 9%),
+    radial-gradient(circle at 42% 70%,rgba(214,182,120,.18) 0 4.5%,transparent 5.5%);
+}
+/* 祥云 */
+.mt-cloud{
+  position:absolute;z-index:3;height:24px;border-radius:100px;
+  background:#33405F;opacity:.42;
+}
+.mt-cloud::before,.mt-cloud::after{
+  content:'';position:absolute;background:inherit;border-radius:50%;
+}
+.mt-cloud::before{width:46px;height:46px;left:20px;top:-20px;}
+.mt-cloud::after{width:58px;height:58px;right:18px;top:-30px;}
+.mt-cloud.ct1{width:150px;left:5%;top:24%;animation:mtDrift 30s ease-in-out infinite alternate;}
+.mt-cloud.ct2{width:118px;left:54%;top:15%;opacity:.28;animation:mtDrift 40s ease-in-out infinite alternate-reverse;}
+.mt-cloud.ct3{width:178px;left:12%;top:62%;opacity:.2;animation:mtDrift 48s ease-in-out infinite alternate;}
+
+.mt-yard{position:absolute;bottom:0;left:0;width:100%;height:55%;z-index:4;}
+.mt-yard svg{width:100%;height:100%;display:block;}
+.mt-fog{
+  position:absolute;bottom:0;left:0;width:100%;height:26%;z-index:5;pointer-events:none;
+  background:linear-gradient(180deg,transparent 0%,rgba(20,28,54,.32) 58%,rgba(6,8,16,.58) 100%);
+}
+
+@keyframes mtHalo{0%,100%{opacity:.82;}50%{opacity:1;}}
+@keyframes mtMoonPulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.07);}}
+@keyframes mtDrift{0%{transform:translateX(0);}100%{transform:translateX(38px);}}
+
+/* 中秋飘落的是金桂，不是樱花 */
 html[data-festival="midautumn"] #splash .petal{
   background:radial-gradient(circle at 30% 30%,#FFF6DC 0%,#FFD166 70%,#E8A93C 100%);
   border-radius:50%;
 }
-html[data-festival="midautumn"] #splash .ghost{opacity:.55;}
 
 /* 横屏矮屏 */
 @media (max-height:420px) and (orientation:landscape){
