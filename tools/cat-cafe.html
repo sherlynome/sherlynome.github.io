@@ -17,7 +17,7 @@ html,body { margin:0; height:100%; overflow:hidden; touch-action:manipulation;
 #deco { position:absolute; top:0;left:0;right:0;bottom:0; pointer-events:none; z-index:1; }
 #deco svg { position:absolute; top:0;left:0;right:0;bottom:0; width:100%; height:100%; }
 /* 窗户 + 窗帘（点击开合） + 场景面板 */
-#winZone { position:absolute; top:12vh; left:3%; width:166px; z-index:6; }
+#winZone { position:absolute; top:12vh; left:3%; width:166px; z-index:2; }
 #treeView { display:block; width:132px; height:164px; margin:12px auto 0;
   border-radius:10px; box-shadow:0 6px 14px rgba(0,0,0,.22); }
 .rod { position:absolute; top:4px; left:-8px; right:-8px; height:9px; border-radius:5px;
@@ -36,15 +36,21 @@ html,body { margin:0; height:100%; overflow:hidden; touch-action:manipulation;
 .curtain::after { content:""; position:absolute; bottom:10px; width:11px; height:11px;
   border-radius:50%; background:#C98896; box-shadow:0 1px 2px rgba(0,0,0,.25); }
 .cl::after { left:12px; } .cr::after { right:12px; }
-.curtain::before { content:"☁"; position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%); font-size:13px; opacity:.55; }
-#winZone.open .curtain::before { content:""; }
-#treePanel { display:none; width:158px; margin:9px auto 0; }
-#winZone.open #treePanel { display:block; }
-.tprow { display:flex; flex-wrap:wrap; gap:3px; margin:3px 0; align-items:center; }
-.tlbl { font-size:12px; width:17px; text-align:center; }
-.tchip { border:none; border-radius:8px; padding:3px 8px; font-size:11px; font-weight:bold;
-  background:rgba(247,243,232,.94); color:#5A4838; box-shadow:0 2px 0 rgba(0,0,0,.16); }
+.curtain::before { content:""; position:absolute; top:44%; left:50%;
+  transform:translate(-50%,-50%); width:26px; height:15px; opacity:.8;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14'%3E%3Cg fill='%23ffffff'%3E%3Ccircle cx='7' cy='9' r='4'/%3E%3Ccircle cx='12' cy='6.4' r='5'/%3E%3Ccircle cx='17.2' cy='9' r='3.9'/%3E%3Crect x='4' y='8.8' width='16' height='4.4' rx='2.2'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat; }
+#winZone.open .curtain::before { opacity:0; }
+/* 面板独立分层：挂在窗户体系之外，才不会被猫咪挡住 */
+#treePanel { display:none; position:absolute; top:calc(12vh + 180px); left:1.5%;
+  z-index:7; padding:7px 9px 5px; border-radius:14px;
+  background:rgba(247,243,232,.97);
+  box-shadow:0 6px 16px rgba(0,0,0,.20), 0 1px 0 rgba(255,255,255,.7) inset; }
+#treePanel-in { width:156px; }
+#winZone.open + #treePanel { display:block; }
+.tprow { display:flex; flex-wrap:nowrap; gap:3px; margin:3px 0; align-items:center; }
+.tlbl { font-size:12px; width:15px; text-align:center; flex:none; }
+.tchip { border:none; border-radius:8px; padding:3px 5px; font-size:11px; font-weight:bold;
+  background:#FFFDF7; color:#5A4838; box-shadow:0 2px 0 rgba(0,0,0,.14); }
 .tchip.sel { background:#9CB098; color:#fff; box-shadow:0 2px 0 #7A9678; }
 #bar { position:absolute; left:0; right:0; bottom:0; height:50vh; z-index:4; pointer-events:none; }
 .bar-top { position:absolute; top:0; left:-2%; width:104%; height:16px;
@@ -269,15 +275,16 @@ input.txt:focus { outline:3px solid #C9A8A855; }
   <!-- 窗户 + 窗帘（点击开合） + 场景面板 -->
   <div id="winZone">
     <canvas id="treeView" width="240" height="300"></canvas>
-    <div id="treePanel">
-      <div class="tprow" id="rowSeason"></div>
-      <div class="tprow" id="rowTime"></div>
-      <div class="tprow" id="rowWeather"></div>
-    </div>
     <div class="rod"></div>
     <div class="curtain cl"></div>
     <div class="curtain cr"></div>
   </div>
+  <!-- 场景面板：与窗户分开，保证浮在猫咪上面 -->
+  <div id="treePanel"><div id="treePanel-in">
+    <div class="tprow" id="rowSeason"></div>
+    <div class="tprow" id="rowTime"></div>
+    <div class="tprow" id="rowWeather"></div>
+  </div></div>
 
   <div id="bar">
     <svg class="bar-cup" viewBox="0 0 100 80">
@@ -579,6 +586,7 @@ function show(id){
   decoEl.style.display=artf?"none":"block";
   treeOn=!(artf||pour);
   winZoneEl.style.display=treeOn?"block":"none";
+  document.getElementById("treePanel").style.display=treeOn?"":"none";
 }
 
 /* ================= 数据 ================= */
