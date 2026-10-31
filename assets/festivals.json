@@ -1,0 +1,136 @@
+{
+  "_说明": [
+    "节日皮肤配置。改这个文件就能加节日，代码一行都不用动。",
+    "日期二选一：date 用公历 MM-DD；lunar 用农历 月-日（数字，如春节是 1-1、中秋是 8-15）。",
+    "  两个都写的话以 lunar 为准。农历靠浏览器原生 Intl 换算，不用每年维护公历日期。",
+    "lead / after：节日前几天开始生效、节后几天结束。春节这种要长一点。",
+    "颜色只给 6 个语义色，其余由 assets/festival.js 自动派生（帷幕明暗、光晕透明色等）。",
+    "  accent  主色，按钮/标题高亮    accent2 次级亮色    accent3 更浅，用于文字",
+    "  deep    按下/描边用的深色      bg 背景             curtain 开场帷幕的主色",
+    "改完记得跑一次 python make_splash_fonts.py，否则新的开场文案会缺字、回退成楷体。"
+  ],
+
+  "festivals": [
+    {
+      "id": "newyear",
+      "name": "元旦",
+      "date": "01-01",
+      "lead": 2,
+      "after": 1,
+      "colors": {
+        "accent": "#FFD166", "accent2": "#FFE3A3", "accent3": "#FFF3D6",
+        "deep": "#C99B2E", "bg": "#0A0906", "curtain": "#6B4E0A"
+      },
+      "splash": {
+        "cn": "新的一年，从头开始",
+        "en": "A brand new year"
+      }
+    },
+    {
+      "id": "valentine",
+      "name": "情人节",
+      "date": "02-14",
+      "lead": 3,
+      "after": 1,
+      "colors": {
+        "accent": "#FF2E63", "accent2": "#FF7A9C", "accent3": "#FFC2D1",
+        "deep": "#D1003F", "bg": "#12040A", "curtain": "#7A0021"
+      },
+      "splash": {
+        "cn": "心跳漏掉一拍",
+        "en": "A heartbeat skipped"
+      }
+    },
+    {
+      "id": "spring",
+      "name": "春节",
+      "lunar": "1-1",
+      "lead": 6,
+      "after": 5,
+      "colors": {
+        "accent": "#E23E57", "accent2": "#FF7A85", "accent3": "#FFC94A",
+        "deep": "#8C1D2C", "bg": "#100406", "curtain": "#8B1A1A"
+      },
+      "splash": {
+        "cn": "岁岁平安，年年有余",
+        "en": "Peace and plenty, year after year"
+      }
+    },
+    {
+      "id": "qixi",
+      "name": "七夕",
+      "lunar": "7-7",
+      "lead": 2,
+      "after": 1,
+      "colors": {
+        "accent": "#A78BFA", "accent2": "#C4B5FD", "accent3": "#FFB3D9",
+        "deep": "#6D4FD0", "bg": "#0A0812", "curtain": "#3B2A6B"
+      },
+      "splash": {
+        "cn": "一年见一次，也值得",
+        "en": "Once a year is still worth it"
+      }
+    },
+    {
+      "id": "midautumn",
+      "name": "中秋",
+      "lunar": "8-15",
+      "lead": 3,
+      "after": 1,
+      "scene": "midautumn",
+      "colors": {
+        "accent": "#E8E2D0", "accent2": "#F5F0E4", "accent3": "#FFD166",
+        "deep": "#B8A87C", "bg": "#0A0B10", "curtain": "#4A4436"
+      },
+      "splash": {
+        "cn": "月亮今晚是圆的",
+        "en": "The moon is full tonight"
+      }
+    },
+    {
+      "id": "halloween",
+      "name": "万圣夜",
+      "date": "10-31",
+      "lead": 6,
+      "after": 1,
+      "colors": {
+        "accent": "#FF7A29", "accent2": "#FFA45C", "accent3": "#C77DFF",
+        "deep": "#C24E00", "bg": "#0B0610", "curtain": "#2E1042"
+      },
+      "splash": {
+        "cn": "今晚，鬼也可以很可爱",
+        "en": "Even ghosts are cute tonight"
+      }
+    },
+    {
+      "id": "christmas",
+      "name": "圣诞",
+      "date": "12-25",
+      "lead": 7,
+      "after": 1,
+      "colors": {
+        "accent": "#D7263D", "accent2": "#FF6B7A", "accent3": "#7FD1A8",
+        "deep": "#A01020", "bg": "#080A09", "curtain": "#4A1218"
+      },
+      "splash": {
+        "cn": "雪落下来的时候",
+        "en": "When the snow falls"
+      }
+    }
+  ],
+
+  "birthday": {
+    "_说明": "想给自己过生日就把 month/day 填上（公历），留 0 表示不启用",
+    "month": 0,
+    "day": 0,
+    "name": "生日",
+    "colors": {
+      "accent": "#FFB3D9", "accent2": "#FFD1E8", "accent3": "#FFF0F6",
+      "deep": "#E86BA8", "bg": "#0E0810", "curtain": "#5A2340"
+    },
+    "splash": {
+      "cn": "又长大一岁啦",
+      "en": "One year older, still sparkling"
+    }
+  }
+}

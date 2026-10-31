@@ -23,7 +23,16 @@
 body.splash-lock{overflow:hidden;}
 
 #splash{
-  --s-bg:#0a0014;--s-pink:#ff5fa2;--s-pink-light:#ff8fb8;--s-gold:#d4af37;
+  /* 这些变量会被 festival.js 按节日覆盖（节日数据在 assets/festivals.json） */
+  --s-bg:#0a0014;
+  --s-pink:#ff5fa2;--s-pink-light:#ff8fb8;--s-gold:#d4af37;
+  /* 光晕用的 RGB 三元组，配合 rgba() 使用，换节日时跟主色一起换 */
+  --s-pink-rgb:255,95,162;--s-pink-light-rgb:255,143,184;
+  --s-cur-rgb:139,10,26;--s-moon-1-rgb:255,217,232;
+  /* 帷幕（酒红丝绒）五档明暗 */
+  --s-cur-1:#2a0008;--s-cur-2:#5c0011;--s-cur-3:#8b0a1a;--s-cur-4:#6b0815;--s-cur-5:#3a0010;
+  /* 月亮内到外 */
+  --s-moon-1:#ffd9e8;--s-moon-2:#ff8fb8;--s-moon-3:#d4af37;--s-moon-4:#8b6914;
   --s-serif:"Noto Serif SC","Source Han Serif SC","Songti SC",STSong,serif;
 
   position:fixed;inset:0;z-index:9999;
@@ -47,13 +56,13 @@ body.splash-lock{overflow:hidden;}
 #splash .prompt-text{
   font-family:"MaShanZheng",var(--s-serif);
   font-size:clamp(1.3rem,5vw,1.8rem);color:var(--s-pink-light);letter-spacing:.3em;
-  text-shadow:0 0 20px rgba(255,95,162,.6);margin-bottom:10px;
+  text-shadow:0 0 20px rgba(var(--s-pink-rgb),.6);margin-bottom:10px;
   animation:sPromptBlink 2s ease-in-out infinite;
 }
 @keyframes sPromptBlink{0%,100%{opacity:.7;}50%{opacity:1;}}
 #splash .prompt-sub{
   font-family:"GreatVibes",cursive;
-  font-size:clamp(.9rem,3.5vw,1.1rem);color:rgba(255,143,184,.6);
+  font-size:clamp(.9rem,3.5vw,1.1rem);color:rgba(var(--s-pink-light-rgb),.6);
 }
 
 /* ── 舞台 ───────────────────────────────────────────────── */
@@ -71,8 +80,8 @@ body.splash-lock{overflow:hidden;}
 #splash .sky{
   position:absolute;inset:0;z-index:0;
   background:
-    radial-gradient(ellipse at 50% 100%,rgba(139,10,58,.35) 0%,transparent 50%),
-    radial-gradient(ellipse at 80% 20%,rgba(255,95,162,.12) 0%,transparent 40%),
+    radial-gradient(ellipse at 50% 100%,rgba(var(--s-cur-rgb),.35) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 20%,rgba(var(--s-pink-rgb),.12) 0%,transparent 40%),
     linear-gradient(180deg,#0a0014 0%,#1a0a20 50%,#2a0a20 80%,#1a000a 100%);
 }
 #splash .stars{
@@ -81,13 +90,13 @@ body.splash-lock{overflow:hidden;}
   background-image:
     radial-gradient(1px 1px at 20% 30%,#fff,transparent),
     radial-gradient(1px 1px at 40% 70%,#fff,transparent),
-    radial-gradient(2px 2px at 50% 50%,#ff8fb8,transparent),
+    radial-gradient(2px 2px at 50% 50%,var(--s-pink-light),transparent),
     radial-gradient(1px 1px at 70% 20%,#fff,transparent),
-    radial-gradient(2px 2px at 80% 80%,#ff8fb8,transparent),
+    radial-gradient(2px 2px at 80% 80%,var(--s-pink-light),transparent),
     radial-gradient(1px 1px at 90% 40%,#fff,transparent),
     radial-gradient(1px 1px at 15% 80%,#fff,transparent),
     radial-gradient(2px 2px at 60% 10%,#fff,transparent),
-    radial-gradient(1px 1px at 25% 50%,#ff5fa2,transparent),
+    radial-gradient(1px 1px at 25% 50%,var(--s-pink),transparent),
     radial-gradient(1px 1px at 85% 90%,#fff,transparent);
 }
 @keyframes sTwinkle{0%,100%{opacity:.4;}50%{opacity:.85;}}
@@ -95,12 +104,12 @@ body.splash-lock{overflow:hidden;}
 #splash .moon{
   position:absolute;top:9%;right:10%;z-index:1;
   width:clamp(60px,12vw,100px);height:clamp(60px,12vw,100px);border-radius:50%;
-  background:radial-gradient(circle at 35% 35%,#ffd9e8 0%,#ff8fb8 45%,#d4af37 80%,#8b6914 100%);
+  background:radial-gradient(circle at 35% 35%,var(--s-moon-1) 0%,var(--s-moon-2) 45%,var(--s-moon-3) 80%,var(--s-moon-4) 100%);
   animation:sMoonGlow 6s ease-in-out infinite;
 }
 @keyframes sMoonGlow{
-  0%,100%{box-shadow:0 0 40px rgba(255,143,184,.4),0 0 80px rgba(255,95,162,.2);}
-  50%{box-shadow:0 0 60px rgba(255,143,184,.6),0 0 120px rgba(255,95,162,.35);}
+  0%,100%{box-shadow:0 0 40px rgba(var(--s-pink-light-rgb),.4),0 0 80px rgba(var(--s-pink-rgb),.2);}
+  50%{box-shadow:0 0 60px rgba(var(--s-pink-light-rgb),.6),0 0 120px rgba(var(--s-pink-rgb),.35);}
 }
 
 /* ── 小幽灵 ─────────────────────────────────────────────── */
@@ -110,7 +119,7 @@ body.splash-lock{overflow:hidden;}
   transition:transform .6s cubic-bezier(.34,1.56,.64,1);
 }
 #splash .ghost svg{
-  display:block;filter:drop-shadow(0 0 10px rgba(255,143,184,.35));
+  display:block;filter:drop-shadow(0 0 10px rgba(var(--s-pink-light-rgb),.35));
   animation:sGhostBob 2.5s ease-in-out infinite;
 }
 @keyframes sGhostBob{0%,100%{transform:translateY(0) scaleY(1);}50%{transform:translateY(-8px) scaleY(.97);}}
@@ -124,18 +133,23 @@ body.splash-lock{overflow:hidden;}
 /* ── 城堡 ───────────────────────────────────────────────── */
 #splash .castle-wrap{position:absolute;bottom:0;left:0;width:100%;height:55%;z-index:2;}
 #splash .castle{width:100%;height:100%;}
+/* 城堡窗户/门洞的光直接吃掉主题色，否则万圣节会出现粉光配橙字幕 */
+#splash .gs-a{stop-color:var(--s-pink-light);}
+#splash .gs-b{stop-color:var(--s-pink);}
+#splash .gs-c{stop-color:var(--s-cur-4);}
+#splash .door-inner{fill:var(--s-pink);}
 #splash .castle-window{animation:sWindowFlicker 5s ease-in-out infinite;}
 @keyframes sWindowFlicker{0%,100%{opacity:.85;}50%{opacity:.55;}}
 #splash .fog{
   position:absolute;bottom:0;left:0;width:100%;height:30%;z-index:3;pointer-events:none;
-  background:linear-gradient(180deg,transparent 0%,rgba(255,95,162,.05) 40%,rgba(0,0,0,.35) 100%);
+  background:linear-gradient(180deg,transparent 0%,rgba(var(--s-pink-rgb),.05) 40%,rgba(0,0,0,.35) 100%);
 }
 #splash canvas.rain{position:absolute;inset:0;z-index:10;pointer-events:none;opacity:.4;}
 
 /* ── 柔光 / 光圈 ────────────────────────────────────────── */
 #splash .glow-pulse{
   position:absolute;inset:0;opacity:0;z-index:50;pointer-events:none;mix-blend-mode:screen;
-  background:radial-gradient(ellipse at 50% 40%,rgba(255,200,230,.4) 0%,rgba(255,95,162,.15) 30%,transparent 70%);
+  background:radial-gradient(ellipse at 50% 40%,rgba(var(--s-moon-1-rgb),.4) 0%,rgba(var(--s-pink-rgb),.15) 30%,transparent 70%);
 }
 #splash .glow-pulse.soft-1{animation:sGlowSoft1 3s ease-out;}
 #splash .glow-pulse.soft-2{animation:sGlowSoft2 4s ease-out;}
@@ -147,7 +161,7 @@ body.splash-lock{overflow:hidden;}
 #splash .speak-effect{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   width:0;height:0;border-radius:50%;z-index:150;pointer-events:none;opacity:0;
-  background:radial-gradient(circle,rgba(255,230,245,.85) 0%,rgba(255,95,162,.5) 30%,transparent 70%);
+  background:radial-gradient(circle,rgba(var(--s-moon-1-rgb),.85) 0%,rgba(var(--s-pink-rgb),.5) 30%,transparent 70%);
 }
 #splash .speak-effect.burst{animation:sSpeakBurst 2.2s ease-out;}
 @keyframes sSpeakBurst{0%{width:0;height:0;opacity:1;}100%{width:200vmax;height:200vmax;opacity:0;}}
@@ -166,13 +180,13 @@ body.splash-lock{overflow:hidden;}
   font-family:"MaShanZheng",var(--s-serif);
   font-size:clamp(1.8rem,8vw,5rem);font-weight:900;color:#fff;
   letter-spacing:.12em;line-height:1.3;margin-bottom:.8rem;
-  text-shadow:0 0 20px rgba(255,95,162,.9),0 0 40px rgba(255,95,162,.6),2px 2px 4px rgba(0,0,0,.9);
+  text-shadow:0 0 20px rgba(var(--s-pink-rgb),.9),0 0 40px rgba(var(--s-pink-rgb),.6),2px 2px 4px rgba(0,0,0,.9);
   animation:sTextGlow 4s ease-in-out infinite;
 }
 #splash .caption-en{
   font-family:"GreatVibes",cursive;
   font-size:clamp(1.2rem,4.5vw,2.8rem);color:var(--s-pink-light);
-  text-shadow:0 0 15px rgba(255,95,162,.7);line-height:1.2;
+  text-shadow:0 0 15px rgba(var(--s-pink-rgb),.7);line-height:1.2;
 }
 #splash .caption-divider{
   width:min(200px,50vw);height:1px;margin:1rem auto;
@@ -180,8 +194,8 @@ body.splash-lock{overflow:hidden;}
   box-shadow:0 0 10px var(--s-pink);
 }
 @keyframes sTextGlow{
-  0%,100%{text-shadow:0 0 20px rgba(255,95,162,.9),0 0 40px rgba(255,95,162,.6),2px 2px 4px rgba(0,0,0,.9);}
-  50%{text-shadow:0 0 30px rgba(255,95,162,1),0 0 60px rgba(255,95,162,.8),2px 2px 4px rgba(0,0,0,.9);}
+  0%,100%{text-shadow:0 0 20px rgba(var(--s-pink-rgb),.9),0 0 40px rgba(var(--s-pink-rgb),.6),2px 2px 4px rgba(0,0,0,.9);}
+  50%{text-shadow:0 0 30px rgba(var(--s-pink-rgb),1),0 0 60px rgba(var(--s-pink-rgb),.8),2px 2px 4px rgba(0,0,0,.9);}
 }
 
 /* ── 帷幕 ───────────────────────────────────────────────── */
@@ -195,28 +209,28 @@ body.splash-lock{overflow:hidden;}
 #splash .curtain.right.open{transform:translateX(100%);}
 #splash .curtain-bg{position:absolute;inset:0;}
 #splash .curtain.left .curtain-bg{
-  background:linear-gradient(90deg,#2a0008 0%,#5c0011 8%,#8b0a1a 25%,#6b0815 50%,#8b0a1a 75%,#5c0011 92%,#3a0010 100%);
+  background:linear-gradient(90deg,var(--s-cur-1) 0%,var(--s-cur-2) 8%,var(--s-cur-3) 25%,var(--s-cur-4) 50%,var(--s-cur-3) 75%,var(--s-cur-2) 92%,var(--s-cur-5) 100%);
 }
 #splash .curtain.right .curtain-bg{
-  background:linear-gradient(270deg,#2a0008 0%,#5c0011 8%,#8b0a1a 25%,#6b0815 50%,#8b0a1a 75%,#5c0011 92%,#3a0010 100%);
+  background:linear-gradient(270deg,var(--s-cur-1) 0%,var(--s-cur-2) 8%,var(--s-cur-3) 25%,var(--s-cur-4) 50%,var(--s-cur-3) 75%,var(--s-cur-2) 92%,var(--s-cur-5) 100%);
 }
 #splash .curtain-texture{
   position:absolute;inset:0;
-  background:repeating-linear-gradient(90deg,transparent 0,rgba(0,0,0,.35) 20px,transparent 40px,rgba(255,100,150,.06) 60px,transparent 80px,rgba(0,0,0,.45) 100px,transparent 120px);
+  background:repeating-linear-gradient(90deg,transparent 0,rgba(0,0,0,.35) 20px,transparent 40px,rgba(var(--s-pink-rgb),.06) 60px,transparent 80px,rgba(0,0,0,.45) 100px,transparent 120px);
 }
 #splash .curtain-tassels{
   position:absolute;bottom:0;left:0;width:100%;height:40px;
-  background:repeating-linear-gradient(90deg,#d4af37 0,#d4af37 8px,transparent 8px,transparent 28px,#b8860b 28px,#b8860b 36px,transparent 36px,transparent 56px);
+  background:repeating-linear-gradient(90deg,var(--s-gold) 0,var(--s-gold) 8px,transparent 8px,transparent 28px,var(--s-moon-4) 28px,var(--s-moon-4) 36px,transparent 36px,transparent 56px);
 }
 #splash .top-valance{
   position:absolute;top:0;left:0;width:100%;height:clamp(60px,12vw,100px);
   z-index:101;box-shadow:0 5px 30px rgba(0,0,0,.6);
-  background:linear-gradient(180deg,#8b0a1a 0%,#5c0011 70%,#3a0010 100%);
+  background:linear-gradient(180deg,var(--s-cur-3) 0%,var(--s-cur-2) 70%,var(--s-cur-5) 100%);
   transition:transform 4s cubic-bezier(.6,0,.3,1);
 }
 #splash .top-valance::after{
   content:'';position:absolute;bottom:-1px;left:0;width:100%;height:25px;
-  background:radial-gradient(circle at 12.5px -8px,transparent 15px,#5c0011 16px);
+  background:radial-gradient(circle at 12.5px -8px,transparent 15px,var(--s-cur-2) 16px);
   background-size:25px 25px;background-repeat:repeat-x;
 }
 #splash .top-valance.open{transform:translateY(-105%);}
@@ -225,7 +239,7 @@ body.splash-lock{overflow:hidden;}
 #splash .petals{position:absolute;inset:0;z-index:80;pointer-events:none;}
 #splash .petal{
   position:absolute;opacity:0;
-  background:radial-gradient(circle at 30% 30%,#ffd9e8 0%,#ff5fa2 70%,#ff3d8a 100%);
+  background:radial-gradient(circle at 30% 30%,var(--s-moon-1) 0%,var(--s-pink) 70%,var(--s-pink) 100%);
   border-radius:50% 0 50% 0;
   animation:sPetalFall linear infinite;
 }
@@ -240,13 +254,13 @@ body.splash-lock{overflow:hidden;}
 #splash .skip-btn{
   position:absolute;right:15px;bottom:max(15px,env(safe-area-inset-bottom));
   z-index:999;padding:10px 18px;border-radius:20px;cursor:pointer;
-  background:rgba(255,95,162,.1);border:1px solid rgba(255,95,162,.4);
+  background:rgba(var(--s-pink-rgb),.1);border:1px solid rgba(var(--s-pink-rgb),.4);
   color:var(--s-pink-light);font-family:var(--s-serif);font-size:.85rem;letter-spacing:.15em;
   opacity:0;transition:opacity .4s ease,background .25s,border-color .25s,color .25s;
   backdrop-filter:blur(10px);
 }
 #splash .skip-btn.show{opacity:1;}
-#splash .skip-btn:hover{background:rgba(255,95,162,.25);border-color:var(--s-pink);color:#fff;}
+#splash .skip-btn:hover{background:rgba(var(--s-pink-rgb),.25);border-color:var(--s-pink);color:#fff;}
 #splash .audio-indicator{
   position:absolute;left:15px;top:max(15px,env(safe-area-inset-top));
   z-index:999;display:flex;align-items:center;gap:8px;
@@ -271,6 +285,24 @@ body.splash-lock{overflow:hidden;}
   color:var(--s-pink-light);font-size:.75rem;letter-spacing:.1em;
 }
 #splash .catch-hint.show{opacity:.8;}
+
+/* ── 节日特化 ───────────────────────────────────────────── */
+/* 中秋：换成靛蓝夜空，月亮更大更满，飘落的是金桂，幽灵退到背景不抢戏 */
+html[data-festival="midautumn"] #splash .sky{
+  background:
+    radial-gradient(ellipse at 50% 102%,rgba(36,48,92,.45) 0%,transparent 55%),
+    radial-gradient(ellipse at 86% 12%,rgba(255,240,210,.10) 0%,transparent 40%),
+    linear-gradient(180deg,#080A14 0%,#101426 55%,#161B30 82%,#0B0E18 100%);
+}
+html[data-festival="midautumn"] #splash .moon{
+  width:clamp(110px,22vw,190px);height:clamp(110px,22vw,190px);
+  top:6%;right:12%;
+}
+html[data-festival="midautumn"] #splash .petal{
+  background:radial-gradient(circle at 30% 30%,#FFF6DC 0%,#FFD166 70%,#E8A93C 100%);
+  border-radius:50%;
+}
+html[data-festival="midautumn"] #splash .ghost{opacity:.55;}
 
 /* 横屏矮屏 */
 @media (max-height:420px) and (orientation:landscape){

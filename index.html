@@ -64,10 +64,10 @@
             <stop offset="0%" stop-color="#241030"/><stop offset="100%" stop-color="#0f0510"/>
           </linearGradient>
           <radialGradient id="sWindowGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#ff8fb8"/><stop offset="60%" stop-color="#ff5fa2"/><stop offset="100%" stop-color="#8b0a3a"/>
+            <stop class="gs-a" offset="0%" stop-color="#ff8fb8"/><stop class="gs-b" offset="60%" stop-color="#ff5fa2"/><stop class="gs-c" offset="100%" stop-color="#8b0a3a"/>
           </radialGradient>
           <radialGradient id="sDoorGlow" cx="50%" cy="60%" r="50%">
-            <stop offset="0%" stop-color="#ff8fb8"/><stop offset="100%" stop-color="#5c0011"/>
+            <stop class="gs-a" offset="0%" stop-color="#ff8fb8"/><stop class="gs-c" offset="100%" stop-color="#5c0011"/>
           </radialGradient>
         </defs>
         <path d="M 0 520 L 150 470 L 350 500 L 550 460 L 800 490 L 1050 455 L 1300 490 L 1600 460 L 1600 600 L 0 600 Z" fill="#0d0518" opacity=".7"/>
@@ -94,7 +94,7 @@
           <circle class="castle-window" cx="620" cy="260" r="16" fill="url(#sWindowGlow)" style="animation-delay:.2s"/>
         </g>
         <path d="M 560 600 L 560 510 Q 620 460 680 510 L 680 600 Z" fill="url(#sDoorGlow)"/>
-        <path d="M 580 600 L 580 520 Q 620 488 660 520 L 660 600 Z" fill="#ff5fa2" opacity=".6"/>
+        <path class="door-inner" d="M 580 600 L 580 520 Q 620 488 660 520 L 660 600 Z" fill="#ff5fa2" opacity=".6"/>
         <rect x="545" y="590" width="150" height="12" rx="6" fill="#1a0a20"/>
       </svg>
     </div>
@@ -241,6 +241,7 @@
   </div>
 </div>
 
+<script src="assets/festival.js"></script>
 <script src="assets/site.js"></script>
 
 <script src="assets/splash.js"></script>

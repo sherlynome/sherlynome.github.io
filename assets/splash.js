@@ -93,6 +93,134 @@
     requestAnimationFrame(drawRain);
   }
 
+  /* ── 节日专属场景 ───────────────────────────────────────── */
+  /* 默认场景是西式城堡（写在 build.py 的 SPLASH 里，不在这里）。
+     节日如果配了 scene 字段，就把城堡整块换成这里的画面。 */
+  var SCENES = {
+    midautumn: `
+<svg class="castle" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice">
+  <defs>
+    <linearGradient id="mtWall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B2440"/><stop offset="1" stop-color="#0B1120"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 远山 -->
+  <path d="M0,548 Q240,486 480,520 T960,506 T1440,524 L1600,516 L1600,600 L0,600 Z" fill="#0B0F1C" opacity=".9"/>
+  <path d="M0,572 Q320,528 640,556 T1280,552 T1600,570 L1600,600 L0,600 Z" fill="#070A14"/>
+
+  <!-- 祥云 -->
+  <g fill="#2A3554" opacity=".85">
+    <path d="M180,120 q26,-30 66,-20 q18,-26 54,-16 q36,10 30,36 q28,8 18,34 l-176,0 q-16,-24 8,-34 z"/>
+    <path d="M1160,86 q22,-26 58,-17 q16,-22 48,-13 q32,9 26,31 q24,7 15,29 l-154,0 q-14,-21 7,-30 z"/>
+    <path d="M740,178 q18,-22 48,-14 q13,-18 40,-11 q26,8 21,26 q20,6 13,24 l-129,0 q-12,-18 7,-25 z"/>
+  </g>
+
+  <!-- 右侧中式屋檐：只露一角，不抢兔子的主体位置 -->
+  <g>
+    <path d="M980,600 L980,452 L1600,452 L1600,600 Z" fill="url(#mtWall)"/>
+    <path d="M936,452 Q1240,382 1620,452 L1620,490 Q1240,424 936,490 Z" fill="#22304E"/>
+    <path d="M936,452 q-50,-10 -70,-40 q38,16 70,8 z" fill="#22304E"/>
+    <path d="M1614,452 q38,-12 48,-40 q-28,20 -48,12 z" fill="#22304E"/>
+    <g stroke="#31415F" stroke-width="4" opacity=".85">
+      <path d="M1040,472 L1040,456"/><path d="M1120,464 L1120,450"/><path d="M1200,458 L1200,448"/>
+      <path d="M1280,456 L1280,446"/><path d="M1360,456 L1360,446"/><path d="M1440,460 L1440,448"/>
+      <path d="M1520,466 L1520,452"/>
+    </g>
+    <rect x="1150" y="512" width="86" height="66" rx="5" fill="#FFD166" opacity=".5"/>
+    <rect x="1340" y="512" width="86" height="66" rx="5" fill="#FFD166" opacity=".4"/>
+    <g stroke="#101A2E" stroke-width="5" opacity=".9">
+      <path d="M1193,512 L1193,578"/><path d="M1150,545 L1236,545"/>
+      <path d="M1383,512 L1383,578"/><path d="M1340,545 L1426,545"/>
+    </g>
+  </g>
+
+  <!-- 石灯笼：靠树这一侧，颜色提亮过，否则深底上看不见 -->
+  <g transform="translate(470,486)">
+    <ellipse cx="0" cy="92" rx="36" ry="8" fill="#000" opacity=".32"/>
+    <rect x="-34" y="76" width="68" height="14" rx="4" fill="#2A3554"/>
+    <rect x="-10" y="34" width="20" height="46" fill="#2A3554"/>
+    <rect x="-28" y="4" width="56" height="30" rx="5" fill="#2A3554"/>
+    <rect x="-18" y="10" width="36" height="18" rx="3" fill="#FFD166" opacity=".85"/>
+    <path d="M-42,4 L0,-24 L42,4 Z" fill="#33425F"/>
+    <circle cx="0" cy="-28" r="5" fill="#33425F"/>
+  </g>
+
+  <!-- 左侧桂花树 -->
+  <g>
+    <path d="M150,600 C168,486 206,432 246,392" stroke="#2A2018" stroke-width="22" fill="none" stroke-linecap="round"/>
+    <path d="M228,432 C178,406 140,390 110,394" stroke="#2A2018" stroke-width="13" fill="none" stroke-linecap="round"/>
+    <path d="M242,404 C282,368 320,352 358,356" stroke="#2A2018" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M188,472 C152,472 124,488 108,510" stroke="#2A2018" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <g fill="#22351F">
+      <ellipse cx="100" cy="378" rx="52" ry="30" transform="rotate(-16 100 378)"/>
+      <ellipse cx="176" cy="352" rx="58" ry="32" transform="rotate(-6 176 352)"/>
+      <ellipse cx="262" cy="336" rx="60" ry="32" transform="rotate(8 262 336)"/>
+      <ellipse cx="346" cy="352" rx="50" ry="28" transform="rotate(12 346 352)"/>
+      <ellipse cx="230" cy="394" rx="52" ry="28"/>
+    </g>
+    <g fill="#FFD166">
+      <circle cx="94" cy="370" r="4"/><circle cx="116" cy="358" r="3.4"/><circle cx="134" cy="380" r="3.8"/>
+      <circle cx="160" cy="340" r="4"/><circle cx="184" cy="356" r="3.4"/><circle cx="200" cy="338" r="3.8"/>
+      <circle cx="246" cy="324" r="4"/><circle cx="270" cy="342" r="3.4"/><circle cx="290" cy="328" r="3.8"/>
+      <circle cx="330" cy="342" r="4"/><circle cx="354" cy="358" r="3.4"/>
+      <circle cx="212" cy="386" r="3.4"/><circle cx="240" cy="400" r="3.8"/><circle cx="266" cy="388" r="3.4"/>
+      <circle cx="176" cy="372" r="3"/>
+    </g>
+  </g>
+
+  <!-- 玉兔 · 坐着仰头看月 -->
+  <g transform="translate(566,424) scale(1.04)">
+    <ellipse cx="0" cy="106" rx="50" ry="11" fill="#000" opacity=".32"/>
+    <path d="M-46,100 C-52,40 -20,10 8,10 C40,10 60,44 56,100 Z" fill="#F2ECDD"/>
+    <path d="M-10,100 C-16,56 4,34 26,40 C44,46 50,74 46,100 Z" fill="#FBF7EE"/>
+    <circle cx="6" cy="-6" r="34" fill="#F2ECDD"/>
+    <ellipse cx="-16" cy="-58" rx="11" ry="33" fill="#F2ECDD" transform="rotate(-14 -16 -58)"/>
+    <ellipse cx="-16" cy="-58" rx="5.5" ry="22" fill="#F7C7D8" transform="rotate(-14 -16 -58)"/>
+    <ellipse cx="24" cy="-56" rx="11" ry="33" fill="#F2ECDD" transform="rotate(12 24 -56)"/>
+    <ellipse cx="24" cy="-56" rx="5.5" ry="22" fill="#F7C7D8" transform="rotate(12 24 -56)"/>
+    <ellipse cx="-6" cy="-12" rx="4.6" ry="5.4" fill="#2C241C"/>
+    <ellipse cx="18" cy="-12" rx="4.6" ry="5.4" fill="#2C241C"/>
+    <circle cx="-4.4" cy="-14" r="1.6" fill="#fff"/>
+    <circle cx="19.6" cy="-14" r="1.6" fill="#fff"/>
+    <path d="M6,0 l4,3 -4,3 -4,-3 z" fill="#F2879E"/>
+    <ellipse cx="-18" cy="2" rx="8" ry="5" fill="#F7C7D8" opacity=".75"/>
+    <ellipse cx="30" cy="2" rx="8" ry="5" fill="#F7C7D8" opacity=".75"/>
+    <circle cx="-44" cy="86" r="13" fill="#FBF7EE"/>
+  </g>
+
+  <!-- 玉兔 · 趴着打盹 -->
+  <g transform="translate(806,492) scale(.86)">
+    <ellipse cx="0" cy="70" rx="60" ry="11" fill="#000" opacity=".28"/>
+    <ellipse cx="0" cy="26" rx="62" ry="40" fill="#F2ECDD"/>
+    <circle cx="-46" cy="-4" r="30" fill="#F2ECDD"/>
+    <ellipse cx="-64" cy="-46" rx="10" ry="30" fill="#F2ECDD" transform="rotate(-24 -64 -46)"/>
+    <ellipse cx="-64" cy="-46" rx="5" ry="20" fill="#F7C7D8" transform="rotate(-24 -64 -46)"/>
+    <ellipse cx="-34" cy="-52" rx="10" ry="30" fill="#F2ECDD" transform="rotate(-6 -34 -52)"/>
+    <ellipse cx="-34" cy="-52" rx="5" ry="20" fill="#F7C7D8" transform="rotate(-6 -34 -52)"/>
+    <path d="M-58,-8 q7,7 14,0" stroke="#2C241C" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    <path d="M-38,-8 q7,7 14,0" stroke="#2C241C" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    <path d="M-46,4 l3.5,3 -3.5,3 -3.5,-3 z" fill="#F2879E"/>
+    <ellipse cx="-68" cy="4" rx="7" ry="4.4" fill="#F7C7D8" opacity=".75"/>
+    <circle cx="58" cy="40" r="12" fill="#FBF7EE"/>
+  </g>
+</svg>`
+  };
+
+  function applyScene() {
+    var f = window.__festival;
+    if (!f || !f.scene) return;
+    var svg = SCENES[f.scene];
+    if (!svg) return;
+    var wrap = document.querySelector('#splash .castle-wrap');
+    if (!wrap) return;
+    wrap.innerHTML = svg;
+    document.documentElement.setAttribute('data-scene', f.scene);
+  }
+
+  if (window.__festival) applyScene();
+  document.addEventListener('festival-ready', applyScene);
+
   /* ── 小幽灵 ─────────────────────────────────────────────── */
   /* 身体 / 眼睛 / 嘴 / 腮红拆成零件，品种只拼装饰上去，
      不用每个都重抄一遍路径。 */

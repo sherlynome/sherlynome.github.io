@@ -10,6 +10,7 @@ Great Vibes（花体）本身就 42KB，直接复制过来。
 改完开场文案后跑一次：python make_splash_fonts.py
 （新出现的字没被包含的话，浏览器会回退到系统字体）
 """
+import json
 import shutil
 import subprocess
 import sys
@@ -24,14 +25,38 @@ MA_OUT = ROOT / "fonts" / "mashanzheng-subset.woff2"
 GV_SRC = SRC / "GreatVibes.woff2"
 GV_OUT = ROOT / "fonts" / "greatvibes.woff2"
 
-# 毛笔体只用在两处：启动页「轻触 启幕」、主字幕「循此苦旅，以达天际」。
-# 后面那串是备用的意境字，以后改字幕不至于缺字（多留 80 个字才几 KB）。
-MA_CHARS = (
-    "轻触启幕循此苦旅以达天际，。"
+# 默认文案「循此苦旅，以达天际」+ 启动页「轻触 启幕」
+BASE_CHARS = "轻触启幕循此苦旅以达天际，。"
+# 备用意境字：以后改字幕时不至于缺字（多留一百个字才几十 KB）
+SPARE_CHARS = (
     "星光夜风月雪花梦影归途远山海云雨心生命路行者无尽愿望沉浮"
     "灯烛晨昏雾霜露寒暖悲喜欢忧愁思念故人旧事回望止步停留程"
     "彼方此处永刹那瞬间"
 )
+
+
+def collect_chars() -> str:
+    """基础字 + festivals.json 里所有节日字幕用到的字。
+
+    节日文案改了要重跑本脚本，否则新字会回退成楷体。
+    """
+    chars = set(BASE_CHARS) | set(SPARE_CHARS)
+
+    fpath = ROOT / "assets" / "festivals.json"
+    if fpath.exists():
+        data = json.loads(fpath.read_text(encoding="utf-8"))
+        for f in data.get("festivals", []):
+            sp = f.get("splash") or {}
+            for v in sp.values():
+                if isinstance(v, str):
+                    chars |= set(v)
+        b = data.get("birthday") or {}
+        sp = b.get("splash") or {}
+        for v in sp.values():
+            if isinstance(v, str):
+                chars |= set(v)
+
+    return "".join(sorted(c for c in chars if c.isprintable() and not c.isspace()))
 
 
 def subset_ma() -> int:
@@ -40,7 +65,7 @@ def subset_ma() -> int:
         print("可从 https://cdn.jsdelivr.net/npm/@fontsource/ma-shan-zheng@5/files/ 下载")
         return 1
 
-    text = "".join(dict.fromkeys(MA_CHARS))  # 去重保序
+    text = collect_chars()
     tmp = ROOT / "fonts" / "_ma_chars.txt"
     tmp.write_text(text, encoding="utf-8")
 
