@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上传作品 · sherly 工坊</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0A0709">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🔒</text></svg>">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .admin-wrap{max-width:760px;margin:0 auto;padding:0 20px 80px;}
+  .panel{background:linear-gradient(180deg,var(--panel),#100B14);border:1px solid var(--line-2);
+    border-radius:20px;padding:22px;margin-bottom:16px;}
+  .panel h2{font-family:var(--disp);font-size:17px;font-weight:400;margin-bottom:4px;}
+  .panel .hint{font-family:var(--soft);font-size:12.5px;color:var(--ink-3);line-height:1.8;margin-bottom:16px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-family:var(--disp);font-size:12px;letter-spacing:.08em;
+    color:var(--pink-2);margin-bottom:7px;}
+  .field input[type=text],.field input[type=password],.field textarea,.field select{
+    width:100%;padding:11px 13px;border-radius:11px;
+    background:#170F1B;border:1px solid rgba(255,61,127,.22);color:var(--ink);
+    font-family:var(--soft);font-size:13.5px;outline:none;transition:border-color .2s,box-shadow .2s;
+  }
+  .field input:focus,.field textarea:focus,.field select:focus{
+    border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,61,127,.18);
+  }
+  .field textarea{min-height:74px;resize:vertical;line-height:1.7;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+    font-family:var(--disp);font-size:13.5px;letter-spacing:.06em;
+    padding:11px 22px;border-radius:99px;border:1px solid transparent;
+    background:linear-gradient(135deg,#FF4A87,#C7174F);color:#fff;
+    box-shadow:0 10px 26px rgba(255,61,127,.3);transition:filter .2s,transform .2s;}
+  .btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
+  .btn[disabled]{opacity:.45;pointer-events:none;}
+  .btn.ghost{background:transparent;color:var(--pink-2);border-color:rgba(255,61,127,.35);box-shadow:none;}
+  .btn.ghost:hover{background:rgba(255,61,127,.1);}
+  .log{margin-top:14px;font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.9;
+    color:var(--ink-3);max-height:200px;overflow:auto;white-space:pre-wrap;}
+  .log b{color:var(--pink-2);font-weight:400;}
+  .log .err{color:#FF6B6B;}
+  .drop{border:1.5px dashed rgba(255,61,127,.35);border-radius:14px;padding:22px;text-align:center;
+    color:var(--ink-3);font-family:var(--soft);font-size:13px;cursor:pointer;transition:all .2s;}
+  .drop:hover,.drop.over{border-color:var(--pink);background:rgba(255,61,127,.06);color:var(--pink-2);}
+  .drop img{max-width:100%;max-height:190px;border-radius:10px;display:block;margin:0 auto 10px;}
+  .item{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line-2);}
+  .item img{width:54px;height:54px;object-fit:cover;border-radius:10px;flex:none;background:#1B1220;}
+  .item .t{flex:1;min-width:0;}
+  .item h4{font-family:var(--disp);font-size:14px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .item p{font-family:var(--soft);font-size:11.5px;color:var(--ink-3);margin-top:2px;}
+  .item .del{background:none;border:1px solid rgba(255,61,127,.3);color:var(--ink-3);
+    border-radius:9px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--disp);}
+  .item .del:hover{border-color:#FF6B6B;color:#FF6B6B;}
+  .badge-off{display:inline-block;font-family:var(--disp);font-size:10.5px;letter-spacing:.08em;
+    color:var(--ink-3);border:1px solid var(--line-2);border-radius:99px;padding:3px 10px;margin-left:8px;}
+  .badge-on{color:#7ee2b8;border-color:rgba(126,226,184,.4);}
+</style>
+</head>
+<body>
+<div class="page-head" style="padding-top:18px;">
+  <div class="wrap" style="max-width:760px;">
+    <div class="sec-k">ADMIN</div>
+    <h1>上传作品</h1>
+    <p>这个页面不在导航里，也不会被搜索引擎收录。上传 = 直接提交到 GitHub 仓库，一分钟内站点更新。</p>
+  </div>
+</div>
+
+<div class="admin-wrap">
+
+  <div class="panel">
+    <h2>① 连接仓库 <span id="conn" class="badge-off">未连接</span></h2>
+    <p class="hint">
+      需要一个 GitHub 令牌（fine-grained token），只给 <b>sherlynome.github.io</b> 这一个仓库的
+      <b>Contents: Read and write</b> 权限就够。<br>
+      令牌只存在你这台浏览器的 localStorage 里，不会上传到任何地方；丢了就重新生成一个。
+    </p>
+    <div class="field">
+      <label>GitHub 令牌</label>
+      <input type="password" id="token" placeholder="github_pat_… 或 ghp_…" autocomplete="off">
+    </div>
+    <button class="btn" id="save-token">保存并验证</button>
+    <button class="btn ghost" id="forget-token">清除本机令牌</button>
+    <div class="log" id="log1"></div>
+  </div>
+
+  <div class="panel">
+    <h2>② 传一张新作品</h2>
+    <p class="hint">图片会自动压到最长边 1600px、JPEG 88%，几 MB 的原图也能传。</p>
+
+    <div class="drop" id="drop">
+      <img id="preview" style="display:none" alt="">
+      <span id="dropText">点这里选图，或者直接把图拖进来</span>
+    </div>
+    <input type="file" id="file" accept="image/*" hidden>
+
+    <div class="field" style="margin-top:16px;">
+      <label>标题</label>
+      <input type="text" id="title" placeholder="例：夏日 ver. 白裙少女">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>分类</label>
+        <select id="cat">
+          <option value="model">建模</option>
+          <option value="draw">插画</option>
+          <option value="design">设计</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>标签（可留空）</label>
+        <input type="text" id="tagsSel" placeholder="Blender / 渲染 / 原创">
+      </div>
+    </div>
+    <div class="field">
+      <label>一句话说明（可留空）</label>
+      <textarea id="desc" placeholder="用了什么、做了多久、想表达什么"></textarea>
+    </div>
+
+    <button class="btn" id="upload" disabled>上传到作品集</button>
+    <div class="log" id="log2"></div>
+  </div>
+
+  <div class="panel">
+    <h2>③ 已有的作品</h2>
+    <p class="hint">删除会同时删掉仓库里的图片文件和 works.json 里的记录。</p>
+    <div id="list"><div class="log">先连接仓库</div></div>
+  </div>
+
+</div>
+
+<script src="assets/site.js"></script>
+<script>
+const OWNER = 'sherlynome', REPO = 'sherlynome.github.io', BRANCH = 'main';
+const API = 'https://api.github.com/repos/' + OWNER + '/' + REPO;
+const CATNAME = { model: '建模', draw: '插画', design: '设计', other: '其他' };
+
+let TOKEN = localStorage.getItem('gh_token') || '';
+let PICKED = null;   // { blob, dataUrl, name }
+
+const logEl = (id, msg, cls) => {
+  const el = document.getElementById(id);
+  el.innerHTML += (cls === 'err' ? '<span class="err">' : '<b>') + msg + '</span>\n';
+  el.scrollTop = el.scrollHeight;
+};
+
+function b64ToText(b64) {
+  const bin = atob(b64.replace(/\s/g, ''));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+function textToB64(t) {
+  const bytes = new TextEncoder().encode(t);
+  let bin = '';
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+
+async function gh(path, opts = {}) {
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: {
+      'Authorization': 'Bearer ' + TOKEN,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(opts.headers || {})
+    }
+  });
+  if (!res.ok) {
+    let m = res.status + '';
+    try { m = (await res.json()).message || m; } catch (e) {}
+    throw new Error(m);
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+async function readFile(path) {
+  const d = await gh('/contents/' + path + '?ref=' + BRANCH);
+  return { sha: d.sha, text: b64ToText(d.content), path };
+}
+async function writeFile(path, text, message, sha) {
+  return gh('/contents/' + path, {
+    method: 'PUT',
+    body: JSON.stringify({
+      message, branch: BRANCH,
+      content: textToB64(text),
+      ...(sha ? { sha } : {})
+    })
+  });
+}
+
+/* ── ① 连接 ─────────────────────────────────────────────── */
+function setConn(on) {
+  const el = document.getElementById('conn');
+  el.textContent = on ? '已连接' : '未连接';
+  el.className = 'badge-off' + (on ? ' badge-on' : '');
+  document.getElementById('upload').disabled = !on || !PICKED;
+  if (on) loadList();
+}
+
+document.getElementById('save-token').addEventListener('click', async () => {
+  const v = document.getElementById('token').value.trim();
+  if (!v) return logEl('log1', '先粘贴令牌', 'err');
+  TOKEN = v;
+  logEl('log1', '正在验证…');
+  try {
+    const me = await gh('');
+    localStorage.setItem('gh_token', v);
+    logEl('log1', '连接成功：' + me.full_name);
+    setConn(true);
+  } catch (e) {
+    logEl('log1', '验证失败：' + e.message, 'err');
+    setConn(false);
+  }
+});
+
+document.getElementById('forget-token').addEventListener('click', () => {
+  localStorage.removeItem('gh_token');
+  TOKEN = '';
+  document.getElementById('token').value = '';
+  setConn(false);
+  logEl('log1', '已清除本机令牌');
+});
+
+if (TOKEN) {
+  document.getElementById('token').value = TOKEN;
+  gh('').then(() => { logEl('log1', '已用保存的令牌连接'); setConn(true); })
+        .catch(() => logEl('log1', '保存的令牌失效了，重新填一个', 'err'));
+}
+
+/* ── ② 选图 ─────────────────────────────────────────────── */
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('file');
+
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => {
+  e.preventDefault(); drop.classList.remove('over');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+async function handleFile(file) {
+  if (!file.type.startsWith('image/')) return logEl('log2', '这不是图片', 'err');
+  logEl('log2', '压缩中…（' + (file.size / 1048576).toFixed(1) + ' MB）');
+  const bitmap = await createImageBitmap(file);
+  const max = 1600;
+  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bitmap.width * scale);
+  c.height = Math.round(bitmap.height * scale);
+  c.getContext('2d').drawImage(bitmap, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.88));
+  const dataUrl = c.toDataURL('image/jpeg', 0.88);
+  PICKED = { blob, dataUrl, w: c.width, h: c.height };
+  const pv = document.getElementById('preview');
+  pv.src = dataUrl; pv.style.display = 'block';
+  document.getElementById('dropText').textContent = '已选好，' + c.width + '×' + c.height + ' · ' + (blob.size / 1024).toFixed(0) + ' KB';
+  logEl('log2', '压缩完成：' + (blob.size / 1024).toFixed(0) + ' KB');
+  document.getElementById('upload').disabled = !TOKEN;
+}
+
+/* ── 上传 ───────────────────────────────────────────────── */
+document.getElementById('upload').addEventListener('click', async () => {
+  const title = document.getElementById('title').value.trim();
+  if (!title) return logEl('log2', '标题不能空', 'err');
+  if (!PICKED) return logEl('log2', '还没选图', 'err');
+
+  const btn = document.getElementById('upload');
+  btn.disabled = true;
+  const cat = document.getElementById('cat').value;
+  const stamp = Date.now().toString(36);
+  const fileName = 'wp-' + stamp + '.jpg';
+  const imgPath = 'assets/works/' + fileName;
+
+  try {
+    logEl('log2', '1/2 上传图片…');
+    const b64 = PICKED.dataUrl.split(',')[1];
+    await gh('/contents/' + imgPath, {
+      method: 'PUT',
+      body: JSON.stringify({ message: '作品：' + title, branch: BRANCH, content: b64 })
+    });
+
+    logEl('log2', '2/2 更新作品数据…');
+    const f = await readFile('assets/works.json');
+    const data = JSON.parse(f.text);
+    data.items = [{
+      title,
+      cat,
+      catName: CATNAME[cat] || cat,
+      cover: imgPath,
+      desc: document.getElementById('desc').value.trim(),
+      tags: document.getElementById('tagsSel').value.split(/[\/,，]/).map(s => s.trim()).filter(Boolean),
+      date: new Date().toISOString().slice(0, 10)
+    }].concat(data.items.filter(w => !w.demo));
+    data.updated = new Date().toISOString().slice(0, 10);
+    await writeFile('assets/works.json', JSON.stringify(data, null, 2), '作品数据：' + title, f.sha);
+
+    logEl('log2', '✔ 上传完成。GitHub Pages 大概 1 分钟内会更新。');
+    document.getElementById('title').value = '';
+    document.getElementById('desc').value = '';
+    PICKED = null;
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('dropText').textContent = '点这里选图，或者直接把图拖进来';
+    loadList();
+  } catch (e) {
+    logEl('log2', '✗ 失败：' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* ── ③ 列表 / 删除 ──────────────────────────────────────── */
+async function loadList() {
+  const box = document.getElementById('list');
+  box.innerHTML = '<div class="log">读取中…</div>';
+  try {
+    const f = await readFile('assets/works.json');
+    const data = JSON.parse(f.text);
+    if (!data.items.length) {
+      box.innerHTML = '<div class="log">还是空的，传第一张吧</div>';
+      return;
+    }
+    box.innerHTML = '';
+    data.items.forEach((w, i) => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `
+        <img src="${w.cover}" alt="">
+        <div class="t"><h4>${escHTML(w.title)}</h4>
+          <p>${escHTML(w.catName || w.cat)} · ${w.date || ''} ${w.demo ? '· 示例' : ''}</p></div>
+        <button class="del">删除</button>`;
+      row.querySelector('.del').addEventListener('click', async () => {
+        if (!confirm('删掉「' + w.title + '」？图片文件也会一起删。')) return;
+        try {
+          const file = await gh('/contents/' + w.cover + '?ref=' + BRANCH);
+          await gh('/contents/' + w.cover, {
+            method: 'DELETE',
+            body: JSON.stringify({ message: '删除作品：' + w.title, branch: BRANCH, sha: file.sha })
+          });
+          const f2 = await readFile('assets/works.json');
+          const d2 = JSON.parse(f2.text);
+          d2.items = d2.items.filter(x => x.cover !== w.cover);
+          await writeFile('assets/works.json', JSON.stringify(d2, null, 2), '删除作品：' + w.title, f2.sha);
+          logEl('log2', '✔ 已删除 ' + w.title);
+          loadList();
+        } catch (e) {
+          logEl('log2', '✗ 删除失败：' + e.message, 'err');
+        }
+      });
+      box.appendChild(row);
+    });
+  } catch (e) {
+    box.innerHTML = '<div class="log">读不到数据：' + escHTML(e.message) + '</div>';
+  }
+}
+</script>
+</body>
+</html>

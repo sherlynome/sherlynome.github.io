@@ -10,48 +10,55 @@
    ============================================================ */
 
 @font-face{
-  font-family:"KuaiLe";
-  src:url("../fonts/kuaile-subset.woff2") format("woff2");
+  font-family:"BangBang";
+  src:url("../fonts/bangbang-subset.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
 
 /* ---------- 1. 调色板 ---------------------------------------- */
 /* 图案生成器系列（badge / candy / checker / stripe）*/
 :root{
-  --pink-50:#F8FCFE;
-  --pink-100:#EAF6FC;
-  --pink-200:#D6ECF6;
-  --pink-300:#B9E0EF;
-  --pink-400:#8FD0E6;
-  --pink-500:#5BADCB;
-  --pink-600:#3E8FAC;
-  --ink:#2C4A5C;
-  --ink-soft:#6E90A3;
+  /* ── 地雷系（jirai-kei）：墨黑底 + 荧光莓粉 ────────────── */
+  --pink-50:#0C0710;
+  --pink-100:#140E18;
+  --pink-200:#2A1B26;
+  --pink-300:#3D263672;
+  --pink-400:#8E3E5C;
+  --pink-500:#C7174F;
+  --pink-600:#FF3D7F;
+  --ink:#F7EFF4;
+  --ink-soft:#A28C9B;
 
   /* 水印机系列 */
-  --bg:#F2FAFE;
-  --card:#FFFFFF;
-  --ink2:#6E90A3;
-  --line:#D6ECF6;
-  --pink:#A9DCEC;
-  --pink-d:#4E9FBC;
-  --pink-soft:#E4F3FB;
+  --bg:#0A0709;
+  --card:#140E18;
+  --ink2:#A28C9B;
+  --line:rgba(255,61,127,.20);
+  --pink:#FF3D7F;
+  --pink-d:#FF8FBB;
+  --pink-soft:#1E1420;
 
   /* 皮肤自身用的 */
-  --s-ink:#2C4A5C;
-  --s-soft:#6E90A3;
-  --s-line:#D6ECF6;
-  --s-aqua:#A9DCEC;
-  --s-aqua-deep:#4E9FBC;
-  --s-shadow:0 10px 30px rgba(120,180,210,.12);
+  --s-bg:#0A0709;
+  --s-card:#140E18;
+  --s-card-2:#1B1220;
+  --s-ink:#F7EFF4;
+  --s-soft:#A28C9B;
+  --s-line:rgba(255,61,127,.20);
+  --s-accent:#FF3D7F;
+  --s-accent-deep:#FF8FBB;
+  --s-aqua:#FF3D7F;
+  --s-aqua-deep:#FF8FBB;
+  --s-glow:rgba(255,61,127,.34);
+  --s-shadow:0 16px 40px rgba(0,0,0,.55);
   --s-radius:18px;
 }
 
 /* ---------- 2. 字体 ------------------------------------------ */
 body{
-  font-family:"KuaiLe","PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif !important;
-  color:var(--ink,#2C4A5C);
-  background:linear-gradient(168deg,#FBFDFF 0%,#F2FAFE 52%,#EAF5FB 100%) !important;
+  font-family:"BangBang","PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif !important;
+  color:var(--ink,#F2E9F0);
+  background:radial-gradient(1100px 560px at 18% -12%,rgba(255,61,127,.14),transparent 62%),linear-gradient(168deg,#0D0710 0%,#0A0709 55%,#080509 100%) !important;
   -webkit-font-smoothing:antialiased;
 }
 /* 数字保持系统字形，快乐体的数字太随性 */
@@ -61,14 +68,14 @@ body{
   unicode-range:U+0030-0039;
 }
 h1,h2,h3,.sec-title,.sub,.lab,label,button,.chip,.act,.btn,.tag,.val{
-  font-family:"NumFix","KuaiLe","PingFang SC","Microsoft YaHei",system-ui,sans-serif !important;
+  font-family:"NumFix","BangBang","PingFang SC","Microsoft YaHei",system-ui,sans-serif !important;
   letter-spacing:.4px;
 }
 
 /* ---------- 3. 控件统一 -------------------------------------- */
 /* 卡片 / 面板：细描边 + 柔投影 + 大圆角 */
 .preview-card,.controls,.panel,.panel-body,.modal-box,.art-frame{
-  background:#fff !important;
+  background:var(--s-card) !important;
   border:1.5px solid var(--s-line) !important;
   border-radius:var(--s-radius) !important;
   box-shadow:var(--s-shadow) !important;
@@ -78,16 +85,16 @@ h1,h2,h3,.sec-title,.sub,.lab,label,button,.chip,.act,.btn,.tag,.val{
 .chip{
   border:1.5px solid var(--s-line) !important;
   border-radius:999px !important;
-  background:#fff !important;
+  background:var(--s-card-2) !important;
   color:var(--s-ink) !important;
   transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease !important;
 }
 .chip:hover{border-color:var(--s-aqua) !important;transform:translateY(-1px);}
 .chip.on{
-  background:linear-gradient(135deg,#BCE4F2,#8FD0E6) !important;
-  border-color:#8FD0E6 !important;
+  background:linear-gradient(135deg,#FF4A87,#C7174F) !important;
+  border-color:#C7174F !important;
   color:#fff !important;
-  box-shadow:0 4px 12px rgba(120,180,210,.28) !important;
+  box-shadow:0 6px 16px var(--s-glow) !important;
 }
 
 /* 主按钮 / 次按钮 */
@@ -98,10 +105,10 @@ button.act,button.btn,.btn,.start-btn{
 }
 button.act:hover,button.btn:hover,.btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(120,180,210,.22);}
 button.act.primary,.btn.primary,.start-btn{
-  background:linear-gradient(135deg,#A9DCEC,#6FBEDA) !important;
+  background:linear-gradient(135deg,#FF4A87,#C7174F) !important;
   border-color:transparent !important;
   color:#fff !important;
-  box-shadow:0 6px 16px rgba(110,190,218,.32) !important;
+  box-shadow:0 8px 20px var(--s-glow) !important;
 }
 
 /* 小节标题：配一条渐隐细线 */
@@ -112,19 +119,19 @@ button.act.primary,.btn.primary,.start-btn{
 input[type=text],input[type=number],input[type=search],select,textarea,.inp{
   border:1.5px solid var(--s-line) !important;
   border-radius:10px !important;
-  background:#fff !important;
+  background:var(--s-card-2) !important;
   color:var(--s-ink) !important;
   font-family:inherit !important;
 }
 input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus,.inp:focus{
   outline:none !important;
   border-color:var(--s-aqua) !important;
-  box-shadow:0 0 0 3px rgba(169,220,236,.35) !important;
+  box-shadow:0 0 0 3px rgba(255,61,127,.28) !important;
 }
 input[type=color]{
   border:1.5px solid var(--s-line) !important;
   border-radius:10px !important;
-  background:#fff !important;
+  background:var(--s-card-2) !important;
   padding:2px !important;
 }
 
@@ -135,17 +142,79 @@ input[type=range]::-webkit-slider-runnable-track{
 }
 input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;width:16px;height:16px;margin-top:-6px;
-  border-radius:50%;background:#fff;border:2.5px solid var(--s-aqua-deep);
-  box-shadow:0 2px 6px rgba(110,150,175,.35);cursor:pointer;
+  border-radius:50%;background:#F2E9F0;border:2.5px solid var(--s-accent-deep);
+  box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:pointer;
 }
 
 /* 色块 / 标签 */
 .swatches .sw,.sw{border-radius:10px !important;border:1.5px solid var(--s-line) !important;}
-.tag{border-radius:999px !important;background:var(--pink-soft,#E4F3FB) !important;color:var(--s-aqua-deep) !important;}
+.tag{border-radius:999px !important;background:var(--pink-soft,#2A1F33) !important;color:var(--s-accent-deep) !important;}
 
 /* 文字色阶统一 */
 .sub,.size-tip,.hint,.hint-sub,.opt-row,.g-tip{color:var(--s-soft) !important;}
 .val{color:var(--s-aqua-deep) !important;font-variant-numeric:tabular-nums;}
 
 /* 画布投影别太重 */
-canvas{box-shadow:0 6px 20px rgba(120,180,210,.16) !important;}
+canvas{box-shadow:0 10px 30px rgba(0,0,0,.45) !important;}
+
+/* ── 画布常驻 ────────────────────────────────────────────────
+   老工具的痛：参数面板往下一滚，画布就跑出屏幕，调一下就得上滑看一眼。
+   桌面宽度下把整页改成「固定外壳」——标题、画布、底栏都不动，
+   只有右边的参数面板自己滚动，调参时画布永远在眼前。          */
+@media (min-width: 1021px) and (min-height: 620px){
+  body:has(> .layout){
+    height:100vh;overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  body:has(> .layout) h1{flex:none;margin:16px 0 8px;}
+  /* 两栏用 grid 钉死，画布这一列随视口高度缩，不会把面板挤下换行 */
+  body:has(> .layout) .layout{
+    flex:1;min-height:0;width:100%;max-width:1024px;margin:0 auto;
+    display:grid !important;grid-template-columns:minmax(0,1fr) 396px;
+    gap:22px;justify-content:center;align-items:stretch;
+  }
+  body:has(> .layout) .layout > .preview-card{
+    height:100%;min-width:0;margin:0;justify-content:center;overflow:hidden;
+    box-sizing:border-box;
+  }
+  body:has(> .layout) .layout > .preview-card canvas{
+    width:min(100%, calc(100vh - 208px)) !important;
+    height:auto !important;max-width:100% !important;
+  }
+  body:has(> .layout) .layout > .controls{
+    height:100%;width:auto !important;min-width:0;box-sizing:border-box;
+    overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
+  }
+  body:has(> .layout) .layout > .controls::-webkit-scrollbar{width:8px;}
+  body:has(> .layout) .layout > .controls::-webkit-scrollbar-thumb{
+    background:rgba(255,61,127,.45);border-radius:99px;
+  }
+  body:has(> .layout) footer{flex:none;margin:8px 0 12px;padding:0;}
+}
+
+/* 中等宽度（放不下两栏）退回普通滚动，只把画布钉住 */
+@media (min-width: 861px) and (max-width: 1020px){
+  .layout{align-items:flex-start !important;}
+  .layout > .preview-card{
+    position:sticky !important;top:12px;align-self:flex-start;
+    max-height:calc(100vh - 24px);
+  }
+  .layout > .preview-card canvas{
+    width:min(460px, 100%, calc(100vh - 170px)) !important;height:auto !important;
+  }
+}
+
+/* ── 字号统一上调 ────────────────────────────────────────────
+   chip 12px、dock 9px 那套太小了，长时间改参数眼睛疼。        */
+body{font-size:15px;}
+.sec-title{font-size:14px !important;letter-spacing:.6px !important;}
+.g-head h3{font-size:15px !important;}
+.chip{font-size:13px !important;padding:7px 14px !important;}
+.row label{font-size:13.5px !important;}
+.val{font-size:13px !important;}
+.opt-row,.size-tip,.hint,.hint-sub,.g-tip{font-size:12.8px !important;}
+.color-item span,.swatches span,.color-row .color-item span{font-size:12.5px !important;}
+.dock button{font-size:11.5px !important;padding:7px 0 3px !important;}
+.dock .ic{font-size:21px !important;line-height:1.15 !important;}
+.btns button,.btn{font-size:14px !important;}
+.tag{font-size:11.5px !important;}
