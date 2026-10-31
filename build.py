@@ -58,7 +58,7 @@ FOOTER = """
 <div class="foot-strip"></div>
 <footer>
   <div class="wrap row">
-    <div>© 2026 <b>sherly 🌙</b> · 随便逛，随便用</div>
+    <div>© 2026 <b>雪莉露 🌙</b> · 随便逛，随便用</div>
     <div>建站于 <b>GitHub Pages</b> · 不收集任何数据</div>
   </div>
 </footer>
@@ -100,7 +100,7 @@ def tabbar(slug: str) -> str:
 def nav(n_tools: int) -> str:
     return """
 <nav class="nav">
-  <a class="brand" href="index.html"><i>🎀</i>sherly<em>工坊</em></a>
+  <a class="brand" href="index.html"><i>🎀</i>雪莉露<i class="jp">の</i><em>部屋</em></a>
   <div class="links">
     <a href="%s" target="_blank" rel="noopener">GitHub ↗</a>
     <span class="cnt"><b>%d</b> TOOLS</span>
@@ -197,8 +197,8 @@ HERO = """
     <div class="veil"></div>
   </div>
   <div class="wrap hero-in">
-    <div class="eyebrow">SHERLY'S ATELIER</div>
-    <h1>sherly 的<span class="hl">小工坊</span><span class="bow">🎀</span></h1>
+    <div class="eyebrow">SHERLY'S LITTLE ROOM</div>
+    <h1>雪莉露<i class="jp">の</i><span class="hl">部屋</span><span class="bow">🎀</span></h1>
     <p class="lead">6 年编导，二次元博主，Lo 娘。<br>
       会建模、画画、也写点代码——做图做素材，工具越攒越多，就摆到这里。<br>
       <b>用得上就拿去用。</b></p>
@@ -472,15 +472,15 @@ BODY_ABOUT = page_head("ABOUT", "关于", "做图做素材的人，顺手写点�
 
 
 PAGES = [
-    ("nav.html", "导航 · sherly 工坊", "整站地图：主页、博客、动态、作品集、仓库、友链、留言、关于。", BODY_NAV, SCRIPT_NAV),
-    ("index.html", "sherly 工坊 · 做图做素材的小工具与作品", "sherly 的个人站：建模、插画、设计作品，以及十几个纯前端的网页小工具。", BODY_INDEX, SCRIPT_INDEX),
-    ("blog.html", "博客 · sherly 工坊", "长文：工具教程、拆解、踩过的坑。", BODY_BLOG, ""),
-    ("notes.html", "动态 · sherly 工坊", "随手记：改了工具、动了站。", BODY_NOTES, ""),
-    ("works.html", "作品集 · sherly 工坊", "建模、插画、设计作品集。", BODY_WORKS, SCRIPT_WORKS),
-    ("repo.html", "仓库 · sherly 工坊", "GitHub 上的源码仓库。", BODY_REPO, SCRIPT_REPO),
-    ("links.html", "友链 · sherly 工坊", "常逛的几个个人站。", BODY_LINKS, ""),
-    ("guest.html", "留言 · sherly 工坊", "留言板。", BODY_GUEST, ""),
-    ("about.html", "关于 · sherly 工坊", "关于 sherly 和这个站。", BODY_ABOUT, ""),
+    ("nav.html", "导航 · 雪莉露の部屋", "整站地图：主页、博客、动态、作品集、仓库、友链、留言、关于。", BODY_NAV, SCRIPT_NAV),
+    ("index.html", "雪莉露の部屋 · 做图、做素材、写小工具", "sherly 的个人站：建模、插画、设计作品，以及十几个纯前端的网页小工具。", BODY_INDEX, SCRIPT_INDEX),
+    ("blog.html", "博客 · 雪莉露の部屋", "长文：工具教程、拆解、踩过的坑。", BODY_BLOG, ""),
+    ("notes.html", "动态 · 雪莉露の部屋", "随手记：改了工具、动了站。", BODY_NOTES, ""),
+    ("works.html", "作品集 · 雪莉露の部屋", "建模、插画、设计作品集。", BODY_WORKS, SCRIPT_WORKS),
+    ("repo.html", "仓库 · 雪莉露の部屋", "GitHub 上的源码仓库。", BODY_REPO, SCRIPT_REPO),
+    ("links.html", "友链 · 雪莉露の部屋", "常逛的几个个人站。", BODY_LINKS, ""),
+    ("guest.html", "留言 · 雪莉露の部屋", "留言板。", BODY_GUEST, ""),
+    ("about.html", "关于 · 雪莉露の部屋", "关于 sherly 和这个站。", BODY_ABOUT, ""),
 ]
 
 

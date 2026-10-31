@@ -4,3 +4,9 @@ Thumbs.db
 
 # 源字体 1.5MB，用 make_font_subset.py 可重新生成子集
 fonts/_src/
+
+# 本地截图/审计脚本，不部署
+_s.py
+_audit.py
+_dbg.html
+_aud.html

@@ -78,6 +78,21 @@
   }
   .nav .brand i{font-family:"Sym";font-style:normal;font-size:17px;filter:drop-shadow(0 0 8px rgba(255,61,127,.7));}
   .nav .brand em{font-style:normal;color:var(--pink);}
+  /* 顶栏字号小，假名按比例缩回去、描边减半，否则太粗或太淡 */
+  .nav .brand .jp{font-size:.88em;-webkit-text-stroke:.006em currentColor;transform:translateY(-.015em);}
+
+/* 假名（の）：棒棒体没有假名字形，单独走系统日文字体。
+   假名的字面比汉字小、笔画也细，所以字号放回 .9em、微微描边补粗细，
+   再抬一点基线，混在汉字里才不显突兀 */
+.jp{
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic",
+              "Meiryo","MS PGothic",sans-serif;
+  font-style:normal;font-weight:700;font-size:.9em;
+  -webkit-text-stroke:.014em currentColor;
+  display:inline-block;transform:translateY(-.025em);margin:0 .05em;
+  letter-spacing:0;
+}
+
   .nav .links{display:flex;align-items:center;gap:clamp(12px,2.4vw,26px);margin-left:auto;}
   .nav .links a{
     color:var(--ink-3);text-decoration:none;font-size:12.5px;letter-spacing:.14em;
