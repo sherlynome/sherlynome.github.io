@@ -432,17 +432,50 @@ BODY_LINKS = page_head("LINKS", "友链", "常逛的几个站，都是自己一�
 </section>
 """ % link_cards(LINKS)
 
-BODY_GUEST = page_head("GUESTBOOK", "留言", "说点什么，工具哪里难用、想要什么新的，都行。") + """
-<section class="sec" style="padding-top:0">
-  <div class="wrap">
-    <div class="giscus-wrap">
-      <div class="giscus" id="giscus-box">
+# ── 留言板（giscus） ───────────────────────────────────────
+# repo-id 可以直接从 REST API 拿：
+#   curl -s https://api.github.com/repos/sherlynome/sherlynome.github.io | grep node_id
+# category-id 必须在仓库开启 Discussions、装好 giscus app 之后，
+#   到 https://giscus.app/zh-CN 填仓库名，页面底部生成的 <script> 里复制。
+GISCUS_REPO = "sherlynome/sherlynome.github.io"
+GISCUS_REPO_ID = "R_kgDOVeTqPg"
+GISCUS_CATEGORY = "留言板"
+GISCUS_CATEGORY_ID = ""      # ← 把 DIC_kwDO... 填进来，留言板就自动接管，别处不用动
+
+GISCUS_PLACEHOLDER = """
         <div class="empty-state" style="border:none;background:none;">
           <div class="big">♡</div>
           <h3>留言板还没接线</h3>
           <p>要把仓库的 Discussions 打开、装上 giscus 才生效。<br>
              在那之前，微信/小红书私信我，或者去 GitHub 开 issue。</p>
-        </div>
+        </div>"""
+
+GISCUS_SCRIPT = """
+        <script src="https://giscus.app/client.js"
+                data-repo="%s"
+                data-repo-id="%s"
+                data-category="%s"
+                data-category-id="%s"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="1"
+                data-emit-metadata="0"
+                data-input-position="top"
+                data-theme="transparent_dark"
+                data-lang="zh-CN"
+                data-loading="lazy"
+                crossorigin="anonymous"
+                async>
+        </script>""" % (GISCUS_REPO, GISCUS_REPO_ID, GISCUS_CATEGORY, GISCUS_CATEGORY_ID)
+
+# 没填 category-id 就保持占位，不会把半个 giscus 吐到页面上
+GISCUS_INNER = GISCUS_SCRIPT if GISCUS_CATEGORY_ID else GISCUS_PLACEHOLDER
+
+BODY_GUEST = page_head("GUESTBOOK", "留言", "说点什么，工具哪里难用、想要什么新的，都行。") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="giscus-wrap">
+      <div class="giscus" id="giscus-box">%s
       </div>
     </div>
     <div class="guest-actions">
@@ -451,7 +484,7 @@ BODY_GUEST = page_head("GUESTBOOK", "留言", "说点什么，工具哪里难用
     </div>
   </div>
 </section>
-""" % GH_REPO
+""" % (GISCUS_INNER, GH_REPO)
 
 BODY_ABOUT = page_head("ABOUT", "关于", "做图做素材的人，顺手写点工具。") + """
 <section class="sec" style="padding-top:0">
