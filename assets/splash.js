@@ -676,6 +676,8 @@
     } catch (e) { return false; }
   }
 
+  /* 已停用：原来那层持续 pad 是开场"wen wen wen"低频嗡声的来源，
+     现在改由 SONGS 里的四首曲子承担铺底，这个函数保留但不再调用。 */
   function createAmbientPad() {
     if (!audioCtx) return;
     var padGain = audioCtx.createGain();
@@ -737,7 +739,7 @@
     f.connect(g);
     g.connect(masterGain);
     s.start();
-    g.gain.linearRampToValueAtTime(.032, audioCtx.currentTime + 4);
+    g.gain.linearRampToValueAtTime(.018, audioCtx.currentTime + 4);
     var lfo = audioCtx.createOscillator(), lg = audioCtx.createGain();
     lfo.frequency.value = .08;
     lg.gain.value = 150;
@@ -865,91 +867,117 @@
     s.stop(t + 4);
   }
 
-  /* ── 季节音景 ─────────────────────────────────────────────
-     基础层（pad + 风）四季共用，这里叠一层各季的特征音色。
-     全部用 Web Audio 现场合成，不加载任何音频文件。 */
-  function seasonAmbience(idx) {
+  /* ── 四季配乐（MIDI 式音符序列，Web Audio 现场合成） ─────
+     每首 16 拍，循环播放。音符格式 [音高, 起始拍, 时值拍, 力度]，
+     音高用 MIDI 编号（60 = C4 / 中央 C）。 */
+  var SONGS = [
+    { /* 春 · 樱 —— C 大调五声，轻快上行 */
+      bpm: 92, wave: 'triangle', vol: .55,
+      notes: [
+        [72,0,.5,.22],[76,.75,.5,.20],[79,1.5,.5,.22],[81,2,.5,.20],[79,2.5,.5,.18],
+        [76,3,.5,.20],[74,3.5,.5,.17],[72,4,1,.22],[74,5,.5,.18],[76,5.5,.5,.20],
+        [67,6,.5,.18],[72,6.5,.5,.20],[76,7,.5,.22],[74,7.5,.5,.18],
+        [72,8,2,.22],
+        [76,10,.5,.20],[79,10.5,.5,.22],[81,11,.5,.20],[84,11.5,.5,.22],
+        [81,12,1,.20],[79,13,.5,.18],[76,13.5,.5,.20],
+        [74,14,2,.20]
+      ],
+      bass: [[48,0,8,.05],[55,8,8,.05]]
+    },
+    { /* 夏 · 蝉 —— F 大调，慵懒的长音 */
+      bpm: 76, wave: 'sine', vol: .5,
+      notes: [
+        [69,0,1,.20],[72,1,1,.21],[74,2,1,.20],[72,3,1,.19],
+        [69,4,1.5,.20],[67,5.5,.5,.17],[65,6,2,.19],
+        [69,8,1,.20],[72,9,1,.21],[77,10,1,.19],[74,11,1,.20],
+        [72,12,2,.20],[69,14,2,.18]
+      ],
+      bass: [[53,0,8,.045],[60,8,8,.045]]
+    },
+    { /* 秋 · 落叶 —— A 小调，缓慢下行 */
+      bpm: 64, wave: 'triangle', vol: .55,
+      notes: [
+        [72,0,1.5,.21],[71,1.5,.5,.17],[69,2,2,.22],
+        [67,4,1.5,.19],[65,5.5,.5,.16],[64,6,2,.20],
+        [62,8,1.5,.19],[64,9.5,.5,.17],[65,10,2,.20],
+        [67,12,1.5,.19],[69,13.5,2.5,.20]
+      ],
+      bass: [[45,0,8,.05],[52,8,8,.05]]
+    },
+    { /* 冬 · 雪 —— 高音区，稀疏留白 */
+      bpm: 56, wave: 'sine', vol: .5,
+      notes: [
+        [76,0,2,.17],[79,2,2,.16],[83,4,3,.18],
+        [81,7,1,.15],[79,8,2,.17],[76,10,2,.16],
+        [74,12,2,.15],[71,14,2,.16]
+      ],
+      bass: [[52,0,8,.045],[59,8,8,.045]]
+    }
+  ];
+
+  var songTimer = null;
+
+  function midiToFreq(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+
+  /* 一个音：短促起音 + 指数衰减，听着像敲击类音色 */
+  function tone(midi, t, dur, vel, wave) {
+    if (!audioCtx || killed) return;
+    var o = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    o.type = wave;
+    o.frequency.value = midiToFreq(midi);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vel, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + Math.max(dur, 0.12));
+    o.connect(g);
+    g.connect(masterGain);
+    o.start(t);
+    o.stop(t + dur + 0.06);
+  }
+
+  /* 低音垫：更长更软，压住整首的骨架 */
+  function bassTone(midi, t, dur, vel) {
+    if (!audioCtx || killed) return;
+    var o = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.value = midiToFreq(midi);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vel, t + dur * 0.25);
+    g.gain.linearRampToValueAtTime(vel * 0.7, t + dur * 0.8);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+    o.connect(g);
+    g.connect(masterGain);
+    o.start(t);
+    o.stop(t + dur + 0.06);
+  }
+
+  function playSong(idx) {
     if (!audioCtx) return;
+    var song = SONGS[idx] || SONGS[0];
+    var beat = 60 / song.bpm;
+    var loopSec = beat * 16;
 
-    if (idx === 0) {
-      /* 春：零星的鸟鸣，短促上滑的三角波 */
-      ambTimers.push(setInterval(function () {
-        if (!audioCtx || killed) return;
-        var t = audioCtx.currentTime;
-        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.type = 'sine';
-        var base = 1900 + Math.random() * 1100;
-        o.frequency.setValueAtTime(base, t);
-        o.frequency.exponentialRampToValueAtTime(base * 1.55, t + 0.06);
-        o.frequency.exponentialRampToValueAtTime(base * 1.15, t + 0.15);
-        g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(.038, t + .02);
-        g.gain.exponentialRampToValueAtTime(.001, t + .2);
-        o.connect(g); g.connect(masterGain);
-        o.start(t); o.stop(t + .22);
-      }, 2600));
+    function scheduleLoop() {
+      if (killed || !audioCtx) return;
+      var t0 = audioCtx.currentTime + 0.08;
+
+      song.notes.forEach(function (n) {
+        tone(n[0], t0 + n[1] * beat, n[2] * beat, n[3] * song.vol, song.wave);
+      });
+      (song.bass || []).forEach(function (b) {
+        bassTone(b[0], t0 + b[1] * beat, b[2] * beat, b[3]);
+      });
+
+      /* 用 currentTime 重新取起点，不累积误差 */
+      songTimer = setTimeout(scheduleLoop, loopSec * 1000 - 40);
     }
+    scheduleLoop();
+  }
 
-    if (idx === 1) {
-      /* 夏：蝉鸣，窄带噪声 + 快速调幅 */
-      var src = audioCtx.createBufferSource();
-      src.buffer = noiseBuffer(2); src.loop = true;
-      var bp = audioCtx.createBiquadFilter();
-      bp.type = 'bandpass'; bp.frequency.value = 4200; bp.Q.value = 7;
-      var g1 = audioCtx.createGain(); g1.gain.value = 0;
-      src.connect(bp); bp.connect(g1); g1.connect(masterGain);
-      src.start();
-      var lfo = audioCtx.createOscillator(), lg = audioCtx.createGain();
-      lfo.type = 'sawtooth'; lfo.frequency.value = 38; lg.gain.value = .014;
-      lfo.connect(lg); lg.connect(g1.gain); lfo.start();
-      g1.gain.linearRampToValueAtTime(.045, audioCtx.currentTime + 3);
-    }
-
-    if (idx === 2) {
-      /* 秋：风更明显，偶尔一声木质敲击（落叶/枯枝） */
-      var s2 = audioCtx.createBufferSource();
-      s2.buffer = noiseBuffer(3); s2.loop = true;
-      var lp = audioCtx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 780;
-      var g2 = audioCtx.createGain(); g2.gain.value = 0;
-      s2.connect(lp); lp.connect(g2); g2.connect(masterGain);
-      s2.start();
-      g2.gain.linearRampToValueAtTime(.055, audioCtx.currentTime + 4);
-      var lfo2 = audioCtx.createOscillator(), lg2 = audioCtx.createGain();
-      lfo2.frequency.value = .11; lg2.gain.value = 260;
-      lfo2.connect(lg2); lg2.connect(lp.frequency); lfo2.start();
-
-      ambTimers.push(setInterval(function () {
-        if (!audioCtx || killed) return;
-        var t = audioCtx.currentTime;
-        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.type = 'triangle';
-        o.frequency.setValueAtTime(190 + Math.random() * 90, t);
-        g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(.05, t + .008);
-        g.gain.exponentialRampToValueAtTime(.001, t + .45);
-        o.connect(g); g.connect(masterGain);
-        o.start(t); o.stop(t + .5);
-      }, 4200));
-    }
-
-    if (idx === 3) {
-      /* 冬：稀疏的高音铃片，长衰减，留白多 */
-      ambTimers.push(setInterval(function () {
-        if (!audioCtx || killed) return;
-        var t = audioCtx.currentTime;
-        [1, 2.4, 3.7].forEach(function (h, k) {
-          var o = audioCtx.createOscillator(), g = audioCtx.createGain();
-          o.type = 'sine';
-          o.frequency.value = 1568 * h;
-          g.gain.setValueAtTime(0, t);
-          g.gain.linearRampToValueAtTime(.028 / (k + 1), t + .01);
-          g.gain.exponentialRampToValueAtTime(.001, t + 3.2);
-          o.connect(g); g.connect(masterGain);
-          o.start(t); o.stop(t + 3.3);
-        });
-      }, 5200));
-    }
+  function seasonIndex() {
+    var s = document.documentElement.getAttribute('data-season');
+    return s === 'spring' ? 0 : s === 'summer' ? 1 : s === 'autumn' ? 2 : s === 'winter' ? 3 : -1;
   }
 
   /* ── 收尾：淡出并拆掉整个开场 ───────────────────────────── */
@@ -961,6 +989,7 @@
     timers = [];
     ambTimers.forEach(clearInterval);
     ambTimers = [];
+    if (songTimer) { clearTimeout(songTimer); songTimer = null; }
     rainActive = false;
     ghosts.forEach(function (g) {
       clearTimeout(g._wanderTimer);
@@ -1015,7 +1044,14 @@
 
   /* ── 时间轴 ─────────────────────────────────────────────── */
   function startTimeline() {
-    createAmbientPad();
+    /* 配乐替换掉原来那个持续 pad（"wen" 声的来源）。
+       节日场景没有 data-season，按当前月份挑一首，保证任何场景都有音乐。 */
+    var si = seasonIndex();
+    if (si < 0) {
+      var mo = new Date().getMonth() + 1;
+      si = mo >= 3 && mo <= 5 ? 0 : mo >= 6 && mo <= 8 ? 1 : mo >= 9 && mo <= 11 ? 2 : 3;
+    }
+    playSong(si);
     createWind();
 
     timers.push(setTimeout(function () {
@@ -1044,10 +1080,6 @@
         rainActive = true;
         drawRain();
         createRainSound();
-      } else if (document.documentElement.getAttribute('data-season')) {
-        seasonAmbience(document.documentElement.getAttribute('data-season') === 'spring' ? 0
-          : document.documentElement.getAttribute('data-season') === 'summer' ? 1
-          : document.documentElement.getAttribute('data-season') === 'autumn' ? 2 : 3);
       }
       triggerGlowPulse('soft-2');
     }, 8000));
