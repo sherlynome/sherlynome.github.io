@@ -212,9 +212,10 @@ function buildStone(env){
     c.beginPath(); c.moveTo(px,py);
     const segs = 4 + Math.floor(rnd()*5);
     let ang = rnd()*Math.PI*2;
+    let len = 0;
     for(let k=0;k<segs;k++){
       ang += (rnd()-0.5)*1.4;
-      const len = s*(0.03+rnd()*0.07);
+      len = s*(0.03+rnd()*0.07);
       px += Math.cos(ang)*len; py += Math.sin(ang)*len;
       c.lineTo(px,py);
     }
