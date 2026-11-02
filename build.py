@@ -15,6 +15,7 @@ GH_REPO = "https://github.com/sherlynome/sherlynome.github.io"
 TABS = [
     ("nav.html", "导航"),
     ("index.html", "主页"),
+    ("tools.html", "工具"),
     ("blog.html", "博客"),
     ("notes.html", "动态"),
     ("works.html", "作品集"),
@@ -498,6 +499,46 @@ SCRIPT_NAV = """
 </script>
 """
 
+BODY_TOOLS = page_head("TOOLS", "工具", "顺手做的小工具，点开就用。", "（｡·ω·｡）全部离线可用，不登录，不看广告") + """
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="filters" id="tfilter"></div>
+    <div class="grid" id="toolgrid"></div>
+    <div class="notes-foot"><span>用得上就拿去用 ✦</span></div>
+  </div>
+</section>
+"""
+
+SCRIPT_TOOLS = """
+<script>
+(async () => {
+  const tools = await getJSON('assets/tools.json');
+  const grid = $('#toolgrid');
+  const bar = $('#tfilter');
+  const seen = {};
+  const cats = [{ f: 'all', n: '全部' }];
+  tools.forEach(t => { if (!seen[t.cat]) { seen[t.cat] = 1; cats.push({ f: t.cat, n: t.catName }); } });
+  cats.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (i === 0 ? ' on' : '');
+    b.dataset.f = c.f; b.textContent = c.n;
+    bar.appendChild(b);
+  });
+  function paint(f) {
+    grid.innerHTML = '';
+    if (!tools.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="big">✦</div><h3>还没有工具</h3><p>回头再来逛。</p></div>';
+      return;
+    }
+    (f === 'all' ? tools : tools.filter(t => t.cat === f))
+      .forEach((t, i) => grid.appendChild(toolCard(t, i)));
+  }
+  paint('all');
+  bindFilters(bar, paint);
+})();
+</script>
+"""
+
 BODY_WORKS = page_head("WORKS", "作品集", "建模、插画、设计。做完的都在这，点开看大图。") + """
 <section class="sec" style="padding-top:0">
   <div class="wrap">
@@ -690,6 +731,7 @@ BODY_ABOUT = page_head("ABOUT", "关于", "做图做素材的人，顺手写点�
 PAGES = [
     ("nav.html", "导航 · 雪莉露の部屋", "整站地图：主页、博客、动态、作品集、仓库、友链、留言、关于。", BODY_NAV, SCRIPT_NAV),
     ("index.html", "雪莉露の部屋 · 做图、做素材、写小工具", "sherly 的个人站：建模、插画、设计作品，以及十几个纯前端的网页小工具。", BODY_INDEX, SCRIPT_INDEX),
+    ("tools.html", "工具 · 雪莉露の部屋", "顺手做的小工具，点开即用，全部离线可用。", BODY_TOOLS, SCRIPT_TOOLS),
     ("blog.html", "博客 · 雪莉露の部屋", "长文：工具教程、拆解、踩过的坑。", BODY_BLOG, ""),
     ("notes.html", "动态 · 雪莉露の部屋", "随手记：改了工具、动了站。", BODY_NOTES, ""),
     ("works.html", "作品集 · 雪莉露の部屋", "建模、插画、设计作品集。", BODY_WORKS, SCRIPT_WORKS),

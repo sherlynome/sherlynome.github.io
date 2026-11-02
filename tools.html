@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工具 · 雪莉露の部屋</title>
+<meta name="description" content="顺手做的小工具，点开即用，全部离线可用。">
+<meta name="theme-color" content="#0A0709">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🎀</text></svg>">
+<link rel="stylesheet" href="assets/site.css">
+
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="index.html"><i>🎀</i>雪莉露<i class="jp">の</i><em>部屋</em></a>
+  <div class="links">
+    <a href="https://github.com/sherlynome" target="_blank" rel="noopener">GitHub ↗</a>
+    <span class="cnt"><b>16</b> TOOLS</span>
+  </div>
+</nav>
+
+<div class="tabbar">
+  <div class="row">
+    <a class="tab" href="nav.html">导航</a>
+    <a class="tab" href="index.html">主页</a>
+    <a class="tab on" href="tools.html">工具</a>
+    <a class="tab" href="blog.html">博客</a>
+    <a class="tab" href="notes.html">动态</a>
+    <a class="tab" href="works.html">作品集</a>
+    <a class="tab" href="repo.html">仓库</a>
+    <a class="tab" href="links.html">友链</a>
+    <a class="tab" href="guest.html">留言</a>
+    <a class="tab" href="about.html">关于</a>
+  </div>
+  <div class="band"></div>
+</div>
+
+
+<header class="page-head">
+  <div class="wrap">
+    <div class="sec-k">TOOLS</div>
+    <h1>工具</h1>
+    <p>顺手做的小工具，点开就用。</p>
+    <div class="kao">（｡·ω·｡）全部离线可用，不登录，不看广告</div>
+  </div>
+</header>
+
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="filters" id="tfilter"></div>
+    <div class="grid" id="toolgrid"></div>
+    <div class="notes-foot"><span>用得上就拿去用 ✦</span></div>
+  </div>
+</section>
+
+
+<div class="foot-strip"></div>
+<footer>
+  <div class="wrap row">
+    <div>© 2026 <b>雪莉露 🌙</b> · 随便逛，随便用</div>
+    <div>建站于 <b>GitHub Pages</b> · 不收集任何数据</div>
+  </div>
+</footer>
+
+<div class="mask" id="mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-name">
+    <button class="x" id="m-close" aria-label="关闭">✕</button>
+    <div class="m-top">
+      <img id="m-img" alt="">
+      <div><h4 id="m-name"></h4><div class="m-cat" id="m-cat"></div></div>
+    </div>
+    <p class="m-intro" id="m-intro"></p>
+    <div class="m-h">HOW TO</div>
+    <ol id="m-steps"></ol>
+    <div class="m-tip" id="m-tip"></div>
+    <div class="m-actions"><a class="go" id="m-go" target="_blank" rel="noopener">打开工具 →</a></div>
+  </div>
+</div>
+
+<script src="assets/festival.js"></script>
+<script src="assets/site.js"></script>
+
+<script>
+(async () => {
+  const tools = await getJSON('assets/tools.json');
+  const grid = $('#toolgrid');
+  const bar = $('#tfilter');
+  const seen = {};
+  const cats = [{ f: 'all', n: '全部' }];
+  tools.forEach(t => { if (!seen[t.cat]) { seen[t.cat] = 1; cats.push({ f: t.cat, n: t.catName }); } });
+  cats.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (i === 0 ? ' on' : '');
+    b.dataset.f = c.f; b.textContent = c.n;
+    bar.appendChild(b);
+  });
+  function paint(f) {
+    grid.innerHTML = '';
+    if (!tools.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="big">✦</div><h3>还没有工具</h3><p>回头再来逛。</p></div>';
+      return;
+    }
+    (f === 'all' ? tools : tools.filter(t => t.cat === f))
+      .forEach((t, i) => grid.appendChild(toolCard(t, i)));
+  }
+  paint('all');
+  bindFilters(bar, paint);
+})();
+</script>
+
+</body>
+</html>
