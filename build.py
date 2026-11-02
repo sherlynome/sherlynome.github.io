@@ -381,7 +381,7 @@ HERO = """
       <b>用得上就拿去用。</b></p>
     <div class="hero-meta">
       <a class="pill" href="works.html"><b id="n-works">0</b>件作品</a>
-      <a class="pill" href="tools.html"><b>14</b>个工具</a>
+      <a class="pill" href="tools.html"><b>16</b>个工具</a>
       <a class="pill" href="notes.html"><b>5</b>条动态</a>
     </div>
     <p class="kao">(｡･ω･｡)ﾉ 全部离线可用，不登录，不看广告</p>
@@ -411,7 +411,7 @@ BODY_INDEX = SPLASH + HERO + """
       <span class="sub">点开即用，不用下载</span>
     </div>
     <div class="grid" id="home-tools"></div>
-    <div class="notes-foot"><a class="msgbtn" href="tools.html">14 个全在这 →</a></div>
+    <div class="notes-foot"><a class="msgbtn" href="tools.html">16 个全在这 →</a></div>
   </div>
 </section>
 
@@ -480,7 +480,7 @@ BODY_NAV = page_head("NAVIGATION", "导航", "整站的地图。想找什么，�
   <div class="wrap">
     <div class="sec-head">
       <div class="sec-k">TOOLS</div>
-      <h2>14 个工具</h2>
+      <h2>16 个工具</h2>
       <span class="sub">全部纯前端，点开就用</span>
     </div>
     <div class="grid" id="toolgrid"></div>

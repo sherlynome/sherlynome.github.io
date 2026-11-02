@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>石头刻字模拟器 · 在石头上写字</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#111; font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; }
+  #scene { position:fixed; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair; }
+
+  .glass {
+    background:rgba(20,24,20,.55);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:16px;
+    box-shadow:0 6px 24px rgba(0,0,0,.25);
+  }
+
+  /* 顶部：环境切换 */
+  #envBar {
+    position:fixed; top:14px; left:50%; transform:translateX(-50%);
+    display:flex; gap:4px; padding:5px; z-index:10;
+  }
+  .envBtn {
+    border:none; background:transparent; color:rgba(255,255,255,.75);
+    font-size:14px; padding:8px 14px; border-radius:12px; cursor:pointer;
+    transition:all .2s; white-space:nowrap;
+  }
+  .envBtn.active { background:rgba(255,255,255,.92); color:#2b2b2b; font-weight:600; }
+  .envBtn:not(.active):hover { background:rgba(255,255,255,.15); }
+
+  /* 底部：工具栏 */
+  #toolBar {
+    position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+    display:flex; align-items:center; gap:6px; padding:6px; z-index:10;
+    max-width:calc(100vw - 16px); flex-wrap:wrap; justify-content:center;
+  }
+  .toolBtn {
+    border:none; background:transparent; color:rgba(255,255,255,.8);
+    font-size:14px; padding:9px 13px; border-radius:12px; cursor:pointer;
+    transition:all .2s; display:flex; align-items:center; gap:5px;
+  }
+  .toolBtn.active { background:rgba(255,255,255,.92); color:#2b2b2b; font-weight:600; }
+  .toolBtn:not(.active):hover { background:rgba(255,255,255,.15); }
+  .sep { width:1px; height:22px; background:rgba(255,255,255,.18); margin:0 3px; }
+  #sizeRange { width:90px; accent-color:#d8d4c8; cursor:pointer; }
+  .iconBtn { font-size:16px; padding:9px 11px; }
+
+  /* 表情选择行 */
+  #stampBar {
+    position:fixed; bottom:76px; left:50%; transform:translateX(-50%);
+    display:none; gap:2px; padding:5px; z-index:10;
+    max-width:calc(100vw - 16px); flex-wrap:wrap; justify-content:center;
+  }
+  #stampBar.show { display:flex; }
+  .stampBtn {
+    border:none; background:transparent; color:#f0ede2;
+    font-size:17px; padding:7px 10px; border-radius:10px; cursor:pointer;
+    transition:all .15s; text-shadow:0 1px 2px rgba(0,0,0,.6);
+  }
+  .stampBtn:hover, .stampBtn.active { background:rgba(255,255,255,.9); text-shadow:none; }
+
+  /* 声音开关 */
+  #soundBtn {
+    position:fixed; top:14px; right:14px; z-index:10;
+    width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+    font-size:19px; cursor:pointer; border:none; color:#fff; background:rgba(20,24,20,.55);
+    backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.14); border-radius:14px;
+  }
+
+  /* 提示文字 */
+  #hint {
+    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+    color:rgba(255,255,255,.85); font-size:15px; letter-spacing:2px;
+    text-shadow:0 1px 6px rgba(0,0,0,.5); pointer-events:none; z-index:5;
+    transition:opacity 1.2s; white-space:nowrap;
+  }
+
+  @media (max-width:480px){
+    .envBtn{ padding:7px 10px; font-size:13px; }
+    .toolBtn{ padding:8px 10px; font-size:13px; }
+    #sizeRange{ width:64px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="hint">在石头上写点什么吧…</div>
+
+<div id="envBar" class="glass">
+  <button class="envBtn active" data-env="grass">🌿 草地</button>
+  <button class="envBtn" data-env="sea">🌊 海边</button>
+  <button class="envBtn" data-env="lake">💧 湖边</button>
+  <button class="envBtn" data-env="mountain">⛰️ 山下</button>
+</div>
+
+<div id="stampBar" class="glass"></div>
+
+<div id="toolBar" class="glass">
+  <button class="toolBtn active" data-tool="carve">✏️ 刻字</button>
+  <button class="toolBtn" data-tool="stamp">☺️ 表情</button>
+  <button class="toolBtn" data-tool="erase">🧽 擦除</button>
+  <div class="sep"></div>
+  <input id="sizeRange" type="range" min="2" max="16" value="5" title="笔触粗细">
+  <div class="sep"></div>
+  <button class="toolBtn iconBtn" id="clearBtn" title="清空石头">🗑️</button>
+  <button class="toolBtn iconBtn" id="saveBtn" title="保存图片">💾</button>
+</div>
+
+<button id="soundBtn" title="音效开关">🔊</button>
+
+<script>
+'use strict';
+/* ============================================================
+   石头刻字模拟器
+   —— 草地 / 海边 / 湖边 / 山下，在石板上刻字、盖表情
+   ============================================================ */
+
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d');
+const hint = document.getElementById('hint');
+
+let W = 0, H = 0, DPR = 1;
+
+/* ---------- 随机数（可复现的场景） ---------- */
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- 石板几何 ---------- */
+let stone = { x:0, y:0, s:0 };          // 石板外接方
+let roundR = 0;
+
+function layoutStone(){
+  const s = Math.min(W * 0.56, H * 0.46);
+  stone = { x: W/2 - s/2, y: H * 0.60 - s/2, s };
+  roundR = s * 0.06;
+}
+function stonePath(c, inset=0, r=null){
+  const {x,y,s} = stone, i = inset, rr = (r==null?roundR:r);
+  c.beginPath();
+  c.moveTo(x+i+rr, y+i);
+  c.lineTo(x+s-i-rr, y+i);  c.quadraticCurveTo(x+s-i, y+i, x+s-i, y+i+rr);
+  c.lineTo(x+s-i, y+s-i-rr); c.quadraticCurveTo(x+s-i, y+s-i, x+s-i-rr, y+s-i);
+  c.lineTo(x+i+rr, y+s-i);  c.quadraticCurveTo(x+i, y+s-i, x+i, y+s-i-rr);
+  c.lineTo(x+i, y+i+rr);    c.quadraticCurveTo(x+i, y+i, x+i+rr, y+i);
+  c.closePath();
+}
+
+/* ---------- 石板纹理层 ---------- */
+let stoneCv, maskCv, maskData;
+function buildStone(env){
+  const {x,y,s} = stone;
+  stoneCv = document.createElement('canvas');
+  stoneCv.width = s + 40; stoneCv.height = s + 40;
+  const c = stoneCv.getContext('2d');
+  const ox = 20 - x, oy = 20 - y;   // 石板局部坐标偏移
+  c.translate(ox, oy);
+
+  const rnd = mulberry32(2026 + {grass:1,sea:2,lake:3,mountain:4}[env]*77);
+
+  // 投影
+  c.save();
+  c.shadowColor = 'rgba(0,0,0,.4)'; c.shadowBlur = s*0.06; c.shadowOffsetY = s*0.03;
+  stonePath(c); c.fillStyle = '#8f8a80'; c.fill();
+  c.restore();
+
+  // 基底
+  stonePath(c);
+  const base = c.createLinearGradient(x, y, x+s, y+s);
+  base.addColorStop(0, '#a29c90'); base.addColorStop(.5, '#948e83'); base.addColorStop(1, '#857f74');
+  c.fillStyle = base; c.fill();
+  c.save(); stonePath(c); c.clip();
+
+  // 大块云斑（深浅不一的水泥色斑）
+  for(let i=0;i<26;i++){
+    const px = x + rnd()*s, py = y + rnd()*s, r = s*(0.05+rnd()*0.14);
+    const g = c.createRadialGradient(px,py,0,px,py,r);
+    const dark = rnd() > 0.5;
+    g.addColorStop(0, dark ? 'rgba(60,58,52,'+(0.06+rnd()*0.10)+')' : 'rgba(215,210,198,'+(0.06+rnd()*0.10)+')');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.beginPath(); c.arc(px,py,r,0,7); c.fill();
+  }
+  // 细颗粒噪点
+  const n = Math.floor(s*s/38);
+  for(let i=0;i<n;i++){
+    const px = x + rnd()*s, py = y + rnd()*s;
+    const v = rnd();
+    c.fillStyle = v>0.5 ? 'rgba(40,38,34,'+(0.05+rnd()*0.16)+')' : 'rgba(230,226,215,'+(0.04+rnd()*0.13)+')';
+    c.fillRect(px, py, 1+rnd()*1.6, 1+rnd()*1.6);
+  }
+  // 小孔洞（像井盖的两个眼儿那种气孔）
+  for(let i=0;i<10;i++){
+    const px = x + s*(0.12+rnd()*0.76), py = y + s*(0.12+rnd()*0.76), r = 1.5+rnd()*3.5;
+    c.fillStyle = 'rgba(30,28,25,.55)';
+    c.beginPath(); c.arc(px,py,r,0,7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.18)';
+    c.beginPath(); c.arc(px, py+r*0.7, r*0.8, 0, Math.PI); c.fill();
+  }
+  // 裂纹
+  for(let i=0;i<5;i++){
+    let px = x + rnd()*s, py = y + rnd()*s;
+    c.strokeStyle = 'rgba(45,42,38,'+(0.25+rnd()*0.3)+')';
+    c.lineWidth = 0.8 + rnd()*1.2;
+    c.beginPath(); c.moveTo(px,py);
+    const segs = 4 + Math.floor(rnd()*5);
+    let ang = rnd()*Math.PI*2;
+    for(let k=0;k<segs;k++){
+      ang += (rnd()-0.5)*1.4;
+      const len = s*(0.03+rnd()*0.07);
+      px += Math.cos(ang)*len; py += Math.sin(ang)*len;
+      c.lineTo(px,py);
+    }
+    c.stroke();
+    c.strokeStyle = 'rgba(235,232,222,.25)'; c.lineWidth = 0.6;
+    c.beginPath(); c.moveTo(px,py);
+    c.lineTo(px - Math.cos(ang)*len*0.5 + 1, py - Math.sin(ang)*len*0.5 + 1);
+    c.stroke();
+  }
+  // 环境附着：苔藓 / 沙渍 / 地衣
+  if(env === 'grass'){
+    for(let i=0;i<16;i++){
+      const px = x + rnd()*s, py = y + s*(rnd()>0.45 ? rnd()*0.35 : 0.7+rnd()*0.3);
+      const r = s*(0.03+rnd()*0.08);
+      c.fillStyle = 'rgba(96,128,58,'+(0.10+rnd()*0.16)+')';
+      c.beginPath(); c.arc(px,py,r,0,7); c.fill();
+      c.fillStyle = 'rgba(140,170,80,'+(0.08+rnd()*0.1)+')';
+      c.beginPath(); c.arc(px+r*0.3, py-r*0.2, r*0.6,0,7); c.fill();
+    }
+  } else if(env === 'sea'){
+    for(let i=0;i<300;i++){
+      c.fillStyle = 'rgba(120,105,88,'+(0.06+rnd()*0.12)+')';
+      c.fillRect(x+rnd()*s, y+rnd()*s, 1+rnd()*2, 1+rnd()*2);
+    }
+  } else if(env === 'mountain'){
+    for(let i=0;i<12;i++){
+      const px = x+rnd()*s, py = y+rnd()*s, r = s*(0.02+rnd()*0.05);
+      c.fillStyle = rnd()>0.5 ? 'rgba(150,160,110,.14)' : 'rgba(170,140,90,.13)';
+      c.beginPath(); c.arc(px,py,r,0,7); c.fill();
+    }
+  }
+
+  // 内嵌凹面板（学井盖的边框）
+  const inset = s*0.055;
+  stonePath(c, inset, roundR*0.8);
+  c.strokeStyle = 'rgba(35,33,30,.5)'; c.lineWidth = Math.max(3, s*0.016);
+  c.stroke();
+  stonePath(c, inset + s*0.016, roundR*0.8);
+  c.strokeStyle = 'rgba(240,236,226,.35)';
+  c.lineWidth = Math.max(1.5, s*0.007);
+  c.stroke();
+  // 凹面板内部轻微加深
+  stonePath(c, inset + s*0.02, roundR*0.8);
+  c.fillStyle = 'rgba(0,0,0,.05)'; c.fill();
+
+  c.restore(); // 解除 clip
+
+  // 斜面倒角：左上亮、右下暗
+  c.lineWidth = 3;
+  c.save();
+  stonePath(c, 1.5);
+  const bevel = c.createLinearGradient(x, y, x+s, y+s);
+  bevel.addColorStop(0, 'rgba(235,230,218,.5)');
+  bevel.addColorStop(0.5, 'rgba(255,255,255,0)');
+  bevel.addColorStop(1, 'rgba(30,28,25,.5)');
+  c.strokeStyle = bevel; c.stroke();
+  c.restore();
+
+  /* --- 命中遮罩 --- */
+  maskCv = document.createElement('canvas');
+  maskCv.width = Math.ceil(s); maskCv.height = Math.ceil(s);
+  const mc = maskCv.getContext('2d');
+  mc.fillStyle = '#fff';
+  mc.beginPath();
+  const rr2 = roundR, S = s;
+  mc.moveTo(rr2,0); mc.lineTo(S-rr2,0); mc.quadraticCurveTo(S,0,S,rr2);
+  mc.lineTo(S,S-rr2); mc.quadraticCurveTo(S,S,S-rr2,S);
+  mc.lineTo(rr2,S); mc.quadraticCurveTo(0,S,0,S-rr2);
+  mc.lineTo(0,rr2); mc.quadraticCurveTo(0,0,rr2,0);
+  mc.closePath(); mc.fill();
+  maskData = mc.getImageData(0,0,maskCv.width,maskCv.height).data;
+}
+function onStone(px, py){
+  const lx = Math.floor(px - stone.x), ly = Math.floor(py - stone.y);
+  if(lx<0 || ly<0 || lx>=maskCv.width || ly>=maskCv.height) return false;
+  return maskData[(ly*maskCv.width + lx)*4 + 3] > 120;
+}
+
+/* ---------- 刻痕层 ---------- */
+let drawCv, dc;
+function initDrawLayer(){
+  const old = drawCv;
+  drawCv = document.createElement('canvas');
+  drawCv.width = W*DPR; drawCv.height = H*DPR;
+  dc = drawCv.getContext('2d');
+  dc.scale(DPR, DPR);
+  if(old){ dc.drawImage(old, 0, 0, W, H); }
+}
+
+/* 刻痕效果：暗色刻线 + 下缘高光 + 噪点破损 */
+function carveSegment(x1,y1,x2,y2,size){
+  dc.save();
+  stonePath(dc, stone.s*0.02); dc.clip();
+  dc.lineCap = 'round'; dc.lineJoin = 'round';
+
+  // 下缘高光（光从左上来，刻槽右下被照亮）
+  dc.strokeStyle = 'rgba(245,242,232,.4)';
+  dc.lineWidth = size;
+  dc.beginPath(); dc.moveTo(x1+0.8, y1+1.4); dc.lineTo(x2+0.8, y2+1.4); dc.stroke();
+
+  // 主体暗刻痕
+  dc.strokeStyle = 'rgba(38,35,31,.78)';
+  dc.beginPath(); dc.moveTo(x1,y1); dc.lineTo(x2,y2); dc.stroke();
+
+  // 中心更深
+  if(size > 3){
+    dc.strokeStyle = 'rgba(20,18,16,.5)';
+    dc.lineWidth = size*0.5;
+    dc.beginPath(); dc.moveTo(x1,y1); dc.lineTo(x2,y2); dc.stroke();
+  }
+
+  // 噪点破损 → 石屑质感
+  dc.globalCompositeOperation = 'destination-out';
+  const d = Math.hypot(x2-x1, y2-y1);
+  const holes = Math.max(2, Math.floor(d * size * 0.22));
+  for(let i=0;i<holes;i++){
+    const t = Math.random();
+    const hx = x1+(x2-x1)*t + (Math.random()-0.5)*size*1.4;
+    const hy = y1+(y2-y1)*t + (Math.random()-0.5)*size*1.4;
+    dc.fillStyle = 'rgba(0,0,0,'+(0.3+Math.random()*0.6)+')';
+    dc.beginPath();
+    dc.arc(hx, hy, 0.4+Math.random()*size*0.22, 0, 7);
+    dc.fill();
+  }
+  dc.restore();
+}
+function eraseSegment(x1,y1,x2,y2,size){
+  dc.save();
+  dc.globalCompositeOperation = 'destination-out';
+  dc.lineCap='round'; dc.lineJoin='round';
+  dc.strokeStyle='rgba(0,0,0,1)'; dc.lineWidth=size*2.6;
+  dc.beginPath(); dc.moveTo(x1,y1); dc.lineTo(x2,y2); dc.stroke();
+  dc.restore();
+}
+
+/* 表情刻印 */
+const STAMPS = ['^_^','>_<','T_T','@_@','x_x','0_0','QAQ',':)','XD','❤','★','Zzz'];
+let currentStamp = '^_^';
+function placeStamp(px, py, text){
+  const size = Math.max(18, stone.s*0.11);
+  dc.save();
+  stonePath(dc, stone.s*0.03); dc.clip();
+  dc.textAlign='center'; dc.textBaseline='middle';
+  dc.font = '600 '+size+'px ui-monospace,Menlo,Consolas,monospace';
+  // 下缘高光
+  dc.fillStyle = 'rgba(245,242,232,.4)';
+  dc.fillText(text, px+1.2, py+1.8);
+  // 主体
+  dc.fillStyle = 'rgba(38,35,31,.8)';
+  dc.fillText(text, px, py);
+  // 噪点破损
+  dc.globalCompositeOperation = 'destination-out';
+  for(let i=0;i<Math.floor(size*size*0.05);i++){
+    dc.fillStyle='rgba(0,0,0,'+(0.25+Math.random()*0.5)+')';
+    dc.beginPath();
+    dc.arc(px+(Math.random()-0.5)*size*1.5, py+(Math.random()-0.5)*size*1.2, 0.4+Math.random()*1.3, 0, 7);
+    dc.fill();
+  }
+  dc.restore();
+  playStampSound();
+}
+
+/* ============================================================
+   环境场景绘制
+   ============================================================ */
+let env = 'grass';
+let sceneSeedBase = {grass:11, sea:22, lake:33, mountain:44};
+
+let grassBlades = [], flowers = [], seaFoam = [], lakeShimmer = [], reeds = [], pines = [], stars = [], dust = [];
+
+function buildSceneProps(){
+  const rnd = mulberry32(900 + sceneSeedBase[env]);
+  grassBlades=[]; flowers=[]; seaFoam=[]; lakeShimmer=[]; reeds=[]; pines=[]; stars=[]; dust=[];
+
+  if(env==='grass'){
+    const n = Math.floor(W*H/2600);
+    for(let i=0;i<n;i++) grassBlades.push({
+      x:rnd()*W, y:H*0.42+rnd()*H*0.6, h:8+rnd()*22, sway:rnd()*6.28, sp:0.5+rnd()*1.2,
+      c:['#3d7a2c','#4c8f36','#2f6b24','#5aa03e'][Math.floor(rnd()*4)], fg:rnd()>0.62
+    });
+    for(let i=0;i<Math.floor(n/22);i++) flowers.push({
+      x:rnd()*W, y:H*0.5+rnd()*H*0.5, r:1.5+rnd()*2.5,
+      c:['#f6d64a','#f0f0f0','#e88bb0','#cfe3f7'][Math.floor(rnd()*4)]
+    });
+  } else if(env==='sea'){
+    for(let i=0;i<7;i++) seaFoam.push({ y:0.14+i*0.055, sp:0.2+rnd()*0.35, ph:rnd()*6.28, amp:6+rnd()*14 });
+    for(let i=0;i<Math.floor(W*H/1800);i++) dust.push({
+      x:rnd()*W, y:H*0.52+rnd()*H*0.5, r:0.6+rnd()*1.6, a:0.05+rnd()*0.12
+    });
+  } else if(env==='lake'){
+    for(let i=0;i<Math.floor(W/6);i++) lakeShimmer.push({
+      x:rnd()*W, y:H*0.5+rnd()*H*0.2, w:6+rnd()*26, ph:rnd()*6.28, sp:0.4+rnd()*1
+    });
+    for(let i=0;i<Math.floor(W/26);i++) reeds.push({
+      x:rnd()*W, baseY:H*(0.66+rnd()*0.3), h:30+rnd()*80, sway:rnd()*6.28,
+      fg:rnd()>0.4, side:rnd()
+    });
+  } else { // mountain
+    for(let i=0;i<60;i++) stars.push({x:rnd()*W, y:rnd()*H*0.4, r:0.4+rnd()*1.1, tw:rnd()*6.28});
+    for(let i=0;i<Math.floor(W/22);i++){
+      const x = rnd()*W, s = 0.2+rnd();
+      pines.push({x, baseY:H*0.55+rnd()*H*0.12, h:(30+rnd()*60)*s, w:(10+rnd()*18)*s, fg:rnd()>0.5});
+    }
+  }
+}
+
+function drawSky(c, top, bottom){
+  const g = c.createLinearGradient(0,0,0,H*0.6);
+  g.addColorStop(0, top); g.addColorStop(1, bottom);
+  c.fillStyle = g; c.fillRect(0,0,W,H*0.6+2);
+}
+
+/* 背景（石板之下） */
+function drawSceneBg(t){
+  const c = ctx;
+  if(env==='grass'){
+    drawSky(c, '#aee3f7', '#e8f6e0');
+    const g = c.createLinearGradient(0,H*0.4,0,H);
+    g.addColorStop(0,'#69b04a'); g.addColorStop(1,'#3f7d2c');
+    c.fillStyle=g; c.fillRect(0,H*0.4,W,H*0.6);
+    // 远处草色带
+    c.fillStyle='rgba(255,255,220,.12)';
+    c.fillRect(0,H*0.4,W,H*0.05);
+    // 背景草
+    for(const b of grassBlades){ if(b.fg) continue;
+      drawBlade(c,b,t,0.5);
+    }
+    for(const f of flowers){
+      c.fillStyle=f.c; c.beginPath(); c.arc(f.x,f.y,f.r,0,7); c.fill();
+      c.fillStyle='rgba(255,255,255,.5)'; c.beginPath(); c.arc(f.x-f.r*0.3,f.y-f.r*0.3,f.r*0.4,0,7); c.fill();
+    }
+  } else if(env==='sea'){
+    drawSky(c, '#ffd9a0', '#ffeecf');
+    // 太阳
+    c.fillStyle='rgba(255,190,90,.85)';
+    c.beginPath(); c.arc(W*0.72,H*0.2,Math.min(W,H)*0.06,0,7); c.fill();
+    c.fillStyle='rgba(255,210,120,.35)';
+    c.beginPath(); c.arc(W*0.72,H*0.2,Math.min(W,H)*0.11,0,7); c.fill();
+    // 海
+    const hg = c.createLinearGradient(0,H*0.34,0,H*0.52);
+    hg.addColorStop(0,'#2e7ea6'); hg.addColorStop(1,'#5db6c9');
+    c.fillStyle=hg; c.fillRect(0,H*0.34,W,H*0.19);
+    // 波浪
+    c.strokeStyle='rgba(255,255,255,.55)';
+    for(const f of seaFoam){
+      c.lineWidth=1.2;
+      c.beginPath();
+      const yy = H*f.y;
+      for(let x=0;x<=W;x+=8){
+        const y = yy + Math.sin(x*0.02 + t*0.001*f.sp*4 + f.ph)*f.amp*0.3;
+        x===0 ? c.moveTo(x,y) : c.lineTo(x,y);
+      }
+      c.stroke();
+    }
+    // 沙滩
+    const sg = c.createLinearGradient(0,H*0.52,0,H);
+    sg.addColorStop(0,'#e8cf9e'); sg.addColorStop(1,'#d4b47e');
+    c.fillStyle=sg; c.fillRect(0,H*0.52,W,H*0.48);
+    // 湿沙
+    c.fillStyle='rgba(160,130,90,.3)';
+    c.beginPath();
+    c.moveTo(0,H*0.53);
+    for(let x=0;x<=W;x+=10) c.lineTo(x, H*0.53 + Math.sin(x*0.015+1)*8);
+    c.lineTo(W,H*0.56); c.lineTo(0,H*0.56); c.closePath(); c.fill();
+    for(const d of dust){
+      c.fillStyle='rgba(120,95,60,'+d.a+')';
+      c.beginPath(); c.arc(d.x,d.y,d.r,0,7); c.fill();
+    }
+  } else if(env==='lake'){
+    drawSky(c, '#bfe3f2', '#f2f7e8');
+    // 远山
+    c.fillStyle='rgba(120,150,140,.5)';
+    mountainRange(c, H*0.34, 0.06, 3.1);
+    c.fillStyle='rgba(95,130,120,.65)';
+    mountainRange(c, H*0.4, 0.09, 5.7);
+    // 湖水
+    const wg = c.createLinearGradient(0,H*0.42,0,H*0.72);
+    wg.addColorStop(0,'#7fb8c9'); wg.addColorStop(1,'#4a8ba0');
+    c.fillStyle=wg; c.fillRect(0,H*0.42,W,H*0.3);
+    // 岸
+    const bg = c.createLinearGradient(0,H*0.7,0,H);
+    bg.addColorStop(0,'#7ea253'); bg.addColorStop(1,'#527a37');
+    c.fillStyle=bg; c.fillRect(0,H*0.7,W,H*0.3);
+    // 波光
+    c.fillStyle='rgba(255,255,255,.5)';
+    for(const s of lakeShimmer){
+      const a = (Math.sin(t*0.001*s.sp + s.ph)+1)/2;
+      c.fillStyle='rgba(255,255,255,'+(0.12+a*0.3)+')';
+      c.fillRect(s.x, s.y, s.w, 1.4);
+    }
+    // 芦苇（背景层）
+    for(const r of reeds){ if(!r.fg) drawReed(c,r,t); }
+  } else { // mountain
+    drawSky(c, '#2c3e5c', '#8fa8c4');
+    for(const s of stars){
+      const a = 0.3 + (Math.sin(t*0.002+s.tw)+1)/2*0.7;
+      c.fillStyle='rgba(255,255,255,'+a*0.8+')';
+      c.beginPath(); c.arc(s.x,s.y,s.r,0,7); c.fill();
+    }
+    // 雪峰
+    c.fillStyle='#5e7392';
+    mountainRange(c, H*0.52, 0.18, 1.3);
+    // 雪顶
+    c.save();
+    c.beginPath();
+    peakPath(c, H*0.52, 0.18, 1.3);
+    c.clip();
+    c.fillStyle='#e9eef5';
+    mountainRange(c, H*0.52 - H*0.18*0.28, 0.18, 1.3);
+    c.fillRect(0,0,W,H*0.42);
+    c.restore();
+    // 地面
+    const g = c.createLinearGradient(0,H*0.62,0,H);
+    g.addColorStop(0,'#5d6b4a'); g.addColorStop(1,'#3f4c33');
+    c.fillStyle=g; c.fillRect(0,H*0.62,W,H*0.38);
+    // 松树（背景层）
+    for(const p of pines){ if(!p.fg) drawPine(c,p); }
+    // 雾气
+    const fog = c.createLinearGradient(0,H*0.45,0,H*0.68);
+    fog.addColorStop(0,'rgba(220,230,240,0)');
+    fog.addColorStop(1,'rgba(220,230,240,.35)');
+    c.fillStyle=fog; c.fillRect(0,H*0.45,W,H*0.23);
+  }
+}
+
+function mountainRange(c, baseY, amp, seed){
+  const rnd = mulberry32(seed*1000|0);
+  c.beginPath(); c.moveTo(0, baseY);
+  const seg = 8;
+  let x = 0;
+  for(let i=0;i<=seg;i++){
+    const px = W*i/seg;
+    const py = baseY - Math.abs(Math.sin(i*2.3+seed))*H*amp;
+    c.lineTo(px,py);
+  }
+  c.lineTo(W, baseY+H*0.3); c.lineTo(0, baseY+H*0.3);
+  c.closePath(); c.fill();
+}
+function peakPath(c, baseY, amp, seed){
+  c.beginPath(); c.moveTo(0, baseY);
+  for(let i=0;i<=8;i++){
+    c.lineTo(W*i/8, baseY - Math.abs(Math.sin(i*2.3+seed))*H*amp);
+  }
+  c.lineTo(W, baseY+H*0.3); c.lineTo(0, baseY+H*0.3);
+  c.closePath();
+}
+function drawBlade(c,b,t,alpha){
+  const sw = Math.sin(t*0.0012*b.sp + b.sway)*b.h*0.35;
+  c.strokeStyle=b.c; c.globalAlpha=alpha;
+  c.lineWidth=1.4; c.lineCap='round';
+  c.beginPath();
+  c.moveTo(b.x, b.y);
+  c.quadraticCurveTo(b.x+sw*0.5, b.y-b.h*0.6, b.x+sw, b.y-b.h);
+  c.stroke();
+  c.globalAlpha=1;
+}
+function drawReed(c,r,t){
+  const sw = Math.sin(t*0.0011 + r.sway)*r.h*0.18;
+  c.strokeStyle = r.fg ? '#4c6b2f' : '#5f7f3c';
+  c.lineWidth=2;
+  c.beginPath();
+  c.moveTo(r.x, r.baseY);
+  c.quadraticCurveTo(r.x+sw*0.4, r.baseY-r.h*0.6, r.x+sw, r.baseY-r.h);
+  c.stroke();
+  if(r.side>0.5){
+    c.fillStyle='#6b5636';
+    c.beginPath();
+    c.ellipse(r.x+sw, r.baseY-r.h-4, 2.4, 8, sw*0.02, 0, 7);
+    c.fill();
+  }
+}
+function drawPine(c,p){
+  c.fillStyle='#2f4a30';
+  c.fillRect(p.x-1.5, p.baseY-6, 3, 8);
+  for(let i=0;i<3;i++){
+    const ly = p.baseY - p.h*(0.25+i*0.28);
+    const lw = p.w*(1-i*0.28);
+    c.beginPath();
+    c.moveTo(p.x, ly - p.h*0.42);
+    c.lineTo(p.x+lw, ly);
+    c.lineTo(p.x-lw, ly);
+    c.closePath(); c.fill();
+  }
+}
+
+/* 前景（石板之上，遮挡底部） */
+function drawSceneFg(t){
+  const c = ctx;
+  const sx = stone.x, sy = stone.y, s = stone.s;
+  if(env==='grass'){
+    for(const b of grassBlades){ if(b.fg) drawBlade(c,b,t,1); }
+    // 石板底部压草
+    c.save();
+    c.beginPath(); c.rect(sx-30, sy+s-14, s+60, 40); c.clip();
+    for(let i=0;i<60;i++){
+      const x = sx + (i/60)*s + Math.sin(i*7)*6;
+      drawBlade(c, {x, y:sy+s+6, h:12+(i*13%14), sway:i, sp:1+i%3*0.4, c:'#3d7a2c'}, t, 1);
+    }
+    c.restore();
+  } else if(env==='sea'){
+    // 冲上来的泡沫（会漫到石板下缘）
+    const waveY = sy+s + Math.sin(t*0.0009)*10 - 4;
+    const fg = c.createLinearGradient(0,waveY-16,0,waveY+26);
+    fg.addColorStop(0,'rgba(255,255,255,0)');
+    fg.addColorStop(0.6,'rgba(255,255,255,.75)');
+    fg.addColorStop(1,'rgba(255,255,255,0)');
+    c.fillStyle=fg;
+    c.beginPath();
+    c.moveTo(0,waveY+26);
+    for(let x=0;x<=W;x+=10) c.lineTo(x, waveY + Math.sin(x*0.02+t*0.001)*7);
+    c.lineTo(W,waveY+26); c.closePath(); c.fill();
+  } else if(env==='lake'){
+    for(const r of reeds){ if(r.fg) drawReed(c,r,t); }
+  } else {
+    for(const p of pines){ if(p.fg && p.baseY > sy+s*0.5) drawPine(c,p); }
+  }
+}
+
+/* ============================================================
+   音效（Web Audio 全程序化生成）
+   ============================================================ */
+let AC = null, master = null, noiseBuf = null;
+let soundOn = true;
+let amb = { nodes:[], timers:[] };
+let scratchGain = null;
+
+function ensureAudio(){
+  if(AC) return;
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  master = AC.createGain(); master.gain.value = 0.9;
+  master.connect(AC.destination);
+  // 2 秒白噪声 buffer
+  const len = AC.sampleRate * 2;
+  noiseBuf = AC.createBuffer(1, len, AC.sampleRate);
+  const d = noiseBuf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
+  initScratch();
+}
+function noiseSrc(){
+  const s = AC.createBufferSource();
+  s.buffer = noiseBuf; s.loop = true;
+  s.start();
+  return s;
+}
+function windLayer(level, cutoff, lfoRate){
+  const src = noiseSrc();
+  const f = AC.createBiquadFilter(); f.type='lowpass'; f.frequency.value=cutoff; f.Q.value=0.5;
+  const g = AC.createGain(); g.gain.value = level*0.6;
+  const lfo = AC.createOscillator(); lfo.frequency.value = lfoRate;
+  const lg = AC.createGain(); lg.gain.value = level*0.4;
+  lfo.connect(lg); lg.connect(g.gain); lfo.start();
+  src.connect(f); f.connect(g); g.connect(master);
+  amb.nodes.push(src, lfo, f, g, lg);
+}
+function waterLap(level, rate){
+  const src = noiseSrc();
+  const f = AC.createBiquadFilter(); f.type='lowpass'; f.frequency.value=350;
+  const g = AC.createGain(); g.gain.value = level*0.4;
+  const lfo = AC.createOscillator(); lfo.frequency.value = rate;
+  const lg = AC.createGain(); lg.gain.value = level*0.5;
+  lfo.connect(lg); lg.connect(g.gain); lfo.start();
+  src.connect(f); f.connect(g); g.connect(master);
+  amb.nodes.push(src, lfo, f, g, lg);
+}
+function birdChirp(){
+  const t = AC.currentTime;
+  const reps = 2 + Math.floor(Math.random()*3);
+  for(let i=0;i<reps;i++){
+    const st = t + i*(0.14+Math.random()*0.1);
+    const o = AC.createOscillator(); o.type='sine';
+    const g = AC.createGain();
+    const f0 = 2300+Math.random()*900;
+    o.frequency.setValueAtTime(f0, st);
+    o.frequency.exponentialRampToValueAtTime(f0*1.4, st+0.06);
+    o.frequency.exponentialRampToValueAtTime(f0*0.85, st+0.13);
+    g.gain.setValueAtTime(0, st);
+    g.gain.linearRampToValueAtTime(0.09, st+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, st+0.16);
+    o.connect(g); g.connect(master);
+    o.start(st); o.stop(st+0.2);
+  }
+}
+function seagull(){
+  const t = AC.currentTime;
+  const o = AC.createOscillator(); o.type='sawtooth';
+  const f = AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1400; f.Q.value=2;
+  const g = AC.createGain();
+  o.frequency.setValueAtTime(1350,t);
+  o.frequency.exponentialRampToValueAtTime(880, t+0.45);
+  const vib = AC.createOscillator(); vib.frequency.value=9;
+  const vg = AC.createGain(); vg.gain.value=40;
+  vib.connect(vg); vg.connect(o.frequency); vib.start(t); vib.stop(t+0.5);
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(0.05,t+0.08);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+  o.connect(f); f.connect(g); g.connect(master);
+  o.start(t); o.stop(t+0.55);
+}
+function frogCroak(){
+  const t = AC.currentTime;
+  for(let i=0;i<2;i++){
+    const st = t + i*0.22;
+    const o = AC.createOscillator(); o.type='sawtooth'; o.frequency.value=110+Math.random()*30;
+    const trem = AC.createOscillator(); trem.frequency.value=26;
+    const tg = AC.createGain(); tg.gain.value=0.5;
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0,st);
+    g.gain.linearRampToValueAtTime(0.07,st+0.03);
+    g.gain.exponentialRampToValueAtTime(0.001,st+0.16);
+    trem.connect(tg); tg.connect(g.gain);
+    const f = AC.createBiquadFilter(); f.type='lowpass'; f.frequency.value=500;
+    o.connect(f); f.connect(g); g.connect(master);
+    o.start(st); o.stop(st+0.2); trem.start(st); trem.stop(st+0.2);
+  }
+}
+function cricket(){
+  const t = AC.currentTime;
+  for(let i=0;i<6;i++){
+    const st = t + i*0.045;
+    const o = AC.createOscillator(); o.type='sine'; o.frequency.value=4300;
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0,st);
+    g.gain.linearRampToValueAtTime(0.03,st+0.008);
+    g.gain.exponentialRampToValueAtTime(0.001,st+0.035);
+    o.connect(g); g.connect(master);
+    o.start(st); o.stop(st+0.04);
+  }
+}
+function hawkCry(){
+  const t = AC.currentTime;
+  const o = AC.createOscillator(); o.type='sawtooth';
+  const f = AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1000; f.Q.value=3;
+  const g = AC.createGain();
+  o.frequency.setValueAtTime(950,t);
+  o.frequency.exponentialRampToValueAtTime(520, t+0.8);
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(0.045,t+0.15);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.85);
+  o.connect(f); f.connect(g); g.connect(master);
+  o.start(t); o.stop(t+0.9);
+}
+function schedule(fn, minS, maxS){
+  function loop(){
+    fn();
+    amb.timers.push(setTimeout(loop, (minS + Math.random()*(maxS-minS))*1000));
+  }
+  amb.timers.push(setTimeout(loop, 400 + Math.random()*1500));
+}
+function initScratch(){
+  const src = noiseSrc();
+  const f = AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1900; f.Q.value=0.7;
+  scratchGain = AC.createGain(); scratchGain.gain.value = 0;
+  src.connect(f); f.connect(scratchGain); scratchGain.connect(master);
+  amb.nodes.push(src, f, scratchGain);
+}
+function scratchOn(){
+  if(!AC || !scratchGain) return;
+  scratchGain.gain.setTargetAtTime(0.05 + Math.random()*0.03, AC.currentTime, 0.015);
+}
+function scratchOff(){
+  if(!AC || !scratchGain) return;
+  scratchGain.gain.setTargetAtTime(0, AC.currentTime, 0.04);
+}
+function playStampSound(){
+  if(!AC || !soundOn) return;
+  // 咚的闷响
+  const t = AC.currentTime;
+  const o = AC.createOscillator(); o.type='sine';
+  const g = AC.createGain();
+  o.frequency.setValueAtTime(180,t);
+  o.frequency.exponentialRampToValueAtTime(70,t+0.12);
+  g.gain.setValueAtTime(0.18,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.18);
+  o.connect(g); g.connect(master);
+  o.start(t); o.stop(t+0.2);
+  const s = noiseSrc(); // 短促石屑声
+  const f = AC.createBiquadFilter(); f.type='highpass'; f.frequency.value=2000;
+  const ng = AC.createGain();
+  ng.gain.setValueAtTime(0.06,t);
+  ng.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+  s.connect(f); f.connect(ng); ng.connect(master);
+  s.stop(t+0.12);
+}
+
+function stopAmbience(){
+  amb.nodes.forEach(n => { try{ n.stop && n.stop(); }catch(e){} try{ n.disconnect(); }catch(e){} });
+  amb.timers.forEach(clearTimeout);
+  amb.nodes = []; amb.timers = [];
+}
+function startAmbience(){
+  if(!AC || !soundOn) return;
+  scratchGain = null;
+  stopAmbience();
+  initScratch();
+  if(env==='grass'){
+    windLayer(0.04, 700, 0.1);
+    schedule(birdChirp, 2.5, 7);
+    schedule(cricket, 8, 18);
+  } else if(env==='sea'){
+    windLayer(0.09, 480, 0.11);
+    waterLap(0.1, 0.14);
+    schedule(seagull, 6, 14);
+  } else if(env==='lake'){
+    windLayer(0.025, 400, 0.08);
+    waterLap(0.06, 0.3);
+    schedule(frogCroak, 3, 9);
+    schedule(cricket, 5, 12);
+    schedule(birdChirp, 9, 20);
+  } else {
+    windLayer(0.075, 850, 0.06);
+    schedule(hawkCry, 9, 22);
+    schedule(birdChirp, 7, 16);
+  }
+}
+
+/* ============================================================
+   交互
+   ============================================================ */
+let tool = 'carve';
+let brushSize = 5;
+let drawing = false, lastX = 0, lastY = 0;
+let hintFaded = false;
+
+function fadeHint(){
+  if(hintFaded) return;
+  hintFaded = true;
+  hint.style.opacity = '0';
+}
+
+function pt(e){
+  const r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+canvas.addEventListener('pointerdown', e => {
+  ensureAudio();
+  if(AC.state === 'suspended') AC.resume();
+  const p = pt(e);
+  if(!onStone(p.x, p.y)) return;
+  fadeHint();
+  if(tool === 'stamp'){
+    placeStamp(p.x, p.y, currentStamp);
+    return;
+  }
+  drawing = true;
+  lastX = p.x; lastY = p.y;
+  canvas.setPointerCapture(e.pointerId);
+  if(tool === 'carve' && soundOn) scratchOn();
+  // 点一下也留个点
+  if(tool === 'carve') carveSegment(p.x-0.1, p.y-0.1, p.x+0.1, p.y+0.1, brushSize);
+});
+canvas.addEventListener('pointermove', e => {
+  if(!drawing) return;
+  const p = pt(e);
+  if(tool === 'erase'){
+    eraseSegment(lastX, lastY, p.x, p.y, brushSize);
+    lastX = p.x; lastY = p.y;
+    return;
+  }
+  // 只在石头上刻
+  if(onStone(p.x, p.y)){
+    carveSegment(lastX, lastY, p.x, p.y, brushSize);
+    lastX = p.x; lastY = p.y;
+    if(Math.random() < 0.3 && soundOn) scratchOn();
+  } else {
+    lastX = p.x; lastY = p.y;
+  }
+});
+function endDraw(){
+  if(!drawing) return;
+  drawing = false;
+  scratchOff();
+}
+canvas.addEventListener('pointerup', endDraw);
+canvas.addEventListener('pointercancel', endDraw);
+canvas.addEventListener('pointerleave', endDraw);
+
+/* UI 绑定 */
+document.querySelectorAll('.envBtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(btn.dataset.env === env) return;
+    document.querySelectorAll('.envBtn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    env = btn.dataset.env;
+    rebuildAll();
+    ensureAudio();
+    if(AC.state === 'suspended') AC.resume();
+    startAmbience();
+  });
+});
+document.querySelectorAll('.toolBtn[data-tool]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.toolBtn[data-tool]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    tool = btn.dataset.tool;
+    document.getElementById('stampBar').classList.toggle('show', tool === 'stamp');
+    canvas.style.cursor = tool === 'erase' ? 'cell' : 'crosshair';
+  });
+});
+document.getElementById('sizeRange').addEventListener('input', e => {
+  brushSize = +e.target.value;
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+  dc.save();
+  dc.setTransform(1,0,0,1,0,0);
+  dc.clearRect(0,0,drawCv.width,drawCv.height);
+  dc.restore();
+  playStampSound();
+});
+document.getElementById('soundBtn').addEventListener('click', function(){
+  ensureAudio();
+  soundOn = !soundOn;
+  this.textContent = soundOn ? '🔊' : '🔇';
+  master.gain.setTargetAtTime(soundOn ? 0.9 : 0, AC.currentTime, 0.05);
+  if(soundOn) startAmbience();
+});
+
+/* 表情按钮 */
+const stampBar = document.getElementById('stampBar');
+STAMPS.forEach((s,i) => {
+  const b = document.createElement('button');
+  b.className = 'stampBtn' + (i===0 ? ' active' : '');
+  b.textContent = s;
+  b.addEventListener('click', () => {
+    currentStamp = s;
+    stampBar.querySelectorAll('.stampBtn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  });
+  stampBar.appendChild(b);
+});
+
+/* ============================================================
+   主循环 & 尺寸
+   ============================================================ */
+function rebuildAll(){
+  layoutStone();
+  buildSceneProps();
+  buildStone(env);
+}
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W*DPR; canvas.height = H*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  initDrawLayer();
+  rebuildAll();
+}
+window.addEventListener('resize', resize);
+
+function frame(t){
+  ctx.clearRect(0,0,W,H);
+  drawSceneBg(t);
+  // 石板
+  ctx.drawImage(stoneCv, stone.x-20, stone.y-20);
+  // 刻痕层
+  ctx.drawImage(drawCv, 0, 0, W, H);
+  drawSceneFg(t);
+  requestAnimationFrame(frame);
+}
+
+resize();
+requestAnimationFrame(frame);
+
+/* ---------- 保存图片 ---------- */
+const saveBtn = document.getElementById('saveBtn');
+saveBtn.addEventListener('click', () => {
+  // 主 canvas 只含场景（UI 是 DOM 层），直接导出即可
+  const a = document.createElement('a');
+  a.download = '石头刻字-' + Date.now() + '.png';
+  canvas.toBlob(b => {
+    if (!b) return;
+    a.href = URL.createObjectURL(b);
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    playStampSound();
+  }, 'image/png');
+});
+
+/* 首次任意交互解锁音频 */
+window.addEventListener('pointerdown', function once(){
+  ensureAudio();
+  if(AC.state === 'suspended') AC.resume();
+  startAmbience();
+  window.removeEventListener('pointerdown', once);
+});
+</script>
+</body>
+</html>
