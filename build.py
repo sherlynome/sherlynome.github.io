@@ -53,6 +53,9 @@ BLOGS = []   # dict(date, title, text, read, link)
 LINKS = [
     dict(href="https://lolitalibrary.com/", icon="📖", title="Lo研社 · Lolita图书馆",
          desc="Lolita 服饰与文化研习社 · 查裙子查资料"),
+    dict(href="https://oldworld.app.workbuddy.host/?sharecode=OUEN47PVUO", icon="📚",
+         title="旧世界系列 · 书房",
+         desc="丹特丽安式古书房，点开书柜取卷，一部器物与计算机编年史"),
 ]
 
 FOOTER = """
