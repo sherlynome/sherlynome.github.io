@@ -56,6 +56,9 @@ LINKS = [
     dict(href="https://oldworld.app.workbuddy.host/?sharecode=OUEN47PVUO", icon="📚",
          title="旧世界系列 · 书房",
          desc="丹特丽安式古书房，点开书柜取卷，一部器物与计算机编年史"),
+    dict(href="https://sherlynome.github.io/cong-cong-rock/", icon="🥬",
+         title="葱葱摇滚 · 互动音乐可视化",
+         desc="初音未来主题 · 键盘演奏 + 导入音乐/视频自动生成葱系粒子特效"),
 ]
 
 FOOTER = """
